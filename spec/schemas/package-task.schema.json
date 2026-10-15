@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://inquiryathome.org/schema/v0/package-task.schema.json",
+  "title": "Result package TASK.json",
+  "type": "object",
+  "required": ["card", "catalog_revision", "scope", "scope_status", "outcome", "evidence_level", "next_questions"],
+  "properties": {
+    "card": { "type": "string", "description": "Original card id, or 'none' for a self-directed task." },
+    "catalog_revision": { "type": "integer" },
+    "scope": { "type": "string" },
+    "scope_status": { "enum": ["unchanged", "refined", "changed"] },
+    "scope_change_reason": { "type": "string" },
+    "bottleneck_link": { "type": "string" },
+    "budget_minutes": { "type": "integer" },
+    "outcome": { "enum": ["positive", "negative", "partial", "obstruction", "verification", "tooling"] },
+    "evidence_level": { "enum": ["local-only", "author-checked", "independently-checked"] },
+    "not_checked": { "type": "array", "items": { "type": "string" }, "description": "Obligations explicitly left unverified." },
+    "next_questions": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["question", "why_it_matters", "first_step", "blocked_by"],
+        "properties": { "question": { "type": "string" }, "why_it_matters": { "type": "string" }, "first_step": { "type": "string" }, "blocked_by": { "type": "string" } }
+      }
+    },
+    "no_open_questions_reason": { "type": "string" },
+    "credit": { "type": "array", "items": { "type": "string" } },
+    "ai_assistance": { "type": "string" }
+  },
+  "allOf": [
+    { "if": { "properties": { "scope_status": { "enum": ["refined", "changed"] } } }, "then": { "required": ["scope_change_reason"] } }
+  ]
+}

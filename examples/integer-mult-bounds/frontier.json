@@ -1,0 +1,24 @@
+{
+  "schema": "inquiry-frontier/v0",
+  "statement": "Conditional exponent saving κ for integer multiplication from the assembled finite construction of #1094.",
+  "status": "Maintainer-reviewed conditional finite construction",
+  "evidence_level": ["author-checked", "independently-checked", "maintainer-reviewed"],
+  "metric": {
+    "name": "kappa",
+    "value": "836330098538459/500000000000000000",
+    "decimal": "0.001672660197076918",
+    "direction": "higher-is-better"
+  },
+  "scope": "Finite composition under inherited all-size/compiler, common-label/mutable-source, whole-call hosting, precision/tape and analytic assumptions. Not a complete multiplication theorem.",
+  "assumptions": [
+    { "id": "inherited-interfaces", "statement": "Lifting the checked finite construction to the intended all-size theorem.", "status": "open" }
+  ],
+  "sources": ["#1094", "#1087", "#1082", "…"],
+  "artifacts": [
+    { "path": "research/community-frontier1094-audit/ASSEMBLY.json", "sha256": "1122cb3a575f8c788345fc1bf4c108ac7c3250fb81a5988671f5eb04b3ab3045", "role": "certificate" }
+  ],
+  "reproduce": "make frontier1094-verify",
+  "review": "docs/research/community-batch1099-review.md",
+  "previous_record": "certificates/checkpoints/frontier1042.json",
+  "updated_on": "2026-10-15"
+}
