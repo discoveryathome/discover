@@ -7,7 +7,7 @@ from pathlib import Path
 AGENTS_SNIPPET = """\
 ## Discovery@Home
 
-This repository follows the [Discovery@Home protocol](https://github.com/discoveryathome/discoveryathome)
+This repository follows the [Discovery@Home protocol](https://github.com/discoveryathome/discover)
 (`discover.json`). For open-ended requests such as "contribute" or "use spare inference,"
 start with [{project}]({project}). Explicit user tasks take precedence over the default
 task selection. Resolve the current accepted result through `{frontier}`; historical notes

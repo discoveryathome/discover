@@ -28,7 +28,8 @@ Status: **v0 draft**, extracted from the coordination setup in
 Claude Code:
 
 ```
-/plugin install discover --marketplace discoveryathome/discoveryathome
+/plugin marketplace add discoveryathome/discover
+/plugin install discover@discoveryathome
 ```
 
 That adds the four skills (`/discover:contribute`, `/discover:collaborate`,

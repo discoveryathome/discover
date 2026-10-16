@@ -13,7 +13,7 @@ const state = { data: null, q: "", domain: "", profile: "", minLevel: -1 };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const safeUrl = (u) => { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch { return null; } };
 const link = (u, text, cls = "") => { const s = safeUrl(u); return s ? `<a class="${cls}" href="${esc(s)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text); };
-const hub = () => state.data?.hub_repo || "discoveryathome/discoveryathome";
+const hub = () => state.data?.hub_repo || "discoveryathome/discover";
 const hubUrl = (path = "") => `https://github.com/${hub()}${path}`;
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 
@@ -47,7 +47,7 @@ function skillCommand(repo, minutes, focus, perms) {
   return state.data.prompts.skill_command.replace("{repo}", repo).replace("{minutes}", minutes)
     .replace("{focus}", focus).replace("{permissions}", perms);
 }
-function installLine() { return `/plugin install discover --marketplace ${hub()}`; }
+function installLine() { return `/plugin marketplace add ${hub()}\n/plugin install discover@discoveryathome`; }
 
 function seg(name, options, value) {
   return `<div class="seg" role="group" data-seg="${name}">${options
