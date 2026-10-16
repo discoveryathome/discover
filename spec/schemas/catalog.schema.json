@@ -50,8 +50,20 @@
         "scope_change_triggers": { "type": "array", "items": { "type": "string" } },
         "overlap_terms": { "type": "array", "items": { "type": "string" } },
         "existing_checks": {
-          "type": "array", "items": { "type": "string" },
-          "description": "New in v0: what already covers this card for the current frontier."
+          "type": "array",
+          "description": "New in v0: what already covers this card for the current frontier, so agents don't repeat it.",
+          "items": {
+            "type": "object",
+            "required": ["scope", "evidence"],
+            "properties": {
+              "scope": { "type": "string", "description": "What was checked, and its limits." },
+              "evidence": { "type": "string", "description": "Repository path or URL of the evidence." },
+              "remaining": { "type": "string", "description": "What this check leaves open." },
+              "status": { "type": "string", "description": "Evidence level or review status of the check." },
+              "source_commit": { "type": "string", "description": "Commit the check was made against." },
+              "frontier_sha256": { "type": "string", "description": "SHA256 of the frontier record the check applies to; stale when it changes." }
+            }
+          }
         }
       }
     }
