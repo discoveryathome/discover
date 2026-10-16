@@ -1,0 +1,37 @@
+name: Add a project
+description: List your research repository on the Inquiry@Home explore page.
+title: "Add project: OWNER/REPO"
+labels: ["add-project"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for offering your project. A bot will validate the repository and open a registry PR; a hub maintainer reviews and merges it.
+        Your repo should have `inquiry.json`, an `AGENTS.md` entry point, a project guide and a frontier record (Level 0). The `/inquiry:setup` skill can create these.
+  - type: input
+    id: repository
+    attributes:
+      label: Repository
+      description: GitHub URL or owner/name.
+      placeholder: https://github.com/OWNER/REPO
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Maintainer GitHub handle
+      placeholder: "@you"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything reviewers should know, e.g. why the repo has no inquiry.json yet, or special safety considerations.
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Maintainer confirmation
+      options:
+        - label: I maintain this project and will review contributions to it
+          required: true

@@ -1,0 +1,47 @@
+# Builds site/data/projects.json from the registry and publishes site/ to GitHub Pages.
+# Requires: Settings → Pages → Source: GitHub Actions.
+name: Explore page
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "registry/**", "plugins/inquiry/cli/**", "spec/schemas/**", ".github/workflows/pages.yml"]
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build project data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 plugins/inquiry/cli/inquiry.py hub --registry registry/projects --out site/data/projects.json --board
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,75 @@
+# Turns an "Add project" issue into a validated registry PR.
+# Requires: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
+name: Registry intake
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: intake-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  intake:
+    if: startsWith(github.event.issue.title, 'Add project:') || contains(github.event.issue.labels.*.name, 'add-project')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE: ${{ github.event.issue.number }}
+      # Untrusted input: only ever passed through env and files, never interpolated into scripts.
+      ISSUE_BODY: ${{ github.event.issue.body }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Create registry entry
+        id: entry
+        run: |
+          printf '%s' "$ISSUE_BODY" > "$RUNNER_TEMP/body.md"
+          if ! python3 plugins/inquiry/cli/inquiry.py registry-add --body-file "$RUNNER_TEMP/body.md" --out registry/projects > "$RUNNER_TEMP/entry.json" 2> "$RUNNER_TEMP/err.txt"; then
+            { echo "Couldn't create a registry entry:"; echo; echo '```'; cat "$RUNNER_TEMP/err.txt"; echo '```'; } > "$RUNNER_TEMP/comment.md"
+            gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
+            exit 1
+          fi
+          echo "slug=$(jq -r .slug "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
+          echo "repo=$(jq -r .repo "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
+      - name: Validate repository
+        id: validate
+        env:
+          SLUG: ${{ steps.entry.outputs.slug }}
+        run: |
+          set +e
+          python3 plugins/inquiry/cli/inquiry.py validate --registry-entry "registry/projects/$SLUG.json" --min-level 0 > "$RUNNER_TEMP/report.txt" 2>&1
+          echo "ok=$([ $? -eq 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/report.txt"
+      - name: Open registry PR
+        if: steps.validate.outputs.ok == 'true'
+        env:
+          SLUG: ${{ steps.entry.outputs.slug }}
+          REPO: ${{ steps.entry.outputs.repo }}
+        run: |
+          branch="registry/add-$SLUG"
+          git config user.name "inquiry-registry-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add "registry/projects/$SLUG.json"
+          git commit -m "Add $REPO to the registry"
+          git push --force -u origin "$branch"
+          { echo "Adds \`$REPO\` (closes #$ISSUE)."; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
+          url=$(gh pr view "$branch" --json url -q .url 2>/dev/null || gh pr create --head "$branch" --title "Add $REPO to the registry" --body-file "$RUNNER_TEMP/pr.md")
+          { echo "Validation passed. Registry PR: $url"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/comment.md"
+          gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
+      - name: Report validation failure
+        if: steps.validate.outputs.ok != 'true'
+        run: |
+          { echo "The repository isn't at Level 0 yet, so no registry PR was opened. Fix the items below and edit this issue to re-run."
+            echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'
+            echo; echo "The \`/inquiry:setup\` skill can create the missing files."; } > "$RUNNER_TEMP/comment.md"
+          gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"

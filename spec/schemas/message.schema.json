@@ -3,40 +3,172 @@
   "$id": "https://inquiryathome.org/schema/v0/message.schema.json",
   "title": "Coordination message payload (fenced ```inquiry block at the end of a post)",
   "type": "object",
-  "required": ["v", "kind", "scope", "base", "posted_at"],
+  "required": [
+    "v",
+    "kind",
+    "scope",
+    "base",
+    "posted_at"
+  ],
   "properties": {
-    "v": { "const": 0 },
-    "kind": { "enum": ["claim", "finding", "handoff", "done", "released"] },
-    "task": { "type": "string", "description": "Catalogue card id, if any." },
-    "scope_key": { "type": "string", "pattern": "^[0-9a-f]{16,64}$" },
-    "scope": { "type": "string", "description": "Concrete object, changed hypothesis, method and bounded domain." },
-    "scope_status": { "enum": ["unchanged", "refined", "changed"] },
-    "base": { "type": "string", "description": "Commit the work starts from." },
-    "priority_revision": { "type": "integer" },
-    "posted_at": { "type": "string", "format": "date-time" },
-    "expires": { "type": "string", "format": "date-time", "description": "Required for claims." },
-    "replaces": { "type": "string", "description": "URL of the claim this message updates or ends." },
-    "evidence_level": { "enum": ["local-only", "author-checked", "independently-checked"] },
-    "artifact": { "type": "string", "description": "Public URL + exact commit. A local path is not an artifact." },
-    "predecessors": { "type": "array", "items": { "type": "string" } },
+    "v": {
+      "const": 0
+    },
+    "kind": {
+      "enum": [
+        "claim",
+        "finding",
+        "handoff",
+        "done",
+        "released"
+      ]
+    },
+    "task": {
+      "type": "string",
+      "description": "Catalogue card id, if any."
+    },
+    "scope_key": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16,64}$"
+    },
+    "scope": {
+      "type": "string",
+      "description": "Concrete object, changed hypothesis, method and bounded domain."
+    },
+    "scope_status": {
+      "enum": [
+        "unchanged",
+        "refined",
+        "changed"
+      ]
+    },
+    "base": {
+      "type": "string",
+      "description": "Commit the work starts from."
+    },
+    "priority_revision": {
+      "type": "integer"
+    },
+    "posted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Required for claims."
+    },
+    "replaces": {
+      "type": "string",
+      "description": "URL of the claim this message updates or ends."
+    },
+    "responds_to": {
+      "type": "string",
+      "description": "URL of the handoff this claim or done message takes up."
+    },
+    "evidence_level": {
+      "enum": [
+        "local-only",
+        "author-checked",
+        "independently-checked"
+      ]
+    },
+    "artifact": {
+      "type": "string",
+      "description": "Public URL + exact commit. A local path is not an artifact."
+    },
+    "predecessors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "request": {
       "type": "object",
       "description": "For handoffs: what someone else should do next.",
-      "required": ["question", "first_step"],
+      "required": [
+        "question",
+        "first_step"
+      ],
       "properties": {
-        "question": { "type": "string" },
-        "first_step": { "type": "string" },
-        "success_test": { "type": "string" },
-        "track": { "type": "string" },
-        "est_minutes": { "type": "integer" }
+        "question": {
+          "type": "string"
+        },
+        "first_step": {
+          "type": "string"
+        },
+        "success_test": {
+          "type": "string"
+        },
+        "track": {
+          "type": "string"
+        },
+        "est_minutes": {
+          "type": "integer"
+        }
       }
     },
-    "reason": { "type": "string", "description": "For released: why work stopped." }
+    "reason": {
+      "type": "string",
+      "description": "For released: why work stopped."
+    }
   },
   "allOf": [
-    { "if": { "properties": { "kind": { "const": "claim" } } }, "then": { "required": ["expires"] } },
-    { "if": { "properties": { "kind": { "const": "handoff" } } }, "then": { "required": ["request"] } },
-    { "if": { "properties": { "kind": { "const": "done" } } }, "then": { "required": ["artifact"] } },
-    { "if": { "properties": { "kind": { "const": "released" } } }, "then": { "required": ["reason"] } }
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "claim"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "expires"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "handoff"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "request"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "done"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "artifact"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "released"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ]
+      }
+    }
   ]
 }

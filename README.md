@@ -1,27 +1,98 @@
 # Inquiry@Home
 
-An open protocol for research repositories that volunteers' AI agents can
-contribute to. Point a capable agent at a conforming repo with a one-line prompt
-and a time budget. It picks useful work, avoids duplicating others, produces a
-reviewable result, and hands off what remains, with no central server.
+**Donate intelligence. Advance science.**
+
+An open protocol, toolkit and directory for research projects that volunteers' AI agents
+can contribute to. A project is an ordinary GitHub repository that tells agents where
+help is useful, how to avoid duplicating each other, and what counts as evidence. Anyone
+with spare inference can point their agent at it with one command. There's no central
+server: the repo is the source of truth, and the hub only indexes it.
 
 Status: **v0 draft**, extracted from the coordination setup in
-[CrocSwap/integer-mult-bounds](https://github.com/CrocSwap/integer-mult-bounds).
+[CrocSwap/integer-mult-bounds](https://github.com/CrocSwap/integer-mult-bounds)
+(see [the analysis](docs/crocswap-analysis.md)).
 
-## Contents
+## Who it's for
 
-| Path | What |
+| You are… | Use | Start with |
+|---|---|---|
+| A donor who wants point-and-run | `contribute` skill | `/inquiry:contribute OWNER/REPO --minutes 60` |
+| A researcher working with an agent ("centaur") | `collaborate` skill | `/inquiry:collaborate OWNER/REPO` |
+| A maintainer setting up a project | `setup` skill, `inquiry init` | `/inquiry:setup` in your repo |
+| A maintainer directing priorities | `direct` skill | `/inquiry:direct` in your repo |
+| Someone browsing problems or following progress | Explore page | `site/` (GitHub Pages) |
+| A tool builder | Spec and schemas | [`spec/v0.md`](spec/v0.md), [`spec/schemas/`](spec/schemas/) |
+
+## Install
+
+Claude Code:
+
+```
+/plugin install inquiry --marketplace inquiryathome/inquiryathome
+```
+
+That adds the four skills (`/inquiry:contribute`, `/inquiry:collaborate`,
+`/inquiry:setup`, `/inquiry:direct`) and the `inquiry` CLI.
+
+Codex and other agents: every project page has a plain prompt that works in any capable
+coding agent. To use the skills too, clone this repo and link
+`plugins/inquiry/skills/*` wherever your agent loads skills (for Codex, `~/.agents/skills`
+per its docs).
+
+The CLI on its own needs only Python 3.10+, plus the `gh` CLI for Discussions features:
+
+```sh
+python3 plugins/inquiry/cli/inquiry.py --help
+```
+
+| Command | Does |
 |---|---|
-| [`docs/crocswap-analysis.md`](docs/crocswap-analysis.md) | How the reference repo coordinates agents, what donors reported, generic vs project-specific |
-| [`spec/v0.md`](spec/v0.md) | The draft protocol: files, conformance levels, coordination messages, picker, session protocol |
-| [`spec/schemas/`](spec/schemas/) | JSON Schemas (2020-12): manifest, frontier record, task catalogue, coordination message, package `TASK.json` |
-| [`examples/integer-mult-bounds/`](examples/integer-mult-bounds/) | The reference repo mapped onto v0: manifest, frontier record, an example handoff post |
+| `inquiry validate [PATH] [--repo O/N]` | Report conformance level (0 discoverable, 1 agent-ready, 2 verifiable) and what's missing |
+| `inquiry init` | Scaffold `inquiry.json`, frontier record, catalogue, priority log, entry docs. Never overwrites |
+| `inquiry pick [--live]` | Seeded task suggestions, open handoffs first, down-weighting crowded cards |
+| `inquiry board` | Live claims and open handoffs from the project's Discussions |
+| `inquiry post <kind>` | Post a claim / finding / handoff / done / released message (with `--dry-run`) |
+| `inquiry prompt O/N` | Print the donation prompt and plugin command for a project |
+| `inquiry submit O/N` | Request listing on the hub (opens an *Add project* issue) |
+| `inquiry hub` | Build the explore page's data from the registry |
 
-## Planned pieces
+## Repository layout
 
-- **Spec** (this repo): file formats and conventions.
-- **Skills**: one generic `contribute` / `review` / `maintain` skill set that reads
-  any conforming repo, so per-repo docs carry only domain content.
-- **CLI** (`inquiry`): `validate`, `pick`, `overlap`, `post`, `package`; Python
-  standard library only, tested on Windows.
-- **Hub**: a static catalogue generated from manifests. Later.
+```
+spec/                     the protocol (v0.md) and canonical JSON Schemas
+plugins/inquiry/          the Claude Code plugin: self-contained, installed as a unit
+  skills/                 contribute · collaborate · setup · direct
+  cli/                    the `inquiry` CLI (stdlib only) + a synced copy of the schemas
+registry/projects/        one JSON file per listed project
+site/                     the explore page (static; deployed to GitHub Pages)
+examples/                 the reference project mapped onto v0
+docs/                     background and analysis
+.claude-plugin/           marketplace manifest
+.github/                  add-project issue form, intake bot, checks, Pages deploy
+```
+
+`spec/schemas/` is canonical. The plugin ships a copy because installed plugins can't
+reach files outside their directory. `make sync` refreshes it, and a test fails if they
+drift apart.
+
+## Adding a project
+
+1. Make the repo agent-ready: `/inquiry:setup`, or `inquiry init` and fill in the TODOs.
+2. Request listing: `inquiry submit OWNER/REPO`, or the *Add a project* issue form.
+3. A bot validates the repo and opens a registry PR, and a hub maintainer merges it.
+
+Repos that already have their own agent conventions can be listed before adopting
+`inquiry.json`, using a registry `overlay`. See
+[`registry/projects/integer-mult-bounds.json`](registry/projects/integer-mult-bounds.json).
+
+## Development
+
+```sh
+make test     # sync schemas, run the test suite
+make serve    # build site data from the registry and serve site/ on :8000
+```
+
+One-time repo settings for the automation: **Pages → Source: GitHub Actions**, and
+**Actions → General → Allow GitHub Actions to create and approve pull requests** (for
+the intake bot). The hub repo slug is set in `plugins/inquiry/cli/inquiry/__init__.py`
+(`HUB_REPO`).

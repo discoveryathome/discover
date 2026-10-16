@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://inquiryathome.org/schema/v0/frontier.schema.json",
+  "title": "Frontier record: the single authoritative accepted result",
+  "type": "object",
+  "required": ["schema", "statement", "status", "evidence_level", "scope", "review", "updated_on"],
+  "properties": {
+    "schema": { "const": "inquiry-frontier/v0" },
+    "statement": { "type": "string", "description": "What is claimed, precisely." },
+    "status": { "type": "string", "description": "Free-text status line for humans." },
+    "evidence_level": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "enum": ["author-checked", "independently-checked", "maintainer-reviewed", "formally-verified"] },
+      "description": "Every level that applies; not a ladder."
+    },
+    "metric": {
+      "type": "object", "required": ["name", "value"],
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "string", "description": "Exact representation, e.g. a rational." },
+        "decimal": { "type": "string" },
+        "direction": { "enum": ["higher-is-better", "lower-is-better"] }
+      }
+    },
+    "scope": { "type": "string", "description": "Conditions under which the statement holds." },
+    "assumptions": {
+      "type": "array", "description": "Open obligations the statement depends on.",
+      "items": {
+        "type": "object", "required": ["id", "statement"],
+        "properties": { "id": { "type": "string" }, "statement": { "type": "string" }, "status": { "enum": ["open", "partial", "closed"] }, "link": { "type": "string" } }
+      }
+    },
+    "sources": { "type": "array", "items": { "type": "string" }, "description": "PR numbers, commits or URLs the result is assembled from." },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "object", "required": ["path", "sha256"], "properties": { "path": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "role": { "type": "string" } } }
+    },
+    "reproduce": { "type": "string", "description": "Command that replays the result from a clean checkout (Level 2)." },
+    "review": { "type": "string", "description": "Path or URL of the maintainer review." },
+    "previous_record": { "type": "string" },
+    "pinned_heads": { "type": "object", "additionalProperties": { "type": "string" } },
+    "updated_on": { "type": "string", "format": "date" }
+  }
+}

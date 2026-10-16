@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://inquiryathome.org/schema/v0/registry-entry.schema.json",
+  "title": "Hub registry entry (registry/projects/<slug>.json)",
+  "type": "object",
+  "required": ["repo", "added_on"],
+  "additionalProperties": false,
+  "properties": {
+    "repo": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", "description": "GitHub owner/name." },
+    "ref": { "type": "string", "description": "Branch to read. Default: the repo's default branch (HEAD)." },
+    "added_on": { "type": "string", "format": "date" },
+    "contact": { "type": "string", "description": "GitHub handle of the maintainer who requested listing." },
+    "overlay": {
+      "type": "object",
+      "description": "A manifest used only while the repo has no inquiry.json of its own. Same shape as inquiry.json."
+    },
+    "frontier_adapter": {
+      "type": "object",
+      "description": "Maps a pre-v0 frontier record onto v0 fields: {v0_field: raw_field}, plus metric {name, value, decimal, direction} and evidence_level (declared)."
+    },
+    "featured": { "type": "boolean", "default": false }
+  }
+}

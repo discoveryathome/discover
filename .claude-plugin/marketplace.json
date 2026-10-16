@@ -1,0 +1,12 @@
+{
+  "name": "inquiryathome",
+  "owner": { "name": "Inquiry@Home" },
+  "description": "Skills and tools for donating, collaborating on, and maintaining open research projects that follow the Inquiry@Home protocol.",
+  "plugins": [
+    {
+      "name": "inquiry",
+      "source": "./plugins/inquiry",
+      "description": "contribute (point-and-run donation), collaborate (centaur research), setup and direct (maintainers), plus the inquiry CLI."
+    }
+  ]
+}
