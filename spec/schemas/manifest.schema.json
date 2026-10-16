@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://inquiryathome.org/schema/v0/manifest.schema.json",
-  "title": "Inquiry@Home project manifest (inquiry.json)",
+  "$id": "https://discoveryathome.org/schema/v0/manifest.schema.json",
+  "title": "Discovery@Home project manifest (discover.json)",
   "type": "object",
   "required": ["schema", "title", "summary", "domains", "maintainers", "canonical_repo", "entry", "frontier"],
   "additionalProperties": false,
   "properties": {
-    "schema": { "const": "inquiry/v0" },
+    "schema": { "const": "discover/v0" },
     "title": { "type": "string" },
     "summary": { "type": "string", "description": "One or two sentences for the hub listing." },
     "domains": { "type": "array", "items": { "type": "string" }, "minItems": 1 },

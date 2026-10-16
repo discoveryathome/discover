@@ -7,8 +7,8 @@ from .project import load_manifest
 def normalize_catalog(catalog):
     """Accept the pre-v0 reference format (`schema_version: 1`) with a warning."""
     if catalog is not None and "schema" not in catalog and "schema_version" in catalog:
-        catalog = {"schema": "inquiry-catalog/v0", **{k: v for k, v in catalog.items() if k != "schema_version"}}
-        return catalog, ["catalog uses pre-v0 `schema_version`; treated as inquiry-catalog/v0"]
+        catalog = {"schema": "discover-catalog/v0", **{k: v for k, v in catalog.items() if k != "schema_version"}}
+        return catalog, ["catalog uses pre-v0 `schema_version`; treated as discover-catalog/v0"]
     return catalog, []
 
 
@@ -18,9 +18,9 @@ def normalize_frontier(raw, adapter=None):
     The adapter names which raw fields hold the v0 values, e.g.
     {"statement": "status", "metric": {"name": "kappa", "value": "kappa", "decimal": "decimal"}}.
     """
-    if raw is None or raw.get("schema") == "inquiry-frontier/v0" or not adapter:
+    if raw is None or raw.get("schema") == "discover-frontier/v0" or not adapter:
         return raw, []
-    out = {"schema": "inquiry-frontier/v0"}
+    out = {"schema": "discover-frontier/v0"}
     for key, src in adapter.items():
         if key == "metric":
             m = {"name": src["name"], "value": str(raw.get(src["value"], ""))}
@@ -58,13 +58,13 @@ def validate(source, overlay=None, adapter=None):
     manifest, origin = load_manifest(source, overlay)
     r["manifest_origin"] = origin
     if manifest is None:
-        r["missing"][0].append("inquiry.json not found (and no registry overlay)")
+        r["missing"][0].append("discover.json not found (and no registry overlay)")
         return r
-    if origin != "inquiry.json":
-        r["warnings"].append("using registry overlay: the repo has no inquiry.json yet")
+    if origin != "discover.json":
+        r["warnings"].append("using registry overlay: the repo has no discover.json yet")
     r["manifest"] = manifest
     m0 = r["missing"][0]
-    m0 += [f"inquiry.json {e}" for e in schema.check("manifest.schema.json", manifest)]
+    m0 += [f"discover.json {e}" for e in schema.check("manifest.schema.json", manifest)]
     entry = manifest.get("entry", {})
     for key in ("agents", "project"):
         path = entry.get(key)

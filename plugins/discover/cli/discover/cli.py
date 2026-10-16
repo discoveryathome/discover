@@ -1,4 +1,4 @@
-"""inquiry: command-line tools for the Inquiry@Home protocol."""
+"""discover: command-line tools for the Discovery@Home protocol."""
 
 import argparse
 import json
@@ -31,10 +31,10 @@ def emit(obj, as_json, formatter):
 
 
 def local_repo(path):
-    """The canonical owner/name from a local checkout's inquiry.json."""
+    """The canonical owner/name from a local checkout's discover.json."""
     manifest, _ = load_manifest(Source(local=path))
     if not manifest or "canonical_repo" not in manifest:
-        raise SystemExit("no inquiry.json with canonical_repo here; pass --repo")
+        raise SystemExit("no discover.json with canonical_repo here; pass --repo")
     return parse_repo(manifest["canonical_repo"])
 
 
@@ -69,14 +69,14 @@ def cmd_init(a):
         print(f"skipped {s}")
     if r["agents_snippet"]:
         print("\nAdd this to AGENTS.md:\n\n" + r["agents_snippet"])
-    print("\nNext: fill in the TODOs, then run `inquiry validate`.")
+    print("\nNext: fill in the TODOs, then run `discover validate`.")
     return 0
 
 
 def load_catalog(path):
     manifest, _ = load_manifest(Source(local=path))
     if not manifest or not manifest.get("catalog"):
-        raise SystemExit("no inquiry.json with a catalog here")
+        raise SystemExit("no discover.json with a catalog here")
     catalog = json.loads((Path(path) / manifest["catalog"]).read_text(encoding="utf-8"))
     return manifest, normalize_catalog(catalog)[0]
 
@@ -84,7 +84,7 @@ def load_catalog(path):
 def live_board(repo, n):
     msgs, bad = boardmod.messages(boardmod.fetch_posts(repo, n))
     for b in bad:
-        print(f"warning: malformed inquiry block at {b['url']}: {b['problems']}", file=sys.stderr)
+        print(f"warning: malformed discover block at {b['url']}: {b['problems']}", file=sys.stderr)
     return boardmod.state(msgs)
 
 
@@ -146,7 +146,7 @@ def cmd_post(a):
 def cmd_prompt(a):
     repo = parse_repo(a.repo)
     print(prompt.donation_prompt(repo, a.minutes, a.focus, a.permissions))
-    print("\nWith the inquiry plugin installed:\n  " + prompt.skill_command(repo, a.minutes, a.focus, a.permissions))
+    print("\nWith the discover plugin installed:\n  " + prompt.skill_command(repo, a.minutes, a.focus, a.permissions))
     return 0
 
 
@@ -206,7 +206,7 @@ def cmd_submit(a):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="inquiry", description=__doc__)
+    p = argparse.ArgumentParser(prog="discover", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
 
     v = sub.add_parser("validate", help="report a project's conformance level")
@@ -303,7 +303,7 @@ def main(argv=None):
     s.add_argument("repo")
     s.add_argument("--contact", help="maintainer GitHub handle")
     s.add_argument("--notes")
-    s.add_argument("--hub", default=__import__("inquiry").HUB_REPO)
+    s.add_argument("--hub", default=__import__("discover").HUB_REPO)
     s.add_argument("--dry-run", action="store_true")
     s.set_defaults(func=cmd_submit)
 

@@ -7,7 +7,7 @@ Reviewed #1991 established the channel; pending #2586 adds a physical dual. What
 still missing is the routing/hosting cost at the endpoint. A favorable fully charged
 bound would decide whether the correction survives.
 
-```inquiry
+```discover
 {
   "v": 0,
   "kind": "handoff",

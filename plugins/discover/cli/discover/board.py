@@ -1,6 +1,6 @@
 """Coordination messages on GitHub Discussions: parse, summarize and post.
 
-A protocol post is ordinary Markdown ending with a fenced ```inquiry JSON block
+A protocol post is ordinary Markdown ending with a fenced ```discover JSON block
 (spec/v0.md section 6). Posts without a block are ignored, so prose-only
 conventions keep working alongside this.
 """
@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 
 from . import schema
 
-FENCE = re.compile(r"```inquiry[ \t]*\r?\n(.*?)```", re.S)
+FENCE = re.compile(r"```discover[ \t]*\r?\n(.*?)```", re.S)
 
 
 def now():
@@ -24,21 +24,21 @@ def parse_time(s):
 
 
 def extract(body):
-    """Return (payload, problems) for the last inquiry block in a post, or (None, [])."""
+    """Return (payload, problems) for the last discover block in a post, or (None, [])."""
     blocks = FENCE.findall(body or "")
     if not blocks:
         return None, []
     try:
         payload = json.loads(blocks[-1])
     except json.JSONDecodeError as e:
-        return None, [f"invalid JSON in inquiry block: {e}"]
+        return None, [f"invalid JSON in discover block: {e}"]
     return payload, schema.check("message.schema.json", payload)
 
 
 def render(payload, prose=""):
     """A post body: human prose followed by the machine-readable block."""
     block = json.dumps(payload, indent=2, ensure_ascii=False)
-    return f"{prose.rstrip()}\n\n```inquiry\n{block}\n```\n".lstrip()
+    return f"{prose.rstrip()}\n\n```discover\n{block}\n```\n".lstrip()
 
 
 # --- GitHub transport -------------------------------------------------------

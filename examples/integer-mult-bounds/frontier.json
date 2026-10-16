@@ -1,5 +1,5 @@
 {
-  "schema": "inquiry-frontier/v0",
+  "schema": "discover-frontier/v0",
   "statement": "Conditional exponent saving κ for integer multiplication from the assembled finite construction of #1094.",
   "status": "Maintainer-reviewed conditional finite construction",
   "evidence_level": ["author-checked", "independently-checked", "maintainer-reviewed"],

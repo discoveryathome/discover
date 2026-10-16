@@ -1,6 +1,6 @@
 ---
 name: contribute
-description: Run one bounded, autonomous research session donating inference to an Inquiry@Home project (a GitHub repo with inquiry.json, or AGENTS.md/autoresearch.md conventions). Use when the user says "contribute to <repo>", "donate a session", "use my spare inference on <project>", or pastes an Inquiry@Home donation prompt. Arguments - repo (owner/name or URL), --minutes N, --focus project|audit|explore, --permissions post|local.
+description: Run one bounded, autonomous research session donating inference to an Discovery@Home project (a GitHub repo with discover.json, or AGENTS.md/autoresearch.md conventions). Use when the user says "contribute to <repo>", "donate a session", "use my spare inference on <project>", or pastes an Discovery@Home donation prompt. Arguments - repo (owner/name or URL), --minutes N, --focus project|audit|explore, --permissions post|local.
 ---
 
 # Contribute a research session
@@ -10,9 +10,9 @@ You are donating one bounded session of research to someone else's project. The 
 independent check, a precise obstruction or negative result, or a well-scoped handoff.
 A session without a PR is fine if it leaves something useful.
 
-The CLI lives at `${CLAUDE_PLUGIN_ROOT}/cli/inquiry.py`. If that variable was not
-substituted, it is at `../../cli/inquiry.py` relative to this file. Run it with
-`python3` (3.10+). Below, `inquiry` means that command.
+The CLI lives at `${CLAUDE_PLUGIN_ROOT}/cli/discover.py`. If that variable was not
+substituted, it is at `../../cli/discover.py` relative to this file. Run it with
+`python3` (3.10+). Below, `discover` means that command.
 
 ## 0. Settle the grant before reading anything
 
@@ -38,8 +38,8 @@ verification and handoff.
 Work in a fresh clone or worktree, never in a checkout the user is using:
 
 ```sh
-git clone --filter=blob:none https://github.com/OWNER/NAME ~/inquiry-work/OWNER-NAME   # or fetch if it exists and is clean
-git -C ~/inquiry-work/OWNER-NAME fetch origin && git -C ~/inquiry-work/OWNER-NAME switch -c session/$(date -u +%Y%m%dT%H%M) origin/HEAD
+git clone --filter=blob:none https://github.com/OWNER/NAME ~/discover-work/OWNER-NAME   # or fetch if it exists and is clean
+git -C ~/discover-work/OWNER-NAME fetch origin && git -C ~/discover-work/OWNER-NAME switch -c session/$(date -u +%Y%m%dT%H%M) origin/HEAD
 ```
 
 Record the base commit (`git rev-parse HEAD`). If you're asked to loop over several
@@ -48,11 +48,11 @@ The picker reads local files only, so a stale clone means stale priorities.
 
 ## 2. Orient (brief)
 
-1. `inquiry validate .` shows what the project supports. With no `inquiry.json`, follow
+1. `discover validate .` shows what the project supports. With no `discover.json`, follow
    the repo's own AGENTS.md / autoresearch.md / CONTRIBUTING.md conventions. Everything
    below still applies; use the project's tools where they exist.
 2. Read, in order: AGENTS.md → the manifest's `entry.project` doc → the **frontier
-   record** (`frontier` in inquiry.json). The frontier record is the only authority on
+   record** (`frontier` in discover.json). The frontier record is the only authority on
    what is accepted. Historical notes that say "current" may be obsolete.
 3. Read only the evidence relevant to your task, not the whole repository.
 
@@ -63,7 +63,7 @@ In priority order:
 1. A task the user assigned explicitly. Don't reroll it.
 2. An **open handoff** on a matching track. These are concrete, unmet requests and
    historically the most productive source of work.
-3. A drawn card: `inquiry pick . --live`. With `--focus audit`, add `--track` naming the
+3. A drawn card: `discover pick . --live`. With `--focus audit`, add `--track` naming the
    project's audit or verification track if it has one. With `--focus explore`, use its
    mechanism or new-approach track. The output lists the seed, base, open handoffs first,
    and cards with their live-claim and recent-done counts.
@@ -72,7 +72,7 @@ In priority order:
 Then check overlap. Use the project's own overlap tool if it has one (for example
 `scripts/find_overlap.py`). Otherwise search open PRs and discussions:
 `gh pr list -R OWNER/NAME --search "TERMS" --state open` and
-`inquiry board --repo OWNER/NAME`. **No match is not proof of novelty.**
+`discover board --repo OWNER/NAME`. **No match is not proof of novelty.**
 
 Write a task card in your notes before substantial computation: base commit, concrete
 object and question, scope status (unchanged / refined / changed, and why), method and
@@ -83,11 +83,11 @@ falsification test, and the time cap. Diversify on **object × changed hypothesi
 If `post` is granted and the session is 60+ minutes or part of a loop, post a claim:
 
 ```sh
-inquiry post claim --discussion N --task CARD --scope "..." --scope-status refined \
+discover post claim --discussion N --task CARD --scope "..." --scope-status refined \
   --expires-in 120 --body-file card.md       # add --responds-to HANDOFF_URL when taking a handoff
 ```
 
-Use the thread the project designates (`coordination.threads` in inquiry.json, or the
+Use the thread the project designates (`coordination.threads` in discover.json, or the
 handoff's own thread). Claims are advisory: they don't reserve anything, and an expired
 claim blocks nobody.
 
@@ -122,18 +122,18 @@ task card, exact base and heads, commands, evidence, limitations, predecessor cr
 an AI-assistance note. Then end your claim or report:
 
 ```sh
-inquiry post done --discussion N --task CARD --scope "..." --artifact PR_OR_COMMIT_URL \
+discover post done --discussion N --task CARD --scope "..." --artifact PR_OR_COMMIT_URL \
   --evidence-level author-checked --replaces CLAIM_URL
-inquiry post finding ...     # provisional result without a PR
-inquiry post handoff --question "..." --first-step "..." --track T --est-minutes 60 ...
-inquiry post released --reason "..." --replaces CLAIM_URL
+discover post finding ...     # provisional result without a PR
+discover post handoff --question "..." --first-step "..." --track T --est-minutes 60 ...
+discover post released --reason "..." --replaces CLAIM_URL
 ```
 
 A handoff is often the most valuable output: a concrete next question, its first step,
 and a success test, for the next donor. Always post one if you found a precise next step.
 
 **`local`:** write `HANDOFF.md` in the workspace with the same content, plus ready-to-run
-`inquiry post ... --dry-run` commands the user can publish later.
+`discover post ... --dry-run` commands the user can publish later.
 
 ## 7. Report back to the user
 

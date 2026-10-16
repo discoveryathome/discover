@@ -1,11 +1,11 @@
-CLI := python3 plugins/inquiry/cli/inquiry.py
+CLI := python3 plugins/discover/cli/discover.py
 
 .PHONY: sync test hub serve validate-registry
 
 # spec/schemas is canonical; the plugin ships a copy because installed plugins are self-contained.
 sync:
-	rm -rf plugins/inquiry/cli/inquiry/schemas
-	cp -R spec/schemas plugins/inquiry/cli/inquiry/schemas
+	rm -rf plugins/discover/cli/discover/schemas
+	cp -R spec/schemas plugins/discover/cli/discover/schemas
 
 test: sync
 	python3 -m unittest discover -s tests -v

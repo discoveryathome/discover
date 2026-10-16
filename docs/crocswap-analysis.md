@@ -1,7 +1,7 @@
 # How integer-mult-bounds coordinates donated agents
 
 Source: `CrocSwap/integer-mult-bounds` at `origin/main` `b5ea56e0a`, read 2026-10-15.
-This is the reference implementation the Inquiry@Home standard is extracted from.
+This is the reference implementation the Discovery@Home standard is extracted from.
 
 ## Scale
 
@@ -105,5 +105,5 @@ frontier, bottleneck, tracks, and anything genuinely domain-specific.
 2. **The review side has the least structure.** A 1,811-line Markdown ledger and no
    grouping of near-duplicate claims. Fix: structured ledger entries and a claim-group
    key so reviewers can triage clusters.
-3. **Posting is manual.** Fix: the CLI posts protocol messages (`inquiry post`).
+3. **Posting is manual.** Fix: the CLI posts protocol messages (`discover post`).
 4. **Portability.** Fix: the reference CLI is tested on Windows from day one.

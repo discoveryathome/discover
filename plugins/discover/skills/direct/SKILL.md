@@ -1,17 +1,17 @@
 ---
 name: direct
-description: Run a maintainer/director priority review for an Inquiry@Home project - reassess tracks and task cards from verified evidence, triage the contribution queue, and publish one reviewable priority revision. Use when a maintainer says "review priorities", "update the task catalogue", "what should the next hundred sessions work on", "triage the PR queue", or after the frontier or bottleneck changes.
+description: Run a maintainer/director priority review for an Discovery@Home project - reassess tracks and task cards from verified evidence, triage the contribution queue, and publish one reviewable priority revision. Use when a maintainer says "review priorities", "update the task catalogue", "what should the next hundred sessions work on", "triage the PR queue", or after the frontier or bottleneck changes.
 ---
 
-# Direct an Inquiry@Home project
+# Direct an Discovery@Home project
 
 The director turns evidence into the next allocation of donated effort. This is a
 review procedure, not a scheduled job. Run it when the frontier or binding constraint
 changes, a scoped obstruction closes a route, a review batch lands, or the board shows
 repeated overlap or a neglected bottleneck. During a large influx, roughly daily.
 
-The CLI lives at `${CLAUDE_PLUGIN_ROOT}/cli/inquiry.py` (or `../../cli/inquiry.py`
-relative to this file). Below, `inquiry` means `python3` plus that path.
+The CLI lives at `${CLAUDE_PLUGIN_ROOT}/cli/discover.py` (or `../../cli/discover.py`
+relative to this file). Below, `discover` means `python3` plus that path.
 
 Being asked to direct grants authority to **propose** a priority revision. Merging PRs,
 closing others' work, changing the frontier record and announcing results each still
@@ -23,7 +23,7 @@ From fetched canonical main:
 
 - The frontier record and its review
 - The priority log since the last revision
-- `inquiry board --repo OWNER/NAME --json`: live claims, open handoffs, recent done
+- `discover board --repo OWNER/NAME --json`: live claims, open handoffs, recent done
   counts per card
 - Open PRs (`gh pr list -R OWNER/NAME --state open --limit 500 --json number,title,createdAt,headRefOid`)
   and the review ledger
@@ -78,7 +78,7 @@ In a single branch or PR:
 - Priority log: a dated entry with the base and frontier sources, old and new
   allocation, reasons, limits, the next experiment, and the next review trigger.
 - Entry doc: update its diagnosis and track table to match.
-- `inquiry validate . --min-level 1` passes, and any project tests for the catalogue pass.
+- `discover validate . --min-level 1` passes, and any project tests for the catalogue pass.
 
 Don't repin frozen scientific inputs to change strategy. Donation prompts point at the
 repo, so they never need editing.
@@ -88,4 +88,4 @@ repo, so they never need editing.
 If authorized, post a short board update linking the revision. Say what changed and
 why, and that in-flight work should reassess at its next checkpoint rather than be
 abandoned. New handoffs for central missing pieces go out with
-`inquiry post handoff ...`.
+`discover post handoff ...`.

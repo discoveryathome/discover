@@ -4,7 +4,7 @@
   "contact": "colkitt",
   "featured": true,
   "overlay": {
-    "schema": "inquiry/v0",
+    "schema": "discover/v0",
     "title": "Integer Multiplication Bounds",
     "summary": "Improve conditional exponent savings for fast integer multiplication through verified constructions, audits and scoped obstructions.",
     "domains": [

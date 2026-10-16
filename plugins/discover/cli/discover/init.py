@@ -5,10 +5,10 @@ from datetime import date
 from pathlib import Path
 
 AGENTS_SNIPPET = """\
-## Inquiry@Home
+## Discovery@Home
 
-This repository follows the [Inquiry@Home protocol](https://github.com/inquiryathome/inquiryathome)
-(`inquiry.json`). For open-ended requests such as "contribute" or "use spare inference,"
+This repository follows the [Discovery@Home protocol](https://github.com/discoveryathome/discoveryathome)
+(`discover.json`). For open-ended requests such as "contribute" or "use spare inference,"
 start with [{project}]({project}). Explicit user tasks take precedence over the default
 task selection. Resolve the current accepted result through `{frontier}`; historical notes
 may call older results "current." Do not merge, close others' PRs or change the frontier
@@ -21,7 +21,7 @@ PROJECT_DOC = """\
 **Start here if you were told to contribute without a specific task.** Aim for one useful,
 independently reviewable result in the time available (default {minutes} minutes).
 The generic session procedure (refresh, orient, choose, bound, verify, hand off) comes from
-the Inquiry@Home `contribute` skill; this file holds only what is specific to this project.
+the Discovery@Home `contribute` skill; this file holds only what is specific to this project.
 
 ## The problem
 
@@ -83,14 +83,14 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
              profile="review-only"):
     root = Path(root)
     today = date.today().isoformat()
-    paths = {"frontier": "inquiry/frontier.json", "catalog": "inquiry/catalog.json",
-             "priority_log": "inquiry/priority-log.md", "ledger": "inquiry/ledger.md"}
+    paths = {"frontier": "discover/frontier.json", "catalog": "discover/catalog.json",
+             "priority_log": "discover/priority-log.md", "ledger": "discover/ledger.md"}
     entry_project = "autoresearch.md"
     maint = {"name": maintainer}
     if github:
         maint["github"] = github
     manifest = {
-        "schema": "inquiry/v0", "title": title, "summary": summary, "domains": domains,
+        "schema": "discover/v0", "title": title, "summary": summary, "domains": domains,
         "maintainers": [maint], "canonical_repo": f"https://github.com/{repo}",
         "entry": {"agents": "AGENTS.md", "project": entry_project},
         **paths, "packages": "research/*/",
@@ -102,7 +102,7 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
         "verification_profile": profile,
     }
     frontier = {
-        "schema": "inquiry-frontier/v0",
+        "schema": "discover-frontier/v0",
         "statement": "TODO: the strongest result currently accepted, stated precisely. If none yet, say so.",
         "status": "No accepted result yet",
         "evidence_level": ["author-checked"],
@@ -112,7 +112,7 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
         "updated_on": today,
     }
     catalog = {
-        "schema": "inquiry-catalog/v0", "priority_revision": 1, "assessed_on": today,
+        "schema": "discover-catalog/v0", "priority_revision": 1, "assessed_on": today,
         "priority_log": paths["priority_log"],
         "status": "Research suggestions, not reservations. Check live claims and open PRs.",
         "tracks": [{"id": "getting-started", "weight": 100,
@@ -129,7 +129,7 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
                     }]}],
     }
     files = {
-        "inquiry.json": json.dumps(manifest, indent=2) + "\n",
+        "discover.json": json.dumps(manifest, indent=2) + "\n",
         paths["frontier"]: json.dumps(frontier, indent=2) + "\n",
         paths["catalog"]: json.dumps(catalog, indent=2) + "\n",
         paths["priority_log"]: PRIORITY_LOG.format(today=today, catalog=paths["catalog"]),
@@ -148,7 +148,7 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
     snippet = AGENTS_SNIPPET.format(project=entry_project, frontier=paths["frontier"])
     agents = root / "AGENTS.md"
     if agents.exists():
-        if "Inquiry@Home" not in agents.read_text(encoding="utf-8"):
+        if "Discovery@Home" not in agents.read_text(encoding="utf-8"):
             skipped.append("AGENTS.md (exists: add the snippet below)")
         else:
             snippet = None

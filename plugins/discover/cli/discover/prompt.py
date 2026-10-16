@@ -13,7 +13,7 @@ PERMISSIONS = {
 
 TEMPLATE = (
     "Contribute one useful, independently reviewable result to {repo_url}. "
-    "Read AGENTS.md and the project's entry doc from the current default branch first, and its inquiry.json if present. "
+    "Read AGENTS.md and the project's entry doc from the current default branch first, and its discover.json if present. "
     "Use the repository's task-selection and overlap process unless I assign a specific task. "
     "Work for about {minutes} minutes, keeping the final quarter for verification and a concise handoff. "
     "{focus} "
@@ -22,7 +22,7 @@ TEMPLATE = (
     "Do not merge, close others' PRs, or change the project's frontier record."
 )
 
-SKILL_COMMAND = "/inquiry:contribute {repo} --minutes {minutes} --focus {focus} --permissions {permissions}"
+SKILL_COMMAND = "/discover:contribute {repo} --minutes {minutes} --focus {focus} --permissions {permissions}"
 
 
 def donation_prompt(repo, minutes=60, focus="project", permissions="post"):

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://inquiryathome.org/schema/v0/package-task.schema.json",
+  "$id": "https://discoveryathome.org/schema/v0/package-task.schema.json",
   "title": "Result package TASK.json",
   "type": "object",
   "required": ["card", "catalog_revision", "scope", "scope_status", "outcome", "evidence_level", "next_questions"],

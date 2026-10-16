@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://inquiryathome.org/schema/v0/frontier.schema.json",
+  "$id": "https://discoveryathome.org/schema/v0/frontier.schema.json",
   "title": "Frontier record: the single authoritative accepted result",
   "type": "object",
   "required": ["schema", "statement", "status", "evidence_level", "scope", "review", "updated_on"],
   "properties": {
-    "schema": { "const": "inquiry-frontier/v0" },
+    "schema": { "const": "discover-frontier/v0" },
     "statement": { "type": "string", "description": "What is claimed, precisely." },
     "status": { "type": "string", "description": "Free-text status line for humans." },
     "evidence_level": {

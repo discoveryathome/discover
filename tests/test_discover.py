@@ -7,12 +7,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "plugins" / "inquiry" / "cli"))
+sys.path.insert(0, str(ROOT / "plugins" / "discover" / "cli"))
 
-from inquiry import board, hub, init, pick, schema  # noqa: E402
-from inquiry.cli import main, parse_issue_form  # noqa: E402
-from inquiry.project import Source  # noqa: E402
-from inquiry.validate import validate  # noqa: E402
+from discover import board, hub, init, pick, schema  # noqa: E402
+from discover.cli import main, parse_issue_form  # noqa: E402
+from discover.project import Source  # noqa: E402
+from discover.validate import validate  # noqa: E402
 
 EXAMPLE = ROOT / "examples" / "integer-mult-bounds"
 
@@ -28,7 +28,7 @@ class SchemaTests(unittest.TestCase):
                          "plugin schemas out of sync with spec/schemas: run `make sync`")
 
     def test_examples_conform(self):
-        self.assertEqual(schema.check("manifest.schema.json", json.loads((EXAMPLE / "inquiry.json").read_text())), [])
+        self.assertEqual(schema.check("manifest.schema.json", json.loads((EXAMPLE / "discover.json").read_text())), [])
         self.assertEqual(schema.check("frontier.schema.json", json.loads((EXAMPLE / "frontier.json").read_text())), [])
         payload, problems = board.extract((EXAMPLE / "handoff-post.md").read_text())
         self.assertEqual(problems, [])
@@ -50,19 +50,19 @@ class InitValidateTests(unittest.TestCase):
     def test_scaffold_reaches_level_1_and_never_overwrites(self):
         with tempfile.TemporaryDirectory() as d:
             r = init.scaffold(d, "T", "S", ["math"], "M", "o/r")
-            self.assertIn("inquiry.json", r["created"])
+            self.assertIn("discover.json", r["created"])
             self.assertIn("AGENTS.md", r["created"])
             report = validate(Source(local=d))
             self.assertEqual(report["level"], 1, report["missing"])
             self.assertTrue(any("packages" in m for m in report["missing"][2]))
             again = init.scaffold(d, "T2", "S", ["math"], "M", "o/r")
             self.assertEqual(again["created"], [])
-            self.assertEqual(json.loads((Path(d) / "inquiry.json").read_text())["title"], "T")
+            self.assertEqual(json.loads((Path(d) / "discover.json").read_text())["title"], "T")
 
     def test_bad_weights_are_reported(self):
         with tempfile.TemporaryDirectory() as d:
             init.scaffold(d, "T", "S", ["math"], "M", "o/r")
-            cat_path = Path(d) / "inquiry" / "catalog.json"
+            cat_path = Path(d) / "discover" / "catalog.json"
             cat = json.loads(cat_path.read_text())
             cat["tracks"][0]["weight"] = 90
             cat_path.write_text(json.dumps(cat))
@@ -75,7 +75,7 @@ def catalog():
     card = lambda i: {"id": i, "question": f"q {i}", "starting_points": [], "methods": ["m1", "m2"],
                       "acceptance_gate": "g", "first_step": {"command": ["true"], "expected": ""},
                       "bottleneck_link": "b"}
-    return {"schema": "inquiry-catalog/v0", "priority_revision": 1, "assessed_on": "2026-01-01",
+    return {"schema": "discover-catalog/v0", "priority_revision": 1, "assessed_on": "2026-01-01",
             "tracks": [{"id": "a", "weight": 70, "tasks": [card("a1"), card("a2"), card("a3")]},
                        {"id": "b", "weight": 30, "tasks": [card("b1")]}]}
 
@@ -126,7 +126,7 @@ class BoardTests(unittest.TestCase):
             self.post("c3", "carol", 30, kind="claim", task="u", expires=future),
             self.post("d3", "carol", 10, kind="done", task="u", artifact="https://x"),
             {"url": "p", "author": "z", "created_at": iso(datetime.now(timezone.utc)), "body": "plain prose, no block"},
-            {"url": "bad", "author": "z", "created_at": iso(datetime.now(timezone.utc)), "body": "```inquiry\n{nope\n```"},
+            {"url": "bad", "author": "z", "created_at": iso(datetime.now(timezone.utc)), "body": "```discover\n{nope\n```"},
         ]
         msgs, bad = board.messages(posts)
         self.assertEqual([b["url"] for b in bad], ["bad"])

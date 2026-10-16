@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://inquiryathome.org/schema/v0/registry-entry.schema.json",
+  "$id": "https://discoveryathome.org/schema/v0/registry-entry.schema.json",
   "title": "Hub registry entry (registry/projects/<slug>.json)",
   "type": "object",
   "required": ["repo", "added_on"],
@@ -12,7 +12,7 @@
     "contact": { "type": "string", "description": "GitHub handle of the maintainer who requested listing." },
     "overlay": {
       "type": "object",
-      "description": "A manifest used only while the repo has no inquiry.json of its own. Same shape as inquiry.json."
+      "description": "A manifest used only while the repo has no discover.json of its own. Same shape as discover.json."
     },
     "frontier_adapter": {
       "type": "object",

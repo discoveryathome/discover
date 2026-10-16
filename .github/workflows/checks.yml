@@ -38,7 +38,7 @@ jobs:
           status=0
           for f in $(git diff --name-only --diff-filter=AM "$BASE" HEAD -- 'registry/projects/*.json'); do
             echo "::group::$f"
-            python3 plugins/inquiry/cli/inquiry.py validate --registry-entry "$f" --min-level 0 || status=1
+            python3 plugins/discover/cli/discover.py validate --registry-entry "$f" --min-level 0 || status=1
             echo "::endgroup::"
           done
           exit $status

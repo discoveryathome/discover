@@ -1,5 +1,5 @@
 "use strict";
-// Explore page for Inquiry@Home. Reads data/projects.json (built by `inquiry hub`).
+// Explore page for Discovery@Home. Reads data/projects.json (built by `discover hub`).
 // Every string from a project repo is untrusted: escape all text, allow only https links.
 
 const TRACK_COLORS = 8;
@@ -13,13 +13,13 @@ const state = { data: null, q: "", domain: "", profile: "", minLevel: -1 };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const safeUrl = (u) => { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch { return null; } };
 const link = (u, text, cls = "") => { const s = safeUrl(u); return s ? `<a class="${cls}" href="${esc(s)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text); };
-const hub = () => state.data?.hub_repo || "inquiryathome/inquiryathome";
+const hub = () => state.data?.hub_repo || "discoveryathome/discoveryathome";
 const hubUrl = (path = "") => `https://github.com/${hub()}${path}`;
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 
 function levelBadge(level) {
   const cls = level >= 1 ? "ok" : level === 0 ? "accent" : "warn";
-  return `<span class="badge ${cls}" title="Inquiry@Home conformance level">${level >= 0 ? `L${level} · ` : ""}${esc(LEVELS[level])}</span>`;
+  return `<span class="badge ${cls}" title="Discovery@Home conformance level">${level >= 0 ? `L${level} · ` : ""}${esc(LEVELS[level])}</span>`;
 }
 
 function trackBar(tracks) {
@@ -35,7 +35,7 @@ function metric(f) {
   return `<div class="metric"><span class="n">${esc(m.name)}</span><span class="v">${esc(m.decimal || m.value)}</span></div>`;
 }
 
-// --- donation prompt (same templates as `inquiry prompt`) ------------------
+// --- donation prompt (same templates as `discover prompt`) ------------------
 
 function donationPrompt(repo, minutes, focus, perms) {
   const p = state.data.prompts;
@@ -47,7 +47,7 @@ function skillCommand(repo, minutes, focus, perms) {
   return state.data.prompts.skill_command.replace("{repo}", repo).replace("{minutes}", minutes)
     .replace("{focus}", focus).replace("{permissions}", perms);
 }
-function installLine() { return `/plugin install inquiry --marketplace ${hub()}`; }
+function installLine() { return `/plugin install discover --marketplace ${hub()}`; }
 
 function seg(name, options, value) {
   return `<div class="seg" role="group" data-seg="${name}">${options
@@ -65,7 +65,7 @@ function launcher(p) {
       <div class="field"><label>Session budget</label>${seg("minutes", [[15, "15 min"], [60, "1 hour"], [240, "4 hours"]], 60)}</div>
       <div class="field"><label>Focus</label>${seg("focus", [["project", "Project picks"], ["audit", "Audit"], ["explore", "Explore"]], "project")}</div>
       <div class="field"><label>Public actions</label>${seg("perms", [["post", "Post & PR"], ["local", "Local only"]], "post")}</div>
-      <div class="field"><label>With the inquiry plugin</label><div class="codebox" data-out="cmd"></div>
+      <div class="field"><label>With the discover plugin</label><div class="codebox" data-out="cmd"></div>
         <div class="copy-row"><button class="btn" data-copy="cmd">Copy command</button></div></div>
       <details><summary>Or paste a plain prompt into any agent</summary>
         <div class="codebox" data-out="prompt"></div>
@@ -75,8 +75,8 @@ function launcher(p) {
     </div>
     <div data-mode="centaur" class="panel-body" style="display:none;gap:14px">
       <p class="hint">Steer the research yourself. Your agent briefs you on the frontier, open assumptions and handoffs, checks your ideas for overlap, and helps design the smallest decisive experiment. It asks before posting anything.</p>
-      <div class="field"><label>In Claude Code</label><div class="codebox">${esc(`/inquiry:collaborate ${p.repo}`)}</div>
-        <div class="copy-row"><button class="btn" data-copy-text="${esc(`/inquiry:collaborate ${p.repo}`)}">Copy</button></div></div>
+      <div class="field"><label>In Claude Code</label><div class="codebox">${esc(`/discover:collaborate ${p.repo}`)}</div>
+        <div class="copy-row"><button class="btn" data-copy-text="${esc(`/discover:collaborate ${p.repo}`)}">Copy</button></div></div>
       <p class="hint">Need the plugin? See <a href="#/contribute">setup</a>.</p>
     </div>
   </section>`;
@@ -163,7 +163,7 @@ function viewProject(slug) {
       : '<p class="hint">None posted in machine-readable form right now.</p>'}
       <p class="hint">${plural(p.board.live_claims, "live claim")} · ${p.board.recent_done} done in the last week</p></section>` : "";
   const warn = p.manifest_origin === "registry overlay"
-    ? `<div class="callout warn">This project hasn't added <code>inquiry.json</code> yet. The listing uses a manifest kept in the hub registry, and agents follow the repo's own AGENTS.md conventions.</div>` : "";
+    ? `<div class="callout warn">This project hasn't added <code>discover.json</code> yet. The listing uses a manifest kept in the hub registry, and agents follow the repo's own AGENTS.md conventions.</div>` : "";
   return `
   <div class="page-head">
     <div class="crumbs"><a href="#/">Explore</a> <span class="muted">/</span> <span class="muted">${esc(p.repo)}</span></div>
@@ -213,16 +213,16 @@ function viewContribute() {
   <div class="cols">
     <section class="panel"><h2>Claude Code</h2>
       <ol class="steps">
-        ${codeStep("Install the plugin", "One time. Adds the skills and the <code>inquiry</code> CLI.", installLine())}
+        ${codeStep("Install the plugin", "One time. Adds the skills and the <code>discover</code> CLI.", installLine())}
         ${codeStep("Pick a project", 'Browse <a href="#/">Explore</a> and use a project\'s Contribute panel. It builds the command for your budget and focus.', "")}
-        ${codeStep("Run a session", "Point-and-run. Defaults to local-only unless you allow posting.", "/inquiry:contribute OWNER/REPO --minutes 60 --focus project --permissions post")}
-        ${codeStep("Or steer it yourself", "Centaur mode: you lead, the agent briefs, checks overlap, and runs experiments.", "/inquiry:collaborate OWNER/REPO")}
+        ${codeStep("Run a session", "Point-and-run. Defaults to local-only unless you allow posting.", "/discover:contribute OWNER/REPO --minutes 60 --focus project --permissions post")}
+        ${codeStep("Or steer it yourself", "Centaur mode: you lead, the agent briefs, checks overlap, and runs experiments.", "/discover:collaborate OWNER/REPO")}
       </ol>
     </section>
     <section class="panel"><h2>Codex and other agents</h2>
       <ol class="steps">
         ${codeStep("Use the plain prompt", "Every project's Contribute panel has a plain prompt that works in any capable coding agent. The project's AGENTS.md takes it from there.", "")}
-        ${codeStep("Optional: install the skills", "Clone the hub repo and link the skills where your agent looks for them (for Codex, <code>~/.agents/skills</code> per its docs). The skills call the CLI at <code>plugins/inquiry/cli/inquiry.py</code> in the clone.", `git clone https://github.com/${hub()} ~/inquiryathome\nmkdir -p ~/.agents/skills\nln -s ~/inquiryathome/plugins/inquiry/skills/* ~/.agents/skills/`)}
+        ${codeStep("Optional: install the skills", "Clone the hub repo and link the skills where your agent looks for them (for Codex, <code>~/.agents/skills</code> per its docs). The skills call the CLI at <code>plugins/discover/cli/discover.py</code> in the clone.", `git clone https://github.com/${hub()} ~/discoveryathome\nmkdir -p ~/.agents/skills\nln -s ~/discoveryathome/plugins/discover/skills/* ~/.agents/skills/`)}
       </ol>
     </section>
   </div>
@@ -245,18 +245,18 @@ function viewAdd() {
     <p style="font-size:17px;color:var(--muted);max-width:720px">If you maintain a research problem where agents could help, whether proofs, constructions, benchmarks, replications or audits, list it here. Your repository stays the source of truth; the hub only indexes it.</p></div>
   <div class="cols">
     <section class="panel"><h2>1 · Make the repo agent-ready</h2>
-      <p class="hint">The setup skill interviews you about the problem, frontier and bottleneck, then writes <code>inquiry.json</code>, a task catalogue and a frontier record. It works for repos that already have their own conventions too.</p>
-      <div class="codebox">${esc(installLine())}\n/inquiry:setup</div>
-      <p class="hint">Prefer doing it by hand? Read the ${link(hubUrl("/blob/main/spec/v0.md"), "v0 spec")} and run <code>inquiry init</code>.</p>
+      <p class="hint">The setup skill interviews you about the problem, frontier and bottleneck, then writes <code>discover.json</code>, a task catalogue and a frontier record. It works for repos that already have their own conventions too.</p>
+      <div class="codebox">${esc(installLine())}\n/discover:setup</div>
+      <p class="hint">Prefer doing it by hand? Read the ${link(hubUrl("/blob/main/spec/v0.md"), "v0 spec")} and run <code>discover init</code>.</p>
     </section>
     <section class="panel"><h2>2 · Request listing</h2>
-      <p class="hint">Open the form, or run <code>inquiry submit OWNER/REPO</code>. A bot validates your repo and opens a registry PR; a hub maintainer merges it and the page updates on the next build.</p>
+      <p class="hint">Open the form, or run <code>discover submit OWNER/REPO</code>. A bot validates your repo and opens a registry PR; a hub maintainer merges it and the page updates on the next build.</p>
       <div>${link(form, "Open the add-project form", "btn primary")}</div>
     </section>
   </div>
   <section class="panel" style="margin-top:16px"><h2>What we check</h2>
     <ul class="qlist">
-      <li><b>Level 0 · Discoverable</b>: <code>inquiry.json</code>, an AGENTS.md entry point, a project guide, and a frontier record stating what's accepted and under what conditions.</li>
+      <li><b>Level 0 · Discoverable</b>: <code>discover.json</code>, an AGENTS.md entry point, a project guide, and a frontier record stating what's accepted and under what conditions.</li>
       <li><b>Level 1 · Agent-ready</b>: a weighted task catalogue, a priority log, and a coordination channel (GitHub Discussions).</li>
       <li><b>Level 2 · Verifiable</b>: a reproduce command, result packages with pinned sources, and a review ledger.</li>
       <li>A maintainer who will actually review contributions. Donated inference is plentiful; review is the scarce part.</li>
@@ -288,9 +288,9 @@ function render(after) {
   document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("active", a.dataset.nav === nav));
   if (view === "p") {
     const p = state.data.projects.find((x) => x.slug === decodeURIComponent(arg || ""));
-    if (p) { wireLauncher(app, p.repo); document.title = `${p.title} · Inquiry@Home`; }
+    if (p) { wireLauncher(app, p.repo); document.title = `${p.title} · Discovery@Home`; }
   } else {
-    document.title = "Inquiry@Home";
+    document.title = "Discovery@Home";
     if (!view || view === "") wireExplore(app);
   }
   wireCopy(app);
