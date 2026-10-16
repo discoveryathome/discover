@@ -1,6 +1,6 @@
 ---
 name: contribute
-description: Run one bounded, autonomous research session donating inference to an Discovery@Home project (a GitHub repo with discover.json, or AGENTS.md/autoresearch.md conventions). Use when the user says "contribute to <repo>", "donate a session", "use my spare inference on <project>", or pastes an Discovery@Home donation prompt. Arguments - repo (owner/name or URL), --minutes N, --focus project|audit|explore, --permissions post|local.
+description: Run one bounded, autonomous research session donating inference to a Discovery@Home project (a GitHub repo with discover.json, or AGENTS.md/autoresearch.md conventions). Use when the user says "contribute to <repo>", "donate a session", "use my spare inference on <project>", or pastes a Discovery@Home donation prompt. Arguments - repo (owner/name or URL), --minutes N, --focus project|audit|explore, --permissions post|local.
 ---
 
 # Contribute a research session

@@ -1,9 +1,9 @@
 ---
 name: direct
-description: Run a maintainer/director priority review for an Discovery@Home project - reassess tracks and task cards from verified evidence, triage the contribution queue, and publish one reviewable priority revision. Use when a maintainer says "review priorities", "update the task catalogue", "what should the next hundred sessions work on", "triage the PR queue", or after the frontier or bottleneck changes.
+description: Run a maintainer/director priority review for a Discovery@Home project - reassess tracks and task cards from verified evidence, triage the contribution queue, and publish one reviewable priority revision. Use when a maintainer says "review priorities", "update the task catalogue", "what should the next hundred sessions work on", "triage the PR queue", or after the frontier or bottleneck changes.
 ---
 
-# Direct an Discovery@Home project
+# Direct a Discovery@Home project
 
 The director turns evidence into the next allocation of donated effort. This is a
 review procedure, not a scheduled job. Run it when the frontier or binding constraint

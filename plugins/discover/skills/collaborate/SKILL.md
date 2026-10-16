@@ -1,6 +1,6 @@
 ---
 name: collaborate
-description: Work hands-on with the user as a research partner on an Discovery@Home project, with the user steering ("centaur" mode). Use when the user wants to explore, question or work on an open research project with you rather than hand off an autonomous session, e.g. "help me work on <repo>", "what's the weakest assumption in <project>", "I have an idea for <project>, is it new?". Argument - repo (owner/name or URL), or the current directory.
+description: Work hands-on with the user as a research partner on a Discovery@Home project, with the user steering ("centaur" mode). Use when the user wants to explore, question or work on an open research project with you rather than hand off an autonomous session, e.g. "help me work on <repo>", "what's the weakest assumption in <project>", "I have an idea for <project>, is it new?". Argument - repo (owner/name or URL), or the current directory.
 ---
 
 # Collaborate on an open research project

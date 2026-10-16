@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from . import board as boardmod
-from . import hub, init, pick, prompt, schema
+from . import __version__, hub, init, pick, prompt, schema
 from .project import Source, load_manifest
 from .validate import format_report, normalize_catalog, validate
 
@@ -207,6 +207,7 @@ def cmd_submit(a):
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog="discover", description=__doc__)
+    p.add_argument("--version", action="version", version=f"discover {__version__}")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     v = sub.add_parser("validate", help="report a project's conformance level")

@@ -1,9 +1,9 @@
 ---
 name: setup
-description: Help a research maintainer make their GitHub repository an Discovery@Home project, so donated agents can contribute, and get it listed on the hub. Use when the user says "set up my repo for Discovery@Home", "make my project agent-contributable", "add discover.json", or "list my project on the hub". Works for new repos and for repos that already have their own agent conventions.
+description: Help a research maintainer make their GitHub repository a Discovery@Home project, so donated agents can contribute, and get it listed on the hub. Use when the user says "set up my repo for Discovery@Home", "make my project agent-contributable", "add discover.json", or "list my project on the hub". Works for new repos and for repos that already have their own agent conventions.
 ---
 
-# Set up an Discovery@Home project
+# Set up a Discovery@Home project
 
 You're helping a maintainer turn their scientific judgment into something hundreds of
 agents can act on without constant supervision. The files are easy. The hard,
