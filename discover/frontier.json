@@ -1,15 +1,15 @@
 {
   "schema": "discover-frontier/v0",
-  "statement": "The v0-draft rubric (five properties, Stages 0-2) has been applied once, by hand, to one listed project: integer-mult-bounds, graded Stage 1 in the 2026-10-16 smoke test.",
-  "status": "Draft rubric with one hand-run assessment; no probe tooling or assessment-record format yet.",
+  "statement": "The v0 rubric (five properties, Stages 0-2) has recorded assessments of two shapes of project: applied-butterfly-mult, a benchmark project, assessed as a nomination and again after setup (Stage 1, 2026-10-17; the nomination's projected grades held, with Orientation one grade higher); and the hub itself. Adapters were tested on six third-party repositories, each probed with and without its adapter. Assessment records have a schema, and a weekly hub check flags stale listings. integer-mult-bounds was graded Stage 1 in an informal smoke test on 2026-10-16 with no record; that grade doesn't count until a recorded assessment replaces it.",
+  "status": "Rubric applied with records to two projects; record format and scheduled checks in place; thresholds uncalibrated; no donor-tier probe model yet.",
   "evidence_level": [
     "author-checked"
   ],
-  "scope": "One project, of one shape (a single exact bound with certificates). Two orientation probes, one verification probe and two measurements, run ad hoc. Not yet tested on a benchmark, replication or conjecture-style project, or with a donor-tier probe model.",
+  "scope": "Two listed projects with records, of two shapes (benchmark; the hub's own review-only project), plus six unlisted third-party repositories probed for adapter testing. Not yet tested on a replication or conjecture-style listing, or with a donor-tier probe model.",
   "assumptions": [
     {
       "id": "probe-agreement",
-      "statement": "Probe answers on the same commit agree (two probes agreed once).",
+      "statement": "Probe answers on the same commit agree. Five assessments of applied-butterfly-mult at 3d2fc58 gave identical grades on every property (issue #4); one repo and one probe model so far.",
       "status": "partial"
     },
     {
@@ -19,10 +19,10 @@
     },
     {
       "id": "routine-cost",
-      "statement": "A routine reassessment costs about two short donor sessions (estimated, not measured).",
-      "status": "open"
+      "statement": "A routine reassessment costs about two short donor sessions. Measured once: an assess session took 5-10 minutes of agent time, plus about 3 minutes per probe.",
+      "status": "partial"
     }
   ],
   "review": "spec/v0.md §3 and §13",
-  "updated_on": "2026-10-16"
+  "updated_on": "2026-10-17"
 }

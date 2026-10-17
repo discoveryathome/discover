@@ -16,6 +16,7 @@
     "assessor": { "type": "string" },
     "probe_model": { "type": "string" },
     "mode": { "enum": ["hub", "re-assess"], "default": "hub" },
+    "self_assessed": { "type": "boolean", "default": false, "description": "The assessor maintains the project or the hub assessing itself (spec §12.4). Such a record counts toward a stage only after an independent rerun agrees." },
     "previous": { "type": "string", "description": "Path of the assessment this one updates, for a re-assessment." },
     "entry_paths": { "type": "array", "items": { "type": "string" }, "description": "Repo paths the orientation probe relied on; a change to any of them makes the assessment stale." },
     "grades": { "$ref": "#/$defs/grades" },

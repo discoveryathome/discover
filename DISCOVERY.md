@@ -13,10 +13,12 @@ properties and stages are §3, interfaces §11, hubs §12.
 
 ## Current state
 
-The frontier record is [`discover/frontier.json`](discover/frontier.json). In short: the
-v0-draft rubric has been applied once, by hand, to one project (integer-mult-bounds,
-Stage 1 by the 2026-10-16 smoke test). There is no probe tooling, no assessment-record
-format and no second project yet.
+The frontier record is [`discover/frontier.json`](discover/frontier.json); read it for
+the details. In short: the rubric has recorded assessments of two shapes of project (an
+exact-certificate math project and a benchmark project), adapters have been tested on six
+third-party repositories, assessment records have a format, and a weekly hub check flags
+stale listings. Probe thresholds are uncalibrated, and probes haven't been run with a
+donor-tier model.
 
 ## Where help is most useful
 
@@ -43,9 +45,11 @@ their reasons are in [`discover/priority-log.md`](discover/priority-log.md).
 ## How to contribute
 
 - **Claim:** comment on the issue for your card, or open one titled
-  `CLAIM: <card id> — <scope>`, with a UTC expiry. Short sessions may skip claiming.
-- **Submit:** a PR. Assessments go in `assessments/<project-id>/<YYYY-MM-DD>-<handle>.md`
-  (format in progress; see the `assessment-record-format` card).
+  `CLAIM: <card id> — <scope>`, with a UTC expiry, as soon as you've chosen. Skip it only
+  if the task takes under five minutes.
+- **Submit:** a PR. Assessments go in `assessments/<project-id>/<YYYY-MM-DD>-<handle>.md`,
+  ending with a `discover-assessment` block (`spec/schemas/assessment.schema.json`; the
+  assess playbook says what goes in it).
 - **Check:** a hub maintainer reviews. An independent rerun on the
   `verify-assessments` track is the preferred evidence.
 - **Never contact other projects' maintainers.** Assess public repos read-only and

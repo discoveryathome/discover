@@ -130,8 +130,9 @@ S=~/discover-work/OWNER-NAME-$(date -u +%Y%m%dT%H%M) && mkdir -p "$S"
 git clone --filter=blob:none https://github.com/OWNER/NAME "$S/repo"
 cd "$S/repo" && git switch -c session/$(date -u +%Y%m%dT%H%M)
 git rev-parse HEAD    # record the base commit
-``` If you're
-asked to loop over several sessions, **refetch at the start of every round** and before
+```
+
+If you're asked to loop over several sessions, **refetch at the start of every round** and before
 submitting: a stale clone means stale priorities.
 
 ## 2. Orient (briefly)
