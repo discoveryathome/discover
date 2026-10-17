@@ -35,7 +35,10 @@
       "type": "array",
       "items": { "type": "object", "required": ["path", "sha256"], "properties": { "path": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "role": { "type": "string" } } }
     },
-    "reproduce": { "type": "string", "description": "Command that replays the result from a clean checkout (Level 2)." },
+    "reproduce": { "type": "string", "description": "Command that checks the result from a clean checkout; may be incremental on hash-identified, verified predecessors." },
+    "reproduce_full": { "type": "string", "description": "Full replay from scratch, when it differs from `reproduce`." },
+    "reproduce_minutes": { "type": "integer", "minimum": 0, "description": "Expected runtime of `reproduce` on an ordinary machine." },
+    "prerequisites": { "type": "array", "items": { "type": "string" }, "description": "What a newcomer must install before `reproduce` runs." },
     "review": { "type": "string", "description": "Path or URL of the maintainer review." },
     "previous_record": { "type": "string" },
     "pinned_heads": { "type": "object", "additionalProperties": { "type": "string" } },

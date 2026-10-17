@@ -13,7 +13,7 @@ PERMISSIONS = {
 
 TEMPLATE = (
     "Contribute one useful, independently reviewable result to {repo_url}. "
-    "Read AGENTS.md and the project's entry doc from the current default branch first, and its discover.json if present. "
+    "Read AGENTS.md and the project's entry doc from the current default branch first. "
     "Use the repository's task-selection and overlap process unless I assign a specific task. "
     "Work for about {minutes} minutes, keeping the final quarter for verification and a concise handoff. "
     "{focus} "

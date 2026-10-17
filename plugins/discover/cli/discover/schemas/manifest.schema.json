@@ -82,6 +82,10 @@
     "verification_profile": {
       "enum": ["formal-proof", "exact-certificate", "benchmark", "replication", "review-only"],
       "description": "Strongest kind of evidence the project can produce. Hub filter."
+    },
+    "process_changed_on": {
+      "type": "string", "format": "date",
+      "description": "Last change to how the project coordinates or reviews; activity measurements count from here."
     }
   }
 }

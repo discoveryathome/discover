@@ -18,6 +18,7 @@
       "type": "object",
       "description": "Maps a pre-v0 frontier record onto v0 fields: {v0_field: raw_field}, plus metric {name, value, decimal, direction} and evidence_level (declared)."
     },
+    "process_changed_on": { "type": "string", "format": "date", "description": "As in the manifest, for repos listed through an adapter." },
     "featured": { "type": "boolean", "default": false }
   }
 }
