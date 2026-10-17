@@ -1,0 +1,57 @@
+{
+  "repos": [
+    {
+      "repo": "CrocSwap/applied-butterfly-mult"
+    }
+  ],
+  "added_on": "2026-10-17",
+  "intake": "https://github.com/discoveryathome/discover/issues/18",
+  "nomination": {
+    "by": "Mister-Meeseeks",
+    "on": "2026-10-17",
+    "proposal": "https://github.com/CrocSwap/applied-butterfly-mult/issues/11",
+    "draft": "https://github.com/Mister-Meeseeks/applied-butterfly-mult/tree/discovery-at-home-draft"
+  },
+  "assessment": "assessments/applied-butterfly-mult/2026-10-17-claude.md",
+  "stage": "assessed",
+  "grades": {
+    "orientation": "weak",
+    "coordination": "weak",
+    "verification": "weak",
+    "review": "unknown",
+    "steering": "adequate"
+  },
+  "projected": {
+    "assessment": "assessments/applied-butterfly-mult/2026-10-17-claude.md",
+    "stage": 0,
+    "grades": {
+      "orientation": "adequate",
+      "coordination": "adequate",
+      "verification": "adequate",
+      "review": "unknown",
+      "steering": "adequate"
+    }
+  },
+  "overlay": {
+    "schema": "discover/v0",
+    "title": "Applied butterfly multiplication",
+    "summary": "Turning integer-multiplication theory into measured, exactly checked speedups of complete operations in FLINT: so far about 3% for large-integer squaring, 4–15% for polynomial matrix products and 4–9% for theta evaluation, on one Apple M2.",
+    "domains": [
+      "math",
+      "algorithms",
+      "performance-engineering"
+    ],
+    "maintainers": [
+      {
+        "name": "Douglas R. Colkitt",
+        "github": "Mister-Meeseeks"
+      }
+    ],
+    "canonical_repo": "https://github.com/CrocSwap/applied-butterfly-mult",
+    "entry": {
+      "agents": "README.md",
+      "project": "docs/project-plan.md"
+    },
+    "verification_profile": "benchmark"
+  }
+}
