@@ -34,15 +34,16 @@ for verification and handoff.
 
 ## 1. An isolated workspace at a pinned commit
 
-Work in a fresh clone, never in a checkout the person is using:
+Work in a fresh clone, never in a checkout the person is using. Everything this session
+creates lives in one folder: the clone in `repo/`, and your notes, scripts, logs,
+`HANDOFF.md` and any extra worktrees beside it.
 
 ```sh
-git clone --filter=blob:none https://github.com/OWNER/NAME ~/discover-work/OWNER-NAME
-cd ~/discover-work/OWNER-NAME && git switch -c session/$(date -u +%Y%m%dT%H%M)
+S=~/discover-work/OWNER-NAME-$(date -u +%Y%m%dT%H%M) && mkdir -p "$S"
+git clone --filter=blob:none https://github.com/OWNER/NAME "$S/repo"
+cd "$S/repo" && git switch -c session/$(date -u +%Y%m%dT%H%M)
 git rev-parse HEAD    # record the base commit
-```
-
-If the clone exists, fetch and branch from the fresh default branch instead. If you're
+``` If you're
 asked to loop over several sessions, **refetch at the start of every round** and before
 submitting: a stale clone means stale priorities.
 

@@ -23,7 +23,9 @@ for writing up.
 
 ## 1. Workspace and orientation
 
-Clone into `~/discover-work/OWNER-NAME` on a fresh branch and record the base commit.
+Make one folder for the session, `~/discover-work/OWNER-NAME-verify-<UTC time>/`, clone into
+`repo/` inside it on a fresh branch, and record the base commit. Keep your notes,
+scripts, logs and any extra worktrees in that folder too.
 Read `AGENTS.md` and the entry doc far enough to learn what counts as evidence here and
 how many independent checks maintainers want before accepting a result.
 
