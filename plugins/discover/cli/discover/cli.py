@@ -58,7 +58,7 @@ def cmd_validate(a):
     r = validate(source, overlay, adapter)
     slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog")}
     emit(slim, a.json, lambda _: format_report(r))
-    return 0 if r["level"] >= a.min_level else 1
+    return 0 if r["conformant"] else 1
 
 
 def cmd_init(a):
@@ -219,12 +219,11 @@ def main(argv=None):
     p.add_argument("--version", action="version", version=f"discover {__version__}")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    v = sub.add_parser("validate", help="report a project's conformance level")
+    v = sub.add_parser("validate", help="check a project's files and which conventions it follows")
     v.add_argument("path", nargs="?", default=".")
     v.add_argument("--repo", help="validate a GitHub repo (owner/name) instead of a local path")
     v.add_argument("--ref", default="HEAD")
     v.add_argument("--registry-entry", help="apply a registry entry's overlay/adapter")
-    v.add_argument("--min-level", type=int, default=0, help="exit nonzero below this level")
     v.add_argument("--json", action="store_true")
     v.set_defaults(func=cmd_validate)
 

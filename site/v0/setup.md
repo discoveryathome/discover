@@ -20,9 +20,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-9024ed5e2680.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-57a0d3438fb6.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 9024ed5e268064a85c9619d5562d1867b6061d06a552161f2c09738502e9722a
+# must print 57a0d3438fb63ceee80458315c5626ffb95f42c8063d1d2e76c3bc8eee700de3
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -101,9 +101,11 @@ Then fill in, with the maintainer:
 - **`DISCOVERY.md`** (or the existing entry doc): the problem, a summary of what's
   accepted, the bottleneck, a table of tracks, settled questions, what evidence is
   expected, how review works, and the credit policy. Only project-specific content
-  belongs here; the generic session procedure lives in the hub's playbooks.
+  belongs here; the generic session procedure lives in the hub's playbooks. Link to
+  them at their hosted address, https://discoveryathome.github.io/discover/v0/contribute.md (and `verify.md`,
+  `collaborate.md`), never to the hub's source folder on GitHub.
 - **Frontier record:** `statement`, `evidence_level` (every level that honestly
-  applies), `scope`, `assumptions[]` as discrete open obligations, `reproduce` (the
+  applies; see the rule below), `scope`, `assumptions[]` as discrete open obligations, `reproduce` (the
   command that rechecks it; an incremental check of the newest step is fine), its
   expected runtime and prerequisites, and `review`.
 - **Catalogue:** 2–6 tracks with integer weights summing to 100. Always include an
@@ -116,6 +118,12 @@ Then fill in, with the maintainer:
   next.
 - **`credit`** in `discover.json`: the policy in plain words.
 
+**Only the maintainer accepts a result.** Draft the frontier statement and scope, then
+show the maintainer the exact final text and ask them to confirm it. Record
+`maintainer-reviewed`, or a ledger row accepting the frontier, only after they say yes to
+that text. If they haven't confirmed, use `author-checked` (or nothing) and say in the
+handover that the frontier awaits their review.
+
 ## 3. A coordination channel
 
 **Strongly recommend GitHub Discussions.** It's the default channel and the one the
@@ -125,9 +133,20 @@ works blind. Projects with many contributors need it most.
 
 Discussions is off by default on GitHub. It's one setting, so **ask first**, then point
 the maintainer to Settings → General → Features → Discussions, or with their yes run
-`gh repo edit OWNER/NAME --enable-discussions`. Offer to create four threads (*Start
-here*, *Handoffs*, *Proposals*, *Feedback*) and record their numbers in
-`coordination.threads`.
+`gh repo edit OWNER/NAME --enable-discussions`. Offer to create four threads and record
+their numbers in `coordination.threads`:
+
+| Thread | Category | Why |
+|---|---|---|
+| *Start here* | Announcements | Only maintainers can post there, so it stays a clean pointer to `AGENTS.md` |
+| *Handoffs* | General | Claims, findings, handoffs and `done` messages, one comment each. Not Q&A, whose "answered" state confuses the lifecycle |
+| *Proposals* | Ideas | New cards, track changes, reopening settled questions |
+| *Feedback* | General | One retrospective per session |
+
+GitHub's API can create threads but can't pin them or create categories. Ask the
+maintainer to **pin *Start here* and *Handoffs*** (on each thread, *Pin discussion* in the
+right-hand sidebar), so newcomers find them on the Discussions tab, and include this in
+the handover checklist until they confirm it's done. Custom categories are optional.
 
 **It isn't required.** If the maintainer declines, set `coordination.transport` to
 `github-issues` (issues are on by default) and say in the entry doc how to claim work
@@ -135,7 +154,10 @@ and post handoffs there. They can switch to Discussions any time.
 
 ## 4. Check it as a hub would
 
-With the helper, `discover validate .`. Either way, assess it the way a hub will
+With the helper, `discover validate .`: it checks the required files and lists which
+conventions the project follows. It doesn't grade anything or report a stage; only a hub
+assessment does that (spec §3), so don't describe its output as a level or stage. Either
+way, assess it the way a hub will
 (spec §3): could a fresh agent, given only a donation prompt, find the problem, what's
 accepted, where help is wanted, and how to contribute? Try it: answer those four
 questions yourself starting from `AGENTS.md`, and fix whatever made it slow. Run every
@@ -157,6 +179,8 @@ need to change in the project's repo to be listed.
 
 Tell the maintainer:
 
+- Any steps still theirs to do: pinning the Discussions threads, confirming the frontier
+  if they haven't, merging the PR
 - The project's donation prompt, from its page on the hub (or `discover prompt
   OWNER/NAME`)
 - To run the **direct** playbook after the first batch of contributions, whenever the

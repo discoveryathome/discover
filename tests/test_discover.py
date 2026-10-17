@@ -12,7 +12,7 @@ sys.path.insert(0, str(ROOT / "plugins" / "discover" / "cli"))
 from discover import board, hub, init, pick, schema  # noqa: E402
 from discover.cli import main, parse_issue_form  # noqa: E402
 from discover.project import Source  # noqa: E402
-from discover.validate import validate  # noqa: E402
+from discover.validate import format_report, validate  # noqa: E402
 
 EXAMPLE = ROOT / "examples" / "integer-mult-bounds"
 
@@ -50,14 +50,17 @@ class SchemaTests(unittest.TestCase):
 
 
 class InitValidateTests(unittest.TestCase):
-    def test_scaffold_reaches_level_1_and_never_overwrites(self):
+    def test_scaffold_is_conformant_and_never_overwrites(self):
         with tempfile.TemporaryDirectory() as d:
             r = init.scaffold(d, "T", "S", ["math"], "M", "o/r")
             self.assertIn("discover.json", r["created"])
             self.assertIn("AGENTS.md", r["created"])
             report = validate(Source(local=d))
-            self.assertEqual(report["level"], 1, report["missing"])
-            self.assertTrue(any("packages" in m for m in report["missing"][2]))
+            self.assertTrue(report["conformant"], report["problems"])
+            self.assertIs(report["conventions"]["catalog"], True)
+            self.assertIn("fine for a new project", report["conventions"]["packages"])
+            self.assertIn("hub assessment", format_report(report))
+            self.assertNotIn("Level", format_report(report))
             again = init.scaffold(d, "T2", "S", ["math"], "M", "o/r")
             self.assertEqual(again["created"], [])
             self.assertEqual(json.loads((Path(d) / "discover.json").read_text())["title"], "T")
@@ -70,8 +73,8 @@ class InitValidateTests(unittest.TestCase):
             cat["tracks"][0]["weight"] = 90
             cat_path.write_text(json.dumps(cat))
             report = validate(Source(local=d))
-            self.assertEqual(report["level"], 0)
-            self.assertTrue(any("sum to 90" in m for m in report["missing"][1]))
+            self.assertTrue(report["conformant"])
+            self.assertIn("sum to 90", report["conventions"]["catalog"])
 
 
 def catalog():

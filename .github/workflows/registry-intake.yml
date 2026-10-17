@@ -56,7 +56,7 @@ jobs:
           SLUG: ${{ steps.entry.outputs.slug }}
         run: |
           set +e
-          python3 plugins/discover/cli/discover.py validate --registry-entry "registry/projects/$SLUG.json" --min-level 0 > "$RUNNER_TEMP/report.txt" 2>&1
+          python3 plugins/discover/cli/discover.py validate --registry-entry "registry/projects/$SLUG.json" > "$RUNNER_TEMP/report.txt" 2>&1
           echo "ok=$([ $? -eq 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           cat "$RUNNER_TEMP/report.txt"
       # Projects are met where they are (spec §3.4): a repo that doesn't validate yet still gets a

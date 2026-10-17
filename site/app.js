@@ -3,12 +3,13 @@
 // Every string from a project repo is untrusted: escape all text, allow only https links.
 
 const TRACK_COLORS = 8;
-const LEVELS = { "-1": "Not conformant", 0: "Discoverable", 1: "Agent-ready", 2: "Verifiable" };
+const STAGES = { assessed: "Assessed", 0: "Stage 0 · Explorable", 1: "Stage 1 · Swarm-ready", 2: "Stage 2 · Self-sustaining" };
+const stageRank = (p) => (typeof p.stage === "number" ? p.stage + 1 : p.stage === "assessed" ? 0 : -1);
 const PROFILES = {
   "formal-proof": "Formal proof", "exact-certificate": "Exact certificate", benchmark: "Benchmark",
   replication: "Replication", "review-only": "Expert review",
 };
-const state = { data: null, q: "", domain: "", profile: "", minLevel: -1 };
+const state = { data: null, q: "", domain: "", profile: "", assessedOnly: false };
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const safeUrl = (u) => { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch { return null; } };
@@ -17,9 +18,12 @@ const hub = () => state.data?.hub_repo || "discoveryathome/discover";
 const hubUrl = (path = "") => `https://github.com/${hub()}${path}`;
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 
-function levelBadge(level) {
-  const cls = level >= 1 ? "ok" : level === 0 ? "accent" : "warn";
-  return `<span class="badge ${cls}" title="Discovery@Home conformance level">${level >= 0 ? `L${level} · ` : ""}${esc(LEVELS[level])}</span>`;
+function stageBadge(p) {
+  const known = p.stage !== undefined && p.stage !== null && STAGES[p.stage];
+  const cls = !known ? "" : p.stage >= 1 ? "ok" : p.stage === 0 ? "accent" : "";
+  const label = known ? STAGES[p.stage] : "Not yet assessed";
+  const title = known ? "Stage from the hub's latest assessment of the five properties" : "The hub hasn't published an assessment of this project yet";
+  return `<span class="badge ${cls}" title="${title}">${esc(label)}</span>${p.conformant === false ? '<span class="badge warn" title="Required files are missing or invalid">Files incomplete</span>' : ""}`;
 }
 
 function trackBar(tracks) {
@@ -146,7 +150,7 @@ function projectCard(p) {
   const f = p.frontier;
   const handoffs = p.board?.open_handoffs?.length;
   return `<article class="card">
-    <div class="row">${levelBadge(p.level)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}${p.featured ? '<span class="badge accent">Featured</span>' : ""}</div>
+    <div class="row">${stageBadge(p)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}${p.featured ? '<span class="badge accent">Featured</span>' : ""}</div>
     <h3><a href="#/p/${encodeURIComponent(p.slug)}">${esc(p.title)}</a></h3>
     <p class="summary">${esc(p.summary)}</p>
     ${metric(f)}
@@ -164,8 +168,8 @@ function viewExplore() {
     (!q || `${p.title} ${p.summary} ${p.repo} ${p.domains.join(" ")}`.toLowerCase().includes(q)) &&
     (!state.domain || p.domains.includes(state.domain)) &&
     (!state.profile || p.verification_profile === state.profile) &&
-    p.level >= state.minLevel)
-    .sort((a, b) => (b.featured - a.featured) || (b.level - a.level) || a.title.localeCompare(b.title));
+    (!state.assessedOnly || stageRank(p) >= 0))
+    .sort((a, b) => (b.featured - a.featured) || (stageRank(b) - stageRank(a)) || a.title.localeCompare(b.title));
   const handoffs = all.reduce((n, p) => n + (p.board?.open_handoffs?.length || 0), 0);
   return `
   <section class="hero">
@@ -176,7 +180,7 @@ function viewExplore() {
   <div class="filters">
     <input class="search" type="search" placeholder="Search projects" value="${esc(state.q)}" data-f="q" aria-label="Search projects">
     <select data-f="profile" aria-label="Evidence type"><option value="">Any evidence type</option>${Object.entries(PROFILES).map(([k, v]) => `<option value="${k}" ${state.profile === k ? "selected" : ""}>${v}</option>`).join("")}</select>
-    <select data-f="minLevel" aria-label="Minimum level"><option value="-1">Any level</option><option value="1" ${state.minLevel === 1 ? "selected" : ""}>Agent-ready or better</option><option value="2" ${state.minLevel === 2 ? "selected" : ""}>Verifiable</option></select>
+    <select data-f="assessedOnly" aria-label="Assessment"><option value="">Assessed or not</option><option value="1" ${state.assessedOnly ? "selected" : ""}>Assessed only</option></select>
   </div>
   <div class="chips" style="margin:-8px 0 20px">${["", ...domains].map((d) => `<button class="chip" data-domain="${esc(d)}" aria-pressed="${state.domain === d}">${d ? esc(d) : "All fields"}</button>`).join("")}</div>
   ${shown.length ? `<div class="grid">${shown.map(projectCard).join("")}</div>` : `<div class="empty">No projects match. <a href="#/add">Add yours?</a></div>`}`;
@@ -184,7 +188,7 @@ function viewExplore() {
 
 function wireExplore(root) {
   root.querySelectorAll("[data-f]").forEach((el) => el.addEventListener(el.tagName === "INPUT" ? "input" : "change", () => {
-    const k = el.dataset.f; state[k] = k === "minLevel" ? Number(el.value) : el.value;
+    const k = el.dataset.f; state[k] = k === "assessedOnly" ? el.value === "1" : el.value;
     render(k === "q" ? () => { const s = document.querySelector(".search"); s.focus(); s.setSelectionRange(s.value.length, s.value.length); } : null);
   }));
   root.querySelectorAll("[data-domain]").forEach((b) => b.addEventListener("click", () => { state.domain = b.dataset.domain; render(); }));
@@ -210,7 +214,7 @@ function viewProject(slug) {
     <div class="crumbs"><a href="#/">Explore</a> <span class="muted">/</span> <span class="muted">${esc(p.repo)}</span></div>
     <h1>${esc(p.title)}</h1>
     <p style="font-size:17px;color:var(--muted);max-width:720px">${esc(p.summary)}</p>
-    <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${levelBadge(p.level)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}${p.domains.map((d) => `<span class="badge">${esc(d)}</span>`).join("")}</div>
+    <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${stageBadge(p)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}${p.domains.map((d) => `<span class="badge">${esc(d)}</span>`).join("")}</div>
   </div>
   <div class="layout">
     <div>

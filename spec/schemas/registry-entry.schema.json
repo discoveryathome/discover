@@ -31,6 +31,7 @@
     },
     "process_changed_on": { "type": "string", "format": "date", "description": "As in the manifest, for repos listed through an adapter." },
     "assessment": { "type": "string", "description": "Path of the latest assessment record, e.g. assessments/<id>/<date>-<assessor>.md." },
+    "stage": { "enum": ["assessed", 0, 1, 2], "description": "The stage computed in that assessment (spec §3.3), copied here when a hub maintainer merges it. Absent: not yet assessed." },
     "consent": {
       "type": "object",
       "description": "What the hub last verified from the project's consent record (spec §11.4).",

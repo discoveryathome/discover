@@ -27,9 +27,10 @@ def project_summary(slug, entry, report, board=None):
         "title": m.get("title", repo), "summary": m.get("summary", ""),
         "domains": m.get("domains", []), "maintainers": m.get("maintainers", []),
         "license": m.get("license"), "verification_profile": m.get("verification_profile"),
-        "level": report["level"], "manifest_origin": report.get("manifest_origin"),
-        "warnings": report["warnings"],
-        "missing": {str(k): v for k, v in report["missing"].items()},
+        "stage": entry.get("stage"), "assessment": entry.get("assessment"),
+        "conformant": report["conformant"], "manifest_origin": report.get("manifest_origin"),
+        "warnings": report["warnings"], "problems": report["problems"],
+        "conventions": report["conventions"],
         "featured": entry.get("featured", False), "added_on": entry.get("added_on"),
         "links": {k: blob + v for k, v in (m.get("entry") or {}).items()},
         "discussions": {"all": f"https://github.com/{repo}/discussions",
@@ -100,7 +101,7 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             except Exception as e:
                 print(f"{slug}: board unavailable ({e})", file=log)
         projects.append(project_summary(slug, entry, report, board))
-        print(f"ok {slug}: level {report['level']}", file=log)
+        print(f"ok {slug}: {'conformant' if report['conformant'] else 'not conformant'}, stage {entry.get('stage', 'not assessed')}", file=log)
     data = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "hub_repo": HUB_REPO, "projects": projects, "problems": problems,
             "prompts": templates(site_url(registry_dir))}
