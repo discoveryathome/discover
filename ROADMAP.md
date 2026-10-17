@@ -44,9 +44,10 @@ Built: the scheduled check (spec §12.6) for consent, validity, adapter drift, s
 assessments and registry consistency; one hub issue per finding; the re-assess mode; and
 the assessment record format. Left:
 
-- Turn on issue syncing (`HUB_CHECK_ISSUES`) after a week of clean dry runs.
-- Assess the two listings that have no assessment yet (`discovery-at-home`,
-  `integer-mult-bounds`), with `integer-mult-bounds` graded through its adapter.
+- Turn on issue syncing (`HUB_CHECK_ISSUES`) after a week of clean dry runs (about
+  2026-10-24).
+- Done: every listing has a record (integer-mult-bounds through its adapter, the hub on
+  itself, re-assessed once), and the hub's priorities are at revision 2.
 - Done when a listed project can change for a month and its listing stays accurate with
   only hub-work sessions.
 
