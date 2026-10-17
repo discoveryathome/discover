@@ -346,6 +346,11 @@ const ONBOARD_CHOICES = {
   ],
 };
 
+function startPrompt(problem, local) {
+  const p = state.data.prompts;
+  return fill(p.start, { site: p.site, problem: problem.trim() || "DESCRIBE THE PROBLEM, OR PASTE A LINK TO IT", mode: local ? p.start_local : "" });
+}
+
 function onboardPrompt(role, goal, repo, context) {
   const p = state.data.prompts;
   return fill(p.onboard, { site: p.site, role, goal, repo_url: `https://github.com/${repo}`, context: context ? fill(p.onboard_context, { context }) : "" });
@@ -374,11 +379,19 @@ function viewAdd() {
       <div class="choices">
         <button type="button" class="choice" data-role="maintainer" aria-pressed="false"><b>The project's maintainer</b><span>You run the repository and review contributions to it.</span></button>
         <button type="button" class="choice" data-role="contributor" aria-pressed="false"><b>Someone who'd like to bring it here</b><span>You don't maintain it, but think agents could help it.</span></button>
+        <button type="button" class="choice" data-role="new" aria-pressed="false"><b>Starting a new project</b><span>You have a problem, not a repository yet. Build it ready for donors from the first commit.</span></button>
       </div>
     </section>
-    <section class="panel" data-step="goal" style="display:none"><div class="step-label">2 · You want to</div>${goals("maintainer")}${goals("contributor")}</section>
+    <section class="panel" data-step="goal" style="display:none"><div class="step-label" data-goal-label>2 · You want to</div>${goals("maintainer")}${goals("contributor")}
+      <div data-goals="new" style="display:none;gap:10px">
+        <div class="field"><label for="add-problem" class="visually-hidden">The problem</label>
+          <textarea id="add-problem" class="repo-input" rows="6" placeholder="Describe the problem in your own words, or paste a link to it (an Erdős problem, an open question from a paper)."></textarea></div>
+        <label class="hint" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="add-local"> Build it on my machine first, without creating anything on GitHub</label>
+        <p class="hint">Your agent checks what's already known (with sources) before building on any claim in your description, builds a checker for results before any research, and asks who will maintain the project. A project can be built without a maintainer, but it can't take donated sessions until someone agrees to review them.</p>
+      </div>
+    </section>
     <section class="panel" data-step="prompt" style="display:none"><div class="step-label">3 · Paste this into your agent</div>
-      <div class="field"><label for="add-repo">Repository</label><input id="add-repo" class="repo-input" placeholder="https://github.com/OWNER/REPO" autocomplete="off" spellcheck="false"></div>
+      <div class="field" data-repo-field><label for="add-repo">Repository</label><input id="add-repo" class="repo-input" placeholder="https://github.com/OWNER/REPO" autocomplete="off" spellcheck="false"></div>
       ${promptBox("onboard")}
       <p class="hint" data-out="onboard-note"></p>
     </section>
@@ -413,7 +426,15 @@ function wireAdd(root) {
   const refresh = () => {
     show('[data-step="goal"]', !!role);
     root.querySelectorAll("[data-goals]").forEach((el) => { el.style.display = el.dataset.goals === role ? "grid" : "none"; });
-    show('[data-step="prompt"]', !!(role && goal));
+    const isNew = role === "new";
+    root.querySelector("[data-goal-label]").textContent = isNew ? "2 · Your problem" : "2 · You want to";
+    show('[data-step="prompt"]', !!(role && (goal || isNew)));
+    show("[data-repo-field]", !isNew);
+    if (isNew) {
+      root.querySelector('[data-out="onboard"]').textContent = startPrompt(root.querySelector("#add-problem").value, root.querySelector("#add-local").checked);
+      root.querySelector('[data-out="onboard-note"]').textContent = "It interviews you to sharpen the question, and asks before creating a repository, pushing or posting.";
+      return;
+    }
     if (!(role && goal)) return;
     const repo = parseRepo(root.querySelector("#add-repo").value) || "OWNER/REPO";
     root.querySelector('[data-out="onboard"]').textContent = onboardPrompt(role, goal, repo);
@@ -431,6 +452,8 @@ function wireAdd(root) {
     root.querySelector('[data-step="prompt"]').scrollIntoView({ behavior: "smooth", block: "nearest" });
   }));
   root.querySelector("#add-repo").addEventListener("input", refresh);
+  root.querySelector("#add-problem").addEventListener("input", refresh);
+  root.querySelector("#add-local").addEventListener("change", refresh);
 }
 
 // --- router ------------------------------------------------------------------

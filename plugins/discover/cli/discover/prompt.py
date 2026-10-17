@@ -54,6 +54,15 @@ GOALS = {
     "contributor": ["evaluate", "nominate", "propose", "propose-and-nominate"],
 }
 
+# Starting a new project from a problem (playbooks/start.md). The problem is the person's own
+# text, quoted; the playbook checks its claims before building on them.
+START = (
+    "Fetch {site}v0/start.md (for example with curl) and follow it to start a new research project "
+    "on the problem below, set up for Discovery@Home from the start.{mode} Ask before creating "
+    "repositories, pushing, posting or changing settings.\n\nProblem:\n<<<\n{problem}\n>>>"
+)
+START_LOCAL = " Mode: local (build it on disk only)."
+
 SKILL_COMMAND = "/discover:contribute {repo} --minutes {minutes} --focus {focus} --permissions {permissions} --seed {seed}"
 
 
@@ -81,6 +90,11 @@ def onboard_prompt(role, goal, repo, context=None, site=None):
                           context=ONBOARD_CONTEXT.format(context=context) if context else "")
 
 
+def start_prompt(problem, local=False, site=None):
+    from . import SITE
+    return START.format(site=site or SITE, problem=problem.strip(), mode=START_LOCAL if local else "")
+
+
 def skill_command(repo, minutes=60, focus="project", permissions="post", seed=None):
     return SKILL_COMMAND.format(repo=repo, minutes=minutes, focus=focus, permissions=permissions,
                                 seed=seed or secrets.token_hex(16))
@@ -91,4 +105,5 @@ def templates(site=None):
     from . import SITE
     return {"site": site or SITE, "template": TEMPLATE, "drawn": DRAWN, "focus": FOCUS,
             "permissions": PERMISSIONS, "actions": ACTIONS, "skill_command": SKILL_COMMAND, "adapter": ADAPTER,
-            "onboard": ONBOARD, "onboard_context": ONBOARD_CONTEXT, "goals": GOALS}
+            "onboard": ONBOARD, "onboard_context": ONBOARD_CONTEXT, "goals": GOALS,
+            "start": START, "start_local": START_LOCAL}

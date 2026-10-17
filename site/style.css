@@ -160,3 +160,4 @@ details[open] > summary { margin-bottom: 8px; }
 .grades { width: 100%; border-collapse: collapse; font-size: 14px; }
 .grades th, .grades td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border); }
 .grades th { font-weight: 600; color: var(--muted); font-size: 12px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

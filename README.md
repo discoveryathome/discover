@@ -27,6 +27,7 @@ Project pages build the prompt for you, with your budget and a randomly drawn ta
 | Check someone else's result | [`verify`](playbooks/verify.md) | `discover prompt OWNER/REPO --action verify` |
 | Work on a project with your agent | [`collaborate`](playbooks/collaborate.md) | `--action collaborate` |
 | Bring a project onto the hub: yours, or one you'd nominate | [`onboard`](playbooks/onboard.md) | `--action onboard --role maintainer\|contributor --goal …` |
+| Start a new project from a problem | [`start`](playbooks/start.md) | `--action start --problem "…"` |
 | Make your repo agent-ready | [`setup`](playbooks/setup.md) | `--action setup` |
 | List your project | [`apply`](playbooks/apply.md) | `--action apply` |
 | Review your project's priorities | [`direct`](playbooks/direct.md) | `--action direct` |

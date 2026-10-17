@@ -157,6 +157,14 @@ def cmd_post(a):
 
 
 def cmd_prompt(a):
+    if a.action == "start":
+        text = Path(a.problem_file).read_text(encoding="utf-8") if a.problem_file else a.problem
+        if not text:
+            raise SystemExit("--action start needs --problem TEXT or --problem-file PATH")
+        print(prompt.start_prompt(text, a.local))
+        return 0
+    if not a.repo:
+        raise SystemExit("a repository (owner/name) is required for this action")
     repo = parse_repo(a.repo)
     if a.action == "onboard":
         try:
@@ -411,15 +419,18 @@ def main(argv=None):
     o.set_defaults(func=cmd_post)
 
     r = sub.add_parser("prompt", help="print a donation prompt for a project")
-    r.add_argument("repo")
+    r.add_argument("repo", nargs="?")
     r.add_argument("--minutes", type=int, default=60)
     r.add_argument("--focus", choices=list(prompt.FOCUS), default="project")
     r.add_argument("--permissions", choices=list(prompt.PERMISSIONS), default="post")
-    r.add_argument("--action", choices=["contribute", "onboard", *prompt.ACTIONS], default="contribute",
+    r.add_argument("--action", choices=["contribute", "onboard", "start", *prompt.ACTIONS], default="contribute",
                    help="which playbook the prompt points to")
     r.add_argument("--role", choices=list(prompt.GOALS), default="maintainer", help="onboard: who is asking")
     r.add_argument("--goal", help="onboard: default setup-and-submit / propose-and-nominate")
     r.add_argument("--context", help="onboard: a URL to start from, e.g. a proposal issue")
+    r.add_argument("--problem", help="start: the problem, as text")
+    r.add_argument("--problem-file", help="start: a file holding the problem")
+    r.add_argument("--local", action="store_true", help="start: build on disk only")
     r.add_argument("--seed", help="32 hex digits; default: fresh OS randomness")
     r.set_defaults(func=cmd_prompt)
 

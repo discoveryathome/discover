@@ -369,6 +369,18 @@ class HubTests(unittest.TestCase):
         overlay = {"manifest_origin": "adapter", "manifest": {"hubs": [{"hub": "Hub/Repo", "list": True}]}}
         self.assertEqual(hub.listing_state(nominated, hub.consent_record(none, overlay, "Hub/Repo")), "nominated")
 
+    def test_start_prompt_quotes_the_problem(self):
+        from discover import prompt
+        text = prompt.start_prompt('  Is X "open"?\n', local=True, site="https://h/")
+        self.assertTrue(text.startswith("Fetch https://h/v0/start.md"))
+        self.assertIn("Mode: local", text)
+        self.assertTrue(text.endswith('<<<\nIs X "open"?\n>>>'))
+        self.assertNotIn("Mode: local", prompt.start_prompt("p", site="https://h/"))
+        import io, contextlib
+        with contextlib.redirect_stdout(io.StringIO()) as buf:
+            self.assertEqual(main(["prompt", "--action", "start", "--problem", "p"]), 0)
+        self.assertIn("v0/start.md", buf.getvalue())
+
     def test_onboard_prompt(self):
         from discover import prompt
         text = prompt.onboard_prompt("contributor", "propose-and-nominate", "o/r", site="https://h/")
