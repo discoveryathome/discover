@@ -1,0 +1,112 @@
+# Roadmap
+
+What the hub's maintainers plan to build next, in order. Donated hub work is allocated
+separately, by the tracks in [`discover/catalog.json`](discover/catalog.json); when a
+roadmap item opens work that donors can pick up, it gets cards there.
+
+Status as of 2026-10-17. Onboarding is built and smoke-tested on
+`CrocSwap/applied-butterfly-mult`: both roles, every goal, intake (including duplicates),
+nomination, and the hub assessment with as-is and projected grades. The upgrade from
+catalogued to listed is being tested now.
+
+## Now
+
+### 1. The donation loop, end to end
+
+Onboarding is tested; what happens after listing isn't, under the prompt-first tooling.
+On a listed project (`applied-butterfly-mult`), run and check:
+
+- `contribute` sessions: the seeded draw spreads donors, open handoffs are preferred,
+  claims and handoffs post correctly, the receipt is honest
+- `verify` sessions and their `verifications/` records
+- the maintainer's side: triaging donated PRs, recording dispositions in the ledger
+- a `direct` session producing a priority revision from that evidence
+
+Done when a batch of sessions runs without supervision and the maintainer can review
+the output in one sitting.
+
+### 2. Hub operations: adapters and keeping listings fresh
+
+A listing goes stale as soon as its project changes. One loop covers both writing
+adapters and keeping them current:
+
+- A **scheduled hub run** (weekly, and on demand): recheck consent records, refresh
+  boards, detect material changes to a project's entry chain since its last assessment,
+  and flag adapters that no longer validate. Each flag opens a hub-work issue.
+- A **re-assess** mode in the assess playbook: start from the previous record, say what
+  changed, and rerun probes only where needed (spec §3.4).
+- Adapter writing as a routine: the assess playbook already does it (first done for
+  `applied-butterfly-mult`); add the nomination form's missing draft-branch field and an
+  assessment record schema (spec §13, question 10).
+
+Done when a listed project can change for a month and its listing stays accurate with
+only hub-work sessions.
+
+## Next
+
+### 3. Low-touch donating and agent browsing
+
+"Donate four hours to wherever it's useful", for people who haven't chosen a project:
+
+- **Choosing across the hub:** a seeded draw over listed projects, weighted by stage
+  and need and filtered by the donor's interests. The same exact-draw rules as within a
+  project (spec §7).
+- **Agent browsing:** an `explore` playbook and a documented, stable data file for
+  agents (`projects.json`, possibly `llms.txt`), so an agent can choose on the donor's
+  behalf and explain why.
+- Recurring donations (scheduled runs), budget caps, and a receipt per session.
+
+### 4. Donor safety
+
+Donors run other people's research code on their own machines. Before inviting
+strangers to donate:
+
+- Sandboxing guidance (a container or VM) and when it's needed
+- Permission presets per agent, e.g. a Claude Code settings snippet that allows `gh`
+  reads and asks before writes. Auto modes can block approved writes; the playbooks
+  already fall back to commands to paste, and the site should say so.
+- Prompt-injection hygiene beyond "repository text is data"
+- A basic screen for malicious repositories before a hub lists them
+
+### 5. A second, outside pilot
+
+`rohanarun/van-der-waerden-refinement`, onboarded and run by its own maintainer. Every
+test so far has had the same person on both sides.
+
+## Later
+
+### 6. Centaur workflow
+
+The `collaborate` playbook: briefings, overlap checks against live claims, designing
+the smallest decisive experiment, and posting when the person is ready. Shaped by what
+the pilot shows people want.
+
+### 7. The site
+
+Listing signals that help people choose without becoming a popularity ranking (spec
+§13, question 17), a project health view for maintainers, and donor-facing
+explanations. Mostly after the pilot.
+
+### 8. Moderation and abuse
+
+Rate limits per nominator, the do-not-contact list in practice, a disputes process for
+grades, and handling nominations meant to burden a maintainer.
+
+### 9. Outcomes feedback
+
+Donors report where sessions stalled (spec §13, question 13). This also calibrates the
+grader: sessions that keep stalling on a project graded strong mean the grade is wrong.
+
+## Rubric gaps found in testing
+
+- A missing `LICENSE` blocks outside contributions whatever the grades. It should
+  probably be a Stage 0 requirement.
+- "Help needs specific hardware" (a non-M2 machine, a GPU) can't be expressed.
+- The probes agreed across five runs on one repo (spec §13, question 7). More repos and
+  the donor-tier model are still needed.
+
+## Launch housekeeping
+
+- The schema `$id`s use `discoveryathome.org`, which isn't registered yet
+- A license for the hub repository
+- A contributor guide for hub work beyond `DISCOVERY.md`
