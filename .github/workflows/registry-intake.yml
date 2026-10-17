@@ -102,7 +102,8 @@ jobs:
           git switch -c "$branch"
           git add "registry/projects/$SLUG.json"
           if [ "$MODE" = consent ]; then verb="Record consent for"; elif [ "$NOMINATED" = true ]; then verb="Nominate"; else verb="Add"; fi
-          git commit -m "$verb $REPO in the registry"
+          title="$verb $REPO"
+          git commit -m "$title"
           git push --force -u origin "$branch"
           if [ "$OK" = true ]; then
             note="The repository validates as is."
@@ -120,7 +121,7 @@ jobs:
           { echo "$verb \`$REPO\` (closes #$ISSUE)."; echo; echo "$note"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
           # Only an open PR counts: a closed one for the same branch is history, not this request.
           url=$(gh pr list --head "$branch" --state open --json url -q '.[0].url // empty')
-          [ -n "$url" ] || url=$(gh pr create --head "$branch" --title "$verb $REPO in the registry" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})
+          [ -n "$url" ] || url=$(gh pr create --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})
           if [ "$MODE" = consent ]; then
             msg="Thanks! Your project was already in the registry; this records your consent to be listed: $url. A hub maintainer will review it."
           elif [ "$NOMINATED" = true ]; then

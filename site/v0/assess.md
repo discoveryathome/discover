@@ -161,6 +161,10 @@ draft branch if there is one, otherwise from what the proposal describes) and re
 as `projected: {assessment, stage, grades}`, so the listing shows both: the project as
 is, and what it could be after setup.
 
+If the intake issue (the entry's `intake`) states a credit policy the repo doesn't, copy it
+into the entry's `credit` so the listing shows it, and quote where it came from in the
+assessment.
+
 For a `needs-adapter` entry, also edit it:
 add an `overlay` (a manifest describing where things live in the repo, same shape as
 `discover.json`), a `frontier_adapter` if their results file isn't in the protocol's
