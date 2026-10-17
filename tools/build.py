@@ -59,6 +59,17 @@ def pack(members):
     return buf.getvalue()
 
 
+def committed_cli():
+    """The CLI file named by the committed latest.json: the one sessions may be using now."""
+    import subprocess
+    out = subprocess.run(["git", "-C", str(ROOT), "show", "HEAD:site/cli/latest.json"],
+                         capture_output=True, text=True)
+    try:
+        return json.loads(out.stdout)["file"] if out.returncode == 0 else None
+    except (ValueError, KeyError):
+        return None
+
+
 def release_cli():
     """Return (filename, sha256) of the current CLI, writing a new file only if the code changed."""
     from_src = cli_members()
@@ -69,7 +80,7 @@ def release_cli():
         current = CLI_OUT / info["file"]
         if current.exists() and read_members(current) == from_src:
             return info["file"], info["sha256"]
-        previous = info["file"]
+        previous = committed_cli() or info["file"]
     data = pack(from_src)
     sha = hashlib.sha256(data).hexdigest()
     name = f"discover-{sha[:12]}.pyz"
