@@ -64,8 +64,13 @@ def project_summary(slug, entry, report, board=None, listing="listed"):
         "conventions": report["conventions"],
         "featured": entry.get("featured", False), "added_on": entry.get("added_on"),
         "links": {k: blob + v for k, v in (m.get("entry") or {}).items()},
-        "discussions": {"all": f"https://github.com/{repo}/discussions",
-                        **{k: f"https://github.com/{repo}/discussions/{n}" for k, n in threads.items()}},
+        # Only link Discussions when the project says it coordinates there.
+        "discussions": ({"all": f"https://github.com/{repo}/discussions",
+                         **{k: f"https://github.com/{repo}/discussions/{n}" for k, n in threads.items()}}
+                        if (m.get("coordination") or {}).get("transport") in (None, "github-discussions")
+                        and m.get("coordination") else {}),
+        "assessment_url": (f"https://github.com/{HUB_REPO}/blob/main/{entry['assessment']}"
+                           if entry.get("assessment") else None),
         "session_minutes": (m.get("session") or {}).get("default_minutes", 60),
         "permissions": m.get("permissions", {}),
         "frontier": None, "tracks": [], "board": None,

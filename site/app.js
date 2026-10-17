@@ -203,7 +203,10 @@ function viewProject(slug) {
   const p = state.data.projects.find((x) => x.slug === slug);
   if (!p) return `<div class="empty">No project “${esc(slug)}”. <a href="#/">Back to explore</a></div>`;
   const f = p.frontier;
-  const links = Object.entries(p.links).map(([k, u]) => `<li>${link(u, { agents: "AGENTS.md", project: "Project guide", contributing: "Contributing", brief: "Bottleneck brief", glossary: "Glossary" }[k] || k)}</li>`).join("");
+  // The agent entry point is named by its file: an adapter may point at README.md instead of AGENTS.md.
+  const LINK_NAMES = { project: "Project guide", contributing: "Contributing", brief: "Bottleneck brief", glossary: "Glossary" };
+  const links = Object.entries(p.links).map(([k, u]) =>
+    `<li>${link(u, k === "agents" ? String(u).split("/").pop() : LINK_NAMES[k] || k)}</li>`).join("") + (p.assessment_url ? `<li>${link(p.assessment_url, "Hub assessment")}</li>` : "");
   const threads = Object.entries(p.discussions).map(([k, u]) => `<li>${link(u, k === "all" ? "All discussions" : `${k[0].toUpperCase()}${k.slice(1)} thread`)}</li>`).join("");
   const assumptions = f?.open_assumptions?.length
     ? `<div><h3 style="margin-bottom:6px">Open obligations</h3><ul class="qlist">${f.open_assumptions.map((a) => `<li>${esc(a.statement)}${a.link ? ` (${link(a.link, "link")})` : ""}</li>`).join("")}</ul></div>` : "";
