@@ -66,9 +66,16 @@ CONVENTIONS = {
 }
 
 
-def validate(source, overlay=None, adapter=None):
+def catalogued(entry):
+    """A nomination without consent: catalogued with no launcher (spec §11.5)."""
+    return "nomination" in entry and not (entry.get("consent") or {}).get("list")
+
+
+def validate(source, overlay=None, adapter=None, catalogued=False):
     """Return a report: `conformant`, `problems` (required files), `conventions` (name -> True,
-    or a note on what's missing), warnings, and the loaded objects."""
+    or a note on what's missing), warnings, and the loaded objects.
+
+    A catalogued entry sends no agents, so it may lack a frontier record."""
     r = {"source": source.describe(), "conformant": False, "problems": [], "conventions": {}, "warnings": []}
     conv = r["conventions"]
     manifest, origin = load_manifest(source, overlay)
@@ -80,7 +87,11 @@ def validate(source, overlay=None, adapter=None):
         r["warnings"].append("using registry overlay: the repo has no discover.json yet")
     r["manifest"] = manifest
     req = r["problems"]
-    req += [f"discover.json {e}" for e in schema.check("manifest.schema.json", manifest)]
+    errs = schema.check("manifest.schema.json", manifest)
+    if catalogued and "$: missing required 'frontier'" in errs:
+        errs.remove("$: missing required 'frontier'")
+        r["warnings"].append("no frontier record: fine while catalogued; a listing with a launcher needs one")
+    req += [f"discover.json {e}" for e in errs]
     entry = manifest.get("entry", {})
     for key in ("agents", "project"):
         path = entry.get(key)

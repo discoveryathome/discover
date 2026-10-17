@@ -65,6 +65,18 @@ class InitValidateTests(unittest.TestCase):
             self.assertEqual(again["created"], [])
             self.assertEqual(json.loads((Path(d) / "discover.json").read_text())["title"], "T")
 
+    def test_frontier_optional_only_while_catalogued(self):
+        from discover.validate import catalogued
+        overlay = {"schema": "discover/v0", "title": "T", "summary": "S", "domains": ["m"], "maintainers": [{"name": "x"}],
+                   "canonical_repo": "https://github.com/o/r", "entry": {"agents": "README.md", "project": "README.md"}}
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "README.md").write_text("x")
+            nominated = {"nomination": {"by": "f", "on": "2026-01-01"}}
+            self.assertTrue(validate(Source(local=d), overlay, None, catalogued(nominated))["conformant"])
+            listed = {**nominated, "consent": {"list": True}}
+            self.assertFalse(catalogued(listed))
+            self.assertFalse(validate(Source(local=d), overlay, None, catalogued(listed))["conformant"])
+
     def test_bad_weights_are_reported(self):
         with tempfile.TemporaryDirectory() as d:
             init.scaffold(d, "T", "S", ["math"], "M", "o/r")

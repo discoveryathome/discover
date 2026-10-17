@@ -10,7 +10,7 @@ from . import schema
 from .project import Source
 from . import HUB_REPO
 from .prompt import templates
-from .validate import validate
+from .validate import catalogued, validate
 
 
 def consent_record(source, report, hub):
@@ -118,7 +118,7 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             continue
         source = Source.from_entry(entry)
         try:
-            report = validate(source, entry.get("overlay"), entry.get("frontier_adapter"))
+            report = validate(source, entry.get("overlay"), entry.get("frontier_adapter"), catalogued(entry))
         except Exception as e:  # network, JSON, etc. Keep building the rest.
             problems.append({"slug": slug, "errors": [f"{type(e).__name__}: {e}"]})
             print(f"skip {slug}: {e}", file=log)
