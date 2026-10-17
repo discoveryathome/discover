@@ -132,7 +132,9 @@ About 20 minutes. Find, and note the exact path of:
 8. **Its own task picker,** if any, and whether it takes a seed.
 
 Where something doesn't exist, note that too. Absence is as useful to a donor as
-presence.
+presence. So are **contradictions within the repo**: two different figures for the same
+thing, or a doc that disagrees with CI. Note each one and which source the project treats
+as authoritative (a registry, a generated file, CI), so donors don't trip on it.
 
 ## 3. Write the adapter
 
