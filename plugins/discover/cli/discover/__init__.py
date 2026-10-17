@@ -2,5 +2,9 @@
 
 __version__ = "0.1.0"
 
-# The hub repository that hosts the registry and explore page. Change if the repo moves.
-HUB_REPO = "discoveryathome/discover"
+import os
+
+# The hub this tooling talks to: the canonical hub unless DISCOVER_HUB names another
+# (OWNER/REPO). Commands that take --hub override both.
+CANONICAL_HUB = "discoveryathome/discover"
+HUB_REPO = os.environ.get("DISCOVER_HUB") or CANONICAL_HUB

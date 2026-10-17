@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://discoveryathome.org/schema/v0/hub.schema.json",
+  "title": "Hub description (hub.json at the root of a hub repository)",
+  "type": "object",
+  "required": ["schema", "name", "scope", "maintainers", "registry", "rubric"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "discover-hub/v0" },
+    "name": { "type": "string" },
+    "scope": { "type": "string", "description": "What this hub lists, in a sentence or two." },
+    "maintainers": {
+      "type": "array", "minItems": 1,
+      "items": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "github": { "type": "string" } } }
+    },
+    "website": { "type": "string", "format": "uri" },
+    "visibility": { "enum": ["public", "private"], "default": "public" },
+    "intake": { "type": "string", "description": "How projects apply, in plain words (e.g. a PR to the registry, or the Add project issue form)." },
+    "registry": { "type": "string", "description": "Directory of registry entries, e.g. registry/projects." },
+    "rubric": {
+      "type": "object", "required": ["version"],
+      "properties": {
+        "version": { "type": "string", "description": "Spec rubric version this hub grades against." },
+        "extensions": { "type": "string", "description": "Extra axes or stricter thresholds, in plain words. Stage unlocks can't change." }
+      }
+    },
+    "probe_model": { "type": "string", "description": "Model tier the hub's probes run on." },
+    "push": {
+      "type": "object",
+      "description": "What this hub does when a project accepts push.",
+      "properties": {
+        "max_open_prs": { "type": "integer", "minimum": 0, "default": 1 },
+        "max_open_issues": { "type": "integer", "minimum": 0, "default": 3 }
+      }
+    },
+    "mirrors": {
+      "type": "array", "items": { "type": "string" },
+      "description": "Other hubs (OWNER/REPO) whose registries this hub reads, cited as the source."
+    }
+  }
+}

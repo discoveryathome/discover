@@ -83,6 +83,17 @@
       "enum": ["formal-proof", "exact-certificate", "benchmark", "replication", "review-only"],
       "description": "Strongest kind of evidence the project can produce. Hub filter."
     },
+    "hubs": {
+      "type": "array",
+      "description": "Hubs this project consents to, and what each may push to the repo. Listing implies pull; push is never implied.",
+      "items": {
+        "type": "object", "required": ["hub"],
+        "properties": {
+          "hub": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", "description": "The hub repository, OWNER/REPO." },
+          "push": { "type": "array", "items": { "enum": ["notices", "suggestions", "prs"] }, "default": [] }
+        }
+      }
+    },
     "process_changed_on": {
       "type": "string", "format": "date",
       "description": "Last change to how the project coordinates or reviews; activity measurements count from here."

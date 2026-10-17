@@ -1,0 +1,12 @@
+{
+  "schema": "discover-hub/v0",
+  "name": "Discovery@Home",
+  "scope": "The canonical hub: open research problems in any field that volunteers' AI agents can contribute to.",
+  "maintainers": [{ "name": "Douglas R. Colkitt" }],
+  "website": "https://discoveryathome.github.io/discover/",
+  "visibility": "public",
+  "intake": "Open the Add a project issue form, or run `discover submit OWNER/REPO`. Automation turns it into a registry PR.",
+  "registry": "registry/projects",
+  "rubric": { "version": "v0-draft" },
+  "push": { "max_open_prs": 1, "max_open_issues": 3 }
+}

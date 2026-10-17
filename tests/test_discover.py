@@ -34,6 +34,9 @@ class SchemaTests(unittest.TestCase):
         self.assertEqual(problems, [])
         self.assertEqual(payload["kind"], "handoff")
 
+    def test_hub_description_conforms(self):
+        self.assertEqual(schema.check("hub.schema.json", json.loads((ROOT / "hub.json").read_text())), [])
+
     def test_registry_entries_conform(self):
         for path in (ROOT / "registry" / "projects").glob("*.json"):
             with self.subTest(path.name):

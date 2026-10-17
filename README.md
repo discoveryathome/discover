@@ -68,6 +68,7 @@ registry/projects/        one JSON file per listed project
 site/                     the explore page (static; deployed to GitHub Pages)
 examples/                 the reference project mapped onto v0
 docs/                     background and analysis
+hub.json                  this hub's description (hubs are copyable; see spec §12)
 .claude-plugin/           marketplace manifest
 .github/                  add-project issue form, intake bot, checks, Pages deploy
 ```
@@ -96,4 +97,6 @@ make serve    # build site data from the registry and serve site/ on :8000
 One-time repo settings for the automation: **Pages → Source: GitHub Actions**, and
 **Actions → General → Allow GitHub Actions to create and approve pull requests** (for
 the intake bot). The hub repo slug is set in `plugins/discover/cli/discover/__init__.py`
-(`HUB_REPO`).
+(`CANONICAL_HUB`). To run another hub, copy this repository, edit `hub.json`, and the
+Pages build points the site at the copy. Tooling talks to another hub with `--hub` or
+`DISCOVER_HUB=OWNER/REPO`.
