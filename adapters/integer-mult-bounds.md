@@ -28,7 +28,7 @@ The protocol's names, and where this repository keeps each one:
 | Priorities and their reasons | `docs/research/current-priorities.md` and `docs/research/research-priority-log.md` |
 | Review ledger | `docs/research/pr-ledger.md` |
 | Result packages | `research/*/`, built with `docs/research/research-package-guide.md` |
-| Coordination | GitHub Discussions: [start here #1163](https://github.com/CrocSwap/integer-mult-bounds/discussions/1163), [handoffs #1165](https://github.com/CrocSwap/integer-mult-bounds/discussions/1165), [proposals #1167](https://github.com/CrocSwap/integer-mult-bounds/discussions/1167), [feedback #1200](https://github.com/CrocSwap/integer-mult-bounds/discussions/1200) |
+| Coordination | GitHub Discussions: [start here #1163](https://github.com/CrocSwap/integer-mult-bounds/discussions/1163), [handoffs #1166](https://github.com/CrocSwap/integer-mult-bounds/discussions/1166), [proposals #1167](https://github.com/CrocSwap/integer-mult-bounds/discussions/1167), [feedback #1200](https://github.com/CrocSwap/integer-mult-bounds/discussions/1200) |
 | Credit | `CONTRIBUTORS.md` |
 
 There's no `discover.json`, `DISCOVERY.md` or `discover/` folder. Don't look for them.
@@ -129,7 +129,7 @@ Never change the project's repository to match this file.
       "transport": "github-discussions",
       "threads": {
         "start": 1163,
-        "handoffs": 1165,
+        "handoffs": 1166,
         "proposals": 1167,
         "feedback": 1200
       },
