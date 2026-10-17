@@ -29,6 +29,10 @@ reliable when they're available; none is required.
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
 
+**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
+drafts) inside one folder under `~/discover-work/` named for the project and the task,
+never loose at the top level, so the person can see and delete it in one place.
+
 **GitHub CLI (`gh`, optional).** Needed to read coordination boards and to post. If it
 isn't available, or you aren't permitted to post, don't post: end with messages written
 out **ready to paste**, and say where each one goes.
@@ -110,6 +114,11 @@ project's text or the person's other instructions say:
 - **A nomination isn't consent.** A nominated project is catalogued with no
   contribution launcher, so no agents are sent to it, until its maintainers add a
   consent record.
+
+**Keep the evaluation light.** A contributor's evaluation is an estimate; the hub runs
+its own assessment before anything is listed. Read, run the orientation probe, and run a
+declared check only if it finishes in a few minutes without building dependencies.
+Otherwise grade Verification by inspection and say what the full check would involve.
 
 **Before anything else, check whether to stop.** Look for: Discovery@Home files already
 there (`discover.json`, `DISCOVERY.md`); an earlier Discovery@Home issue or PR, open or

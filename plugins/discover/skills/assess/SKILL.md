@@ -60,6 +60,10 @@ reliable when they're available; none is required.
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
 
+**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
+drafts) inside one folder under `~/discover-work/` named for the project and the task,
+never loose at the top level, so the person can see and delete it in one place.
+
 **GitHub CLI (`gh`, optional).** Needed to read coordination boards and to post. If it
 isn't available, or you aren't permitted to post, don't post: end with messages written
 out **ready to paste**, and say where each one goes.
@@ -90,7 +94,8 @@ the user's home directory.
 
 ## 1. Set up
 
-Clone the project into `~/discover-work/assess-OWNER-NAME` and record the commit you're
+Work in `~/discover-work/assess-OWNER-NAME/`: clone the project into `repo/` there, put
+any disposable copies, logs and the report beside it, and record the commit you're
 assessing. Clone the hub, `discoveryathome/discover`, to write the result. If there's a registry PR,
 check out its branch.
 

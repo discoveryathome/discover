@@ -188,11 +188,34 @@ def cmd_registry_add(a):
     handle = (a.contact or fields.get("Your GitHub handle") or fields.get("Maintainer GitHub handle") or "").lstrip("@") or None
     nominated = a.nominate or NOMINATING in fields.get("Your relationship to the project", "").lower()
     proposal = a.proposal or fields.get("Proposal issue on the project") or None
-    slug = re.sub(r"[^a-z0-9-]+", "-", repo.split("/")[1].lower()).strip("-")
-    out = Path(a.out) / f"{slug}.json"
-    if out.exists():
-        raise SystemExit(f"{out} already exists")
     today = date.today().isoformat()
+    clean = lambda t: re.sub(r"[^a-z0-9-]+", "-", t.lower()).strip("-")
+    entries = {f.stem: json.loads(f.read_text(encoding="utf-8")) for f in sorted(Path(a.out).glob("*.json"))}
+    same = [k for k, e in entries.items() if any(r.get("repo", "").lower() == repo.lower() for r in e.get("repos", []))]
+    result = {"repo": repo, "nominated": bool(nominated), "branch": "registry/" + clean(repo.replace("/", "-"))}
+    if same:
+        # Already in the registry. A maintainer applying for a nominated project records consent
+        # on the existing entry; anything else is a duplicate (spec §11.5).
+        slug, entry = same[0], entries[same[0]]
+        if nominated or (entry.get("consent") or {}).get("list"):
+            print(json.dumps({**result, "slug": slug, "mode": "duplicate"}))
+            return 0
+        entry["consent"] = {"source": "application", "checked_on": today, "list": True, "push": []}
+        if handle:
+            entry["contact"] = handle
+        if a.intake:
+            entry["intake"] = a.intake
+        mode = "consent"
+    else:
+        slug = clean(repo.split("/")[1])
+        if slug in entries:  # same name, different owner
+            slug = clean(repo.replace("/", "-"))
+        entry, mode = None, "add"
+    out = Path(a.out) / f"{slug}.json"
+    if entry is not None:
+        out.write_text(json.dumps(entry, indent=2) + "\n", encoding="utf-8")
+        print(json.dumps({**result, "slug": slug, "path": str(out), "mode": mode}))
+        return 0
     entry = {"repos": [{"repo": repo}], "added_on": today}
     if a.intake:
         entry["intake"] = a.intake
@@ -211,7 +234,7 @@ def cmd_registry_add(a):
         raise SystemExit("entry invalid: " + "; ".join(errs))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(entry, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"slug": slug, "path": str(out), "repo": repo, "nominated": bool(nominated)}))
+    print(json.dumps({**result, "slug": slug, "path": str(out), "mode": mode}))
     return 0
 
 

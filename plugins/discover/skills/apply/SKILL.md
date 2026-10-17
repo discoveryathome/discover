@@ -26,6 +26,10 @@ reliable when they're available; none is required.
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
 
+**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
+drafts) inside one folder under `~/discover-work/` named for the project and the task,
+never loose at the top level, so the person can see and delete it in one place.
+
 **GitHub CLI (`gh`, optional).** Needed to read coordination boards and to post. If it
 isn't available, or you aren't permitted to post, don't post: end with messages written
 out **ready to paste**, and say where each one goes.

@@ -39,10 +39,32 @@ jobs:
             gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
             exit 1
           fi
-          echo "slug=$(jq -r .slug "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
-          echo "repo=$(jq -r .repo "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
-          echo "nominated=$(jq -r .nominated "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
+          gh issue edit "$ISSUE" --add-label add-project >/dev/null 2>&1 || true
+          for k in slug repo nominated mode branch; do echo "$k=$(jq -r .$k "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"; done
+      # One entry and one open registry PR per repository. A second request is linked, not re-pushed.
+      - name: Check for an existing entry or registry PR
+        id: dup
+        env:
+          SLUG: ${{ steps.entry.outputs.slug }}
+          REPO: ${{ steps.entry.outputs.repo }}
+          MODE: ${{ steps.entry.outputs.mode }}
+          BRANCH: ${{ steps.entry.outputs.branch }}
+        run: |
+          if [ "$MODE" = duplicate ]; then
+            echo "\`$REPO\` is already in the registry as \`$SLUG\`, so there's nothing to add. If something about it should change (a proposal link, the maintainers' consent), a hub maintainer will update the entry from this issue." > "$RUNNER_TEMP/comment.md"
+            gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
+            echo "stop=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          pr=$(gh pr list --head "$BRANCH" --state open --json number,body -q '.[0].number // empty')
+          if [ -n "$pr" ] && ! gh pr view "$pr" --json body -q .body | grep -q "closes #$ISSUE)"; then
+            gh pr comment "$pr" --body "Also requested in #$ISSUE. Check it before merging: a maintainer's application there records consent, and a nomination may add a proposal link." >/dev/null
+            echo "Thanks! \`$REPO\` already has a registry PR waiting for review: #$pr. I've linked this issue there, so a hub maintainer will take it into account." > "$RUNNER_TEMP/comment.md"
+            gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
+            echo "stop=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "stop=false" >> "$GITHUB_OUTPUT"
       - name: Check the repository is public
+        if: steps.dup.outputs.stop != 'true'
         env:
           REPO: ${{ steps.entry.outputs.repo }}
         run: |
@@ -54,6 +76,7 @@ jobs:
           fi
       - name: Validate repository
         id: validate
+        if: steps.dup.outputs.stop != 'true'
         env:
           SLUG: ${{ steps.entry.outputs.slug }}
         run: |
@@ -64,18 +87,21 @@ jobs:
       # Projects are met where they are (spec §3.4): a repo that doesn't validate yet still gets a
       # registry PR, labelled needs-adapter, and the hub writes its adapter before merging.
       - name: Open registry PR
+        if: steps.dup.outputs.stop != 'true'
         env:
           SLUG: ${{ steps.entry.outputs.slug }}
+          MODE: ${{ steps.entry.outputs.mode }}
+          BRANCH: ${{ steps.entry.outputs.branch }}
           REPO: ${{ steps.entry.outputs.repo }}
           OK: ${{ steps.validate.outputs.ok }}
           NOMINATED: ${{ steps.entry.outputs.nominated }}
         run: |
-          branch="registry/add-$SLUG"
+          branch="$BRANCH"
           git config user.name "discover-registry-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git add "registry/projects/$SLUG.json"
-          if [ "$NOMINATED" = true ]; then verb="Nominate"; else verb="Add"; fi
+          if [ "$MODE" = consent ]; then verb="Record consent for"; elif [ "$NOMINATED" = true ]; then verb="Nominate"; else verb="Add"; fi
           git commit -m "$verb $REPO in the registry"
           git push --force -u origin "$branch"
           if [ "$OK" = true ]; then
@@ -85,13 +111,17 @@ jobs:
             note="The repository doesn't follow the protocol's files yet, which is fine. Before merging, a hub maintainer (or a hub-work contributor) assesses it and adds an adapter to this entry: where its entry doc, current results and coordination live."
             labels="needs-adapter"
           fi
-          if [ "$NOMINATED" = true ]; then
+          if [ "$MODE" = consent ]; then
+            note="**Consent.** A maintainer applied for a project already in the registry (likely nominated). This records consent by application, so the project becomes a full listing once merged. $note"
+          elif [ "$NOMINATED" = true ]; then
             note="**Nomination.** Catalogued without a launcher until the project's maintainers add a consent record naming this hub. Don't contact them about it (spec §11.5). Assess it as is, and, if the entry links a proposal, as it would be after setup (\`projected\`). $note"
             labels="nomination${labels:+,$labels}"
           fi
           { echo "$verb \`$REPO\` (closes #$ISSUE)."; echo; echo "$note"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
           url=$(gh pr view "$branch" --json url -q .url 2>/dev/null || gh pr create --head "$branch" --title "$verb $REPO in the registry" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})
-          if [ "$NOMINATED" = true ]; then
+          if [ "$MODE" = consent ]; then
+            msg="Thanks! Your project was already in the registry; this records your consent to be listed: $url. A hub maintainer will review it."
+          elif [ "$NOMINATED" = true ]; then
             msg="Thanks for the nomination! Registry PR: $url. Once merged, the project is catalogued on the hub without a launcher, and the hub won't contact its maintainers. It gets a launcher only if they add a consent record to their repo."
           elif [ "$OK" = true ]; then
             msg="Thanks! Registry PR: $url. A hub maintainer will review it."

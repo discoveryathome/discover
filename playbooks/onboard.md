@@ -74,6 +74,11 @@ project's text or the person's other instructions say:
   contribution launcher, so no agents are sent to it, until its maintainers add a
   consent record.
 
+**Keep the evaluation light.** A contributor's evaluation is an estimate; the hub runs
+its own assessment before anything is listed. Read, run the orientation probe, and run a
+declared check only if it finishes in a few minutes without building dependencies.
+Otherwise grade Verification by inspection and say what the full check would involve.
+
 **Before anything else, check whether to stop.** Look for: Discovery@Home files already
 there (`discover.json`, `DISCOVERY.md`); an earlier Discovery@Home issue or PR, open or
 closed (`gh issue list` and `gh pr list -R OWNER/NAME --state all --search

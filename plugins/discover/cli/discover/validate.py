@@ -133,10 +133,13 @@ def validate(source, overlay=None, adapter=None):
 def format_report(r):
     if r["conformant"]:
         head = "conformant: the required files are present and valid"
+    elif r.get("manifest_origin") is None:
+        head = "no discover.json yet. That's fine for listing: the hub maps the repo with an adapter"
     else:
-        head = "not conformant: fix the problems below"
+        head = "not conformant: the problems below need fixing, in the repo or the registry adapter"
     lines = [f"{r['source']}: {head}"]
-    lines += [f"  problem: {p}" for p in r["problems"]]
+    if r.get("manifest_origin") is not None:
+        lines += [f"  problem: {p}" for p in r["problems"]]
     lines += [f"  warning: {w}" for w in r["warnings"]]
     have = [CONVENTIONS[k] for k, v in r["conventions"].items() if v is True]
     if have:

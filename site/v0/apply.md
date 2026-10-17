@@ -20,14 +20,18 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-c6cc30039732.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-9b2fa7b30ff3.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print c6cc30039732f8189995edca5fdbfe8233ee6077ce9f34efdefc4856e980a695
+# must print 9b2fa7b30ff3f7f0374e302717071b3f6a3d3f29a67574e00087c4f8d7084ab4
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
 means `python3 ~/discover-work/discover.pyz`. It's a single file using only Python's
 standard library: nothing to install.
+
+**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
+drafts) inside one folder under `~/discover-work/` named for the project and the task,
+never loose at the top level, so the person can see and delete it in one place.
 
 **GitHub CLI (`gh`, optional).** Needed to read coordination boards and to post. If it
 isn't available, or you aren't permitted to post, don't post: end with messages written

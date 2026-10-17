@@ -53,7 +53,8 @@ properties) before starting; they change more often than this playbook.
 
 ## 1. Set up
 
-Clone the project into `~/discover-work/assess-OWNER-NAME` and record the commit you're
+Work in `~/discover-work/assess-OWNER-NAME/`: clone the project into `repo/` there, put
+any disposable copies, logs and the report beside it, and record the commit you're
 assessing. Clone the hub, `{{HUB_REPO}}`, to write the result. If there's a registry PR,
 check out its branch.
 

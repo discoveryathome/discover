@@ -171,6 +171,30 @@ class RegistryTests(unittest.TestCase):
         maintainer = parse_issue_form(application_body("o/r", "me"))
         self.assertEqual(maintainer["Your relationship to the project"], "I maintain it")
 
+    def test_duplicates_consent_and_name_collisions(self):
+        from discover.cli import application_body
+        def add(d, body):
+            (Path(d) / "b.md").write_text(body)
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                self.assertEqual(main(["registry-add", "--body-file", str(Path(d) / "b.md"), "--out", d]), 0)
+            return json.loads(buf.getvalue())
+        with tempfile.TemporaryDirectory() as d:
+            first = add(d, application_body("Org/Proj", "fan", nominate=True))
+            self.assertEqual((first["mode"], first["slug"], first["branch"]), ("add", "proj", "registry/org-proj"))
+            self.assertEqual(add(d, application_body("org/proj", "fan2", nominate=True))["mode"], "duplicate")
+            # The maintainer applies: consent is recorded on the existing entry.
+            self.assertEqual(add(d, application_body("Org/Proj", "owner"))["mode"], "consent")
+            entry = json.loads((Path(d) / "proj.json").read_text())
+            self.assertEqual((entry["consent"]["source"], entry["contact"], entry["nomination"]["by"]),
+                             ("application", "owner", "fan"))
+            self.assertEqual(add(d, application_body("Org/Proj", "owner"))["mode"], "duplicate")
+            # Same name, different owner: no overwrite.
+            other = add(d, application_body("Else/Proj", "x"))
+            self.assertEqual(other["slug"], "else-proj")
+            self.assertEqual(json.loads((Path(d) / "proj.json").read_text())["repos"][0]["repo"], "Org/Proj")
+
 
 class BuildTests(unittest.TestCase):
     """The published single-file CLI and rendered playbooks must match their sources."""
