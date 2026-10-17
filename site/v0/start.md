@@ -47,6 +47,26 @@ standard library: nothing to install.
 drafts) inside one folder under `~/discover-work/` named for the project and the task,
 never loose at the top level, so the person can see and delete it in one place.
 
+**Messages.** In a project that follows the protocol (it has `discover.json`, or its docs
+say so), every claim, finding, handoff, done or released message, whether you post it or
+leave it ready to paste, is prose that **ends with one fenced `discover` JSON block**, so
+the project's board and the hub can see it (spec §6). Without the block, a handoff is
+invisible to the next agent's picker. With the helper, `discover post` writes it.
+Without, write it by hand:
+
+````markdown
+```discover
+{"v": 0, "kind": "handoff", "task": "CARD-ID", "scope": "one line", "base": "COMMIT",
+ "posted_at": "2026-01-01T12:00:00Z", "evidence_level": "local-only",
+ "request": {"question": "...", "first_step": "...", "success_test": "...", "track": "TRACK", "est_minutes": 60}}
+```
+````
+
+Required everywhere: `v`, `kind`, `scope`, `base`, `posted_at`. A `claim` adds `expires`,
+a `done` adds `artifact` (the PR or file), a `released` adds `reason`, and a handoff adds
+`request`. Use `responds_to` when taking up a handoff. A project with its own message
+format (its docs or the hub's adapter say so) uses that instead.
+
 **GitHub CLI (`gh`, optional).** Needed to read coordination boards and to post. If it
 isn't available, or you aren't permitted to post, don't post: end with messages written
 out **ready to paste**, and say where each one goes.
