@@ -290,7 +290,8 @@ class AdapterTests(unittest.TestCase):
                      "as_of": {"commit": as_of, "date": "2026-01-01"}, "paths": ["README.md", "notes/a.md"],
                      "manifest": {"schema": "discover/v0", "title": "P", "summary": "S", "domains": ["m"],
                                   "maintainers": [{"name": "x"}], "canonical_repo": "https://github.com/o/p",
-                                  "entry": {"agents": "README.md", "project": "README.md"}}}
+                                  "entry": {"agents": "README.md", "project": "README.md"}},
+                     "frontier_doc": {"path": "notes/a.md", "note": "the latest result"}}
             f = Path(d) / "adapter.md"
             write = lambda b: f.write_text("# A\n\n```discover-adapter\n" + json.dumps(b) + "\n```\n")
             run = lambda: (lambda buf: (main(["adapter-check", str(f), "--path", d]), buf))(io.StringIO())
@@ -307,6 +308,20 @@ class AdapterTests(unittest.TestCase):
             write({**block, "paths": ["README.md", "missing.md"]})
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(main(["adapter-check", str(f), "--path", d]), 1)
+            # Without a machine-readable frontier, a listing needs to know where the result is stated.
+            write({k: v for k, v in block.items() if k != "frontier_doc"})
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(["adapter-check", str(f), "--path", d]), 1)
+
+    def test_frontier_adapter_selects_a_registry_entry(self):
+        from discover.validate import normalize_frontier
+        raw = {"current": "b", "results": [{"id": "a", "claim": "old"}, {"id": "b", "claim": "new", "scope": "s"}]}
+        out, _ = normalize_frontier(raw, {"select": {"list": "results", "key": "id", "current": "current"},
+                                          "statement": "claim", "scope": "scope", "evidence_level": ["author-checked"]})
+        self.assertEqual((out["statement"], out["scope"]), ("new", "s"))
+        out, warns = normalize_frontier({**raw, "current": "z"}, {"select": {}, "statement": "claim"})
+        self.assertIsNone(out)
+        self.assertIn("no entry", warns[0])
 
     def test_prompts_link_the_adapter(self):
         from discover import prompt

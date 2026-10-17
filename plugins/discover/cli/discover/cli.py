@@ -46,20 +46,21 @@ def git_head(path="."):
 # --- commands ---------------------------------------------------------------
 
 def cmd_validate(a):
-    overlay = adapter = None
+    overlay = adapter = frontier_doc = None
     entry = {}
     if a.registry_entry:
         from . import adapter as adaptermod
         entry = json.loads(Path(a.registry_entry).read_text(encoding="utf-8"))
-        overlay, adapter, _, problems = adaptermod.for_entry(entry, adaptermod.hub_root(a.registry_entry))
+        overlay, adapter, block, problems = adaptermod.for_entry(entry, adaptermod.hub_root(a.registry_entry))
         if problems:
             raise SystemExit("adapter: " + "; ".join(problems))
+        frontier_doc = (block or {}).get("frontier_doc")
         if not a.repo and not a.path_given:
             home = entry["repos"][0]
             a.repo, a.root = home["repo"], home.get("path", "")
     root = getattr(a, "root", "")
     source = Source(repo=parse_repo(a.repo), ref=a.ref, root=root) if a.repo else Source(local=a.path)
-    r = validate(source, overlay, adapter, catalogued(entry))
+    r = validate(source, overlay, adapter, catalogued(entry), frontier_doc)
     slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog")}
     emit(slim, a.json, lambda _: format_report(r))
     return 0 if r["conformant"] else 1

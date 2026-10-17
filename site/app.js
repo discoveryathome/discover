@@ -239,6 +239,11 @@ function viewProject(slug) {
         ${f.scope ? `<details><summary>Scope and conditions</summary><p class="hint">${esc(f.scope)}</p></details>` : ""}
         ${assumptions}
         <p class="hint">Updated ${esc(f.updated_on || "unknown")} · ${link(f.record_url, "authoritative record")}</p>
+      </section>` : p.frontier_doc ? `<section class="panel">
+        <h2>Current result</h2>
+        <p>The project states its current result in ${link(p.frontier_doc.url, p.frontier_doc.path)}.</p>
+        ${p.frontier_doc.note ? `<p class="hint">${esc(p.frontier_doc.note)}</p>` : ""}
+        <p class="hint">It isn't in a machine-readable record, so the hub doesn't summarize it here.</p>
       </section>` : ""}
       ${p.tracks.length ? `<section class="panel">
         <h2>Where effort goes</h2>

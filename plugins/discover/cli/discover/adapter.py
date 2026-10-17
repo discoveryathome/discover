@@ -66,7 +66,10 @@ def check(text, source_at, changed_since=None):
             report["missing_paths"].append(path)
     report["problems"] += [f"path not found at as_of: {p}" for p in report["missing_paths"]]
     if block.get("manifest"):
-        r = validate(src, block["manifest"], block.get("frontier_adapter"), catalogued=True)
+        doc = block.get("frontier_doc")
+        if doc and src.exists(doc.get("path", "")) is False:
+            report["problems"].append(f"frontier_doc not found at as_of: {doc.get('path')}")
+        r = validate(src, block["manifest"], block.get("frontier_adapter"), frontier_doc=doc)
         report["problems"] += [f"manifest: {p}" for p in r["problems"]]
         report["warnings"] += [w for w in r["warnings"] if "adapter: the repo has no discover.json" not in w]
         report["conventions"] = {k: v for k, v in r["conventions"].items()}

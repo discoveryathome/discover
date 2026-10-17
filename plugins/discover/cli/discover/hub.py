@@ -125,13 +125,14 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             print(f"skip {slug}: {errs}", file=log)
             continue
         source = Source.from_entry(entry)
-        overlay, fadapter, _, aprobs = adaptermod.for_entry(entry, registry_dir.resolve().parent.parent)
+        overlay, fadapter, ablock, aprobs = adaptermod.for_entry(entry, registry_dir.resolve().parent.parent)
+        fdoc = (ablock or {}).get("frontier_doc")
         if aprobs:
             problems.append({"slug": slug, "errors": aprobs})
             print(f"skip {slug}: {aprobs}", file=log)
             continue
         try:
-            report = validate(source, overlay, fadapter, catalogued(entry))
+            report = validate(source, overlay, fadapter, catalogued(entry), fdoc)
         except Exception as e:  # network, JSON, etc. Keep building the rest.
             problems.append({"slug": slug, "errors": [f"{type(e).__name__}: {e}"]})
             print(f"skip {slug}: {e}", file=log)
@@ -149,7 +150,12 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
                 board = boardmod.state(msgs)
             except Exception as e:
                 print(f"{slug}: board unavailable ({e})", file=log)
-        projects.append(project_summary(slug, entry, report, board, listing, site_url(registry_dir)))
+        summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir))
+        if fdoc and report.get("manifest_origin") == "adapter":
+            home = entry["repos"][0]
+            summary["frontier_doc"] = {"url": f"https://github.com/{home['repo']}/blob/HEAD/{fdoc['path']}",
+                                       "path": fdoc["path"], "note": fdoc.get("note")}
+        projects.append(summary)
         print(f"ok {slug}: {listing}, {'conformant' if report['conformant'] else 'not conformant'}, "
               f"stage {entry.get('stage', 'not assessed')}", file=log)
     data = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

@@ -54,9 +54,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-e9a40155da25.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-ca144a631bd2.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print e9a40155da25f84eee360d298559e389b80d7391c3740969e0c19e0f0ea94ac8
+# must print ca144a631bd265279735027823339b6a61b415b0093a5307730ecb5e772754a1
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -190,10 +190,12 @@ playbook (https://discoveryathome.github.io/discover/v0/adapt.md) in hub mode: `
 - **State the order of authority:** the person running the session, then the project's
   own docs for everything about the research, then the adapter for navigation and
   procedure only.
-- **Map, don't restate.** A table from the protocol's names (entry doc, accepted result,
+- **Map, don't restate.** A table from the protocol's names (entry doc, current result,
   task catalogue, priorities, ledger, coordination, credit) to this repo's paths. Point to
-  where the project states its accepted result and priorities; never copy them, since
-  copies drift and put words in the maintainers' mouths.
+  where the project states its current result and priorities; never copy them or counts
+  that go stale, since copies drift and put words in the maintainers' mouths.
+- **Point to where the project wants help** in its own words, including gaps it names
+  in notes, caveats and contributing guides.
 - **Fill missing procedure, not missing judgment.** How to choose a task (the project's
   own picker, with the seed, if it has one), how to check overlap, how to post. If the
   project has no task list and you derive one from its stated priorities, label it as

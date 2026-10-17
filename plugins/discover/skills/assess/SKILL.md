@@ -187,10 +187,12 @@ playbook (https://discoveryathome.github.io/discover/v0/adapt.md) in hub mode: `
 - **State the order of authority:** the person running the session, then the project's
   own docs for everything about the research, then the adapter for navigation and
   procedure only.
-- **Map, don't restate.** A table from the protocol's names (entry doc, accepted result,
+- **Map, don't restate.** A table from the protocol's names (entry doc, current result,
   task catalogue, priorities, ledger, coordination, credit) to this repo's paths. Point to
-  where the project states its accepted result and priorities; never copy them, since
-  copies drift and put words in the maintainers' mouths.
+  where the project states its current result and priorities; never copy them or counts
+  that go stale, since copies drift and put words in the maintainers' mouths.
+- **Point to where the project wants help** in its own words, including gaps it names
+  in notes, caveats and contributing guides.
 - **Fill missing procedure, not missing judgment.** How to choose a task (the project's
   own picker, with the seed, if it has one), how to check overlap, how to post. If the
   project has no task list and you derive one from its stated priorities, label it as

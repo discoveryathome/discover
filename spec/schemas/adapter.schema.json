@@ -19,6 +19,14 @@
     },
     "paths": { "type": "array", "items": { "type": "string" }, "description": "Repo paths the adapter relies on, checked for changes since as_of.commit." },
     "manifest": { "type": "object", "description": "Where things live, in discover.json's shape. Used only while the repo has no discover.json." },
-    "frontier_adapter": { "type": "object", "description": "Maps the repo's own results record onto frontier fields, as in the registry entry (deprecated there)." }
+    "frontier_doc": {
+      "type": "object", "required": ["path"],
+      "description": "Where the project states its current result when it isn't (only) machine-readable. Stands in for the manifest's frontier for listing.",
+      "properties": {
+        "path": { "type": "string" },
+        "note": { "type": "string", "description": "How to read it, in the project's own terms." }
+      }
+    },
+    "frontier_adapter": { "type": "object", "description": "Maps the repo's own results record onto frontier fields: {v0_field: raw_field}, plus metric, a declared evidence_level, and optionally select {list, key, current} to read the entry a registry's current field names." }
   }
 }

@@ -24,8 +24,18 @@ def normalize_frontier(raw, adapter=None):
     """
     if raw is None or raw.get("schema") == "discover-frontier/v0" or not adapter:
         return raw, []
+    sel = adapter.get("select")
+    if sel is not None:
+        # A registry: its `current` field names one entry of its `list`.
+        want = raw.get(sel.get("current", "current"))
+        items = raw.get(sel.get("list", "results")) or []
+        raw = next((i for i in items if isinstance(i, dict) and i.get(sel.get("key", "id")) == want), None)
+        if raw is None:
+            return None, [f"frontier adapter: no entry with {sel.get('key', 'id')} = {want!r}"]
     out = {"schema": "discover-frontier/v0"}
     for key, src in adapter.items():
+        if key == "select":
+            continue
         if key == "metric":
             m = {"name": src["name"], "value": str(raw.get(src["value"], ""))}
             if "decimal" in src and src["decimal"] in raw:
@@ -71,11 +81,12 @@ def catalogued(entry):
     return "nomination" in entry and not (entry.get("consent") or {}).get("list")
 
 
-def validate(source, overlay=None, adapter=None, catalogued=False):
+def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=None):
     """Return a report: `conformant`, `problems` (required files), `conventions` (name -> True,
     or a note on what's missing), warnings, and the loaded objects.
 
-    A catalogued entry sends no agents, so it may lack a frontier record."""
+    A catalogued entry sends no agents, so it may lack a frontier record; so may an adapter
+    that points to where the project states its current result (`frontier_doc`)."""
     r = {"source": source.describe(), "conformant": False, "problems": [], "conventions": {}, "warnings": []}
     conv = r["conventions"]
     manifest, origin = load_manifest(source, overlay)
@@ -88,9 +99,12 @@ def validate(source, overlay=None, adapter=None, catalogued=False):
     r["manifest"] = manifest
     req = r["problems"]
     errs = schema.check("manifest.schema.json", manifest)
-    if catalogued and "$: missing required 'frontier'" in errs:
+    if "$: missing required 'frontier'" in errs and (catalogued or frontier_doc):
         errs.remove("$: missing required 'frontier'")
-        r["warnings"].append("no frontier record: fine while catalogued; a listing with a launcher needs one")
+        r["warnings"].append(f"no machine-readable frontier; the adapter points to {frontier_doc['path']}"
+                             if frontier_doc else
+                             "no frontier record: fine while catalogued; a listing with a launcher needs one, "
+                             "or an adapter frontier_doc")
     req += [f"discover.json {e}" for e in errs]
     entry = manifest.get("entry", {})
     for key in ("agents", "project"):
