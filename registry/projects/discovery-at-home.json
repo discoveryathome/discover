@@ -1,0 +1,19 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/discover"
+    }
+  ],
+  "added_on": "2026-10-16",
+  "contact": "colkitt",
+  "consent": {
+    "source": "discover.json",
+    "checked_on": "2026-10-16",
+    "list": true,
+    "push": [
+      "notices",
+      "suggestions",
+      "prs"
+    ]
+  }
+}

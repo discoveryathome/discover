@@ -51,8 +51,10 @@ def cmd_validate(a):
         entry = json.loads(Path(a.registry_entry).read_text(encoding="utf-8"))
         overlay, adapter = entry.get("overlay"), entry.get("frontier_adapter")
         if not a.repo and not a.path_given:
-            a.repo = entry["repo"]
-    source = Source(repo=parse_repo(a.repo), ref=a.ref) if a.repo else Source(local=a.path)
+            home = entry["repos"][0]
+            a.repo, a.root = home["repo"], home.get("path", "")
+    root = getattr(a, "root", "")
+    source = Source(repo=parse_repo(a.repo), ref=a.ref, root=root) if a.repo else Source(local=a.path)
     r = validate(source, overlay, adapter)
     slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog")}
     emit(slim, a.json, lambda _: format_report(r))
@@ -175,7 +177,10 @@ def cmd_registry_add(a):
     out = Path(a.out) / f"{slug}.json"
     if out.exists():
         raise SystemExit(f"{out} already exists")
-    entry = {"repo": repo, "added_on": date.today().isoformat()}
+    today = date.today().isoformat()
+    # Submitting through the hub's form counts as consent to be listed (spec §11.4).
+    entry = {"repos": [{"repo": repo}], "added_on": today,
+             "consent": {"source": "application", "checked_on": today, "list": True, "push": []}}
     if contact:
         entry["contact"] = contact
     errs = schema.check("registry-entry.schema.json", entry)

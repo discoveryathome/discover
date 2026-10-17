@@ -1,0 +1,28 @@
+{
+  "schema": "discover-frontier/v0",
+  "statement": "The v0-draft rubric (five properties, Stages 0-2) has been applied once, by hand, to one listed project: integer-mult-bounds, graded Stage 1 in the 2026-10-16 smoke test.",
+  "status": "Draft rubric with one hand-run assessment; no probe tooling or assessment-record format yet.",
+  "evidence_level": [
+    "author-checked"
+  ],
+  "scope": "One project, of one shape (a single exact bound with certificates). Two orientation probes, one verification probe and two measurements, run ad hoc. Not yet tested on a benchmark, replication or conjecture-style project, or with a donor-tier probe model.",
+  "assumptions": [
+    {
+      "id": "probe-agreement",
+      "statement": "Probe answers on the same commit agree (two probes agreed once).",
+      "status": "partial"
+    },
+    {
+      "id": "thresholds",
+      "statement": "The thresholds in spec §3.2 are sensible (uncalibrated).",
+      "status": "open"
+    },
+    {
+      "id": "routine-cost",
+      "statement": "A routine reassessment costs about two short donor sessions (estimated, not measured).",
+      "status": "open"
+    }
+  ],
+  "review": "spec/v0.md §3 and §13",
+  "updated_on": "2026-10-16"
+}

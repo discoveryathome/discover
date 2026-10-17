@@ -148,8 +148,19 @@ class RegistryTests(unittest.TestCase):
             (Path(d) / "body.md").write_text(body)
             self.assertEqual(main(["registry-add", "--body-file", str(Path(d) / "body.md"), "--out", d]), 0)
             entry = json.loads((Path(d) / "my-repo.json").read_text())
-            self.assertEqual(entry["repo"], "Some-Org/My.Repo")
+            self.assertEqual(entry["repos"][0]["repo"], "Some-Org/My.Repo")
+            self.assertEqual(entry["consent"]["source"], "application")
             self.assertEqual(entry["contact"], "someone")
+
+
+class SourceTests(unittest.TestCase):
+    def test_project_in_subdirectory(self):
+        with tempfile.TemporaryDirectory() as d:
+            init.scaffold(Path(d) / "problems" / "p1", "T", "S", ["math"], "M", "o/r")
+            src = Source(local=d, root="problems/p1")
+            self.assertIsNotNone(src.read_json("discover.json"))
+            self.assertTrue(src.exists("discover/catalog.json"))
+            self.assertIsNone(Source(local=d).read("discover.json"))
 
 
 class HubTests(unittest.TestCase):
@@ -157,7 +168,7 @@ class HubTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             init.scaffold(d, "T", "S", ["math"], "M", "o/r")
             report = validate(Source(local=d))
-            s = hub.project_summary("t", {"repo": "o/r", "added_on": "2026-01-01"}, report)
+            s = hub.project_summary("t", {"repos": [{"repo": "o/r"}], "added_on": "2026-01-01"}, report)
             self.assertEqual(s["title"], "T")
             self.assertEqual(s["tracks"][0]["weight"], 100)
             self.assertEqual(s["frontier"]["evidence_level"], ["author-checked"])

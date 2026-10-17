@@ -13,17 +13,29 @@ RAW = "https://raw.githubusercontent.com/{repo}/{ref}/{path}"
 class Source:
     """Reads repository files from a local directory or raw.githubusercontent.com."""
 
-    def __init__(self, local=None, repo=None, ref="HEAD"):
+    def __init__(self, local=None, repo=None, ref="HEAD", root=""):
         if (local is None) == (repo is None):
             raise ValueError("give exactly one of local or repo")
         self.local = Path(local) if local is not None else None
         self.repo, self.ref = repo, ref
+        self.root = root.strip("/")  # project subdirectory, when a repo holds several
+
+    @classmethod
+    def from_entry(cls, entry):
+        """Source for a registry entry's home repository (its first `repos` item)."""
+        home = entry["repos"][0]
+        return cls(repo=home["repo"], ref=home.get("ref", "HEAD"), root=home.get("path", ""))
 
     def describe(self):
-        return str(self.local) if self.local else f"{self.repo}@{self.ref}"
+        where = str(self.local) if self.local else f"{self.repo}@{self.ref}"
+        return f"{where}:{self.root}" if self.root else where
+
+    def _p(self, path):
+        return f"{self.root}/{path}" if self.root else path
 
     def read(self, path):
         """Return file text, or None if it does not exist."""
+        path = self._p(path)
         if self.local:
             p = self.local / path
             return p.read_text(encoding="utf-8") if p.is_file() else None
@@ -38,13 +50,15 @@ class Source:
 
     def exists(self, path):
         if self.local:
-            return any(self.local.glob(path)) if "*" in path else (self.local / path).exists()
+            full = self.local / self._p(path)
+            return any(self.local.glob(self._p(path))) if "*" in path else full.exists()
         if "*" in path:
             return None  # unknown remotely without a tree listing
         return self.read(path) is not None
 
     def last_modified(self, path):
         """Date (YYYY-MM-DD) of the last commit touching path, or None."""
+        path = self._p(path)
         try:
             if self.local:
                 out = subprocess.run(["git", "-C", str(self.local), "log", "-1", "--format=%cs", "--", path],

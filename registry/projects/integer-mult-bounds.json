@@ -1,5 +1,5 @@
 {
-  "repo": "CrocSwap/integer-mult-bounds",
+  "repos": [{ "repo": "CrocSwap/integer-mult-bounds" }],
   "added_on": "2026-10-15",
   "contact": "colkitt",
   "featured": true,

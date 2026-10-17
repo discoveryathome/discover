@@ -1,0 +1,209 @@
+{
+  "schema": "discover-catalog/v0",
+  "priority_revision": 1,
+  "assessed_on": "2026-10-16",
+  "priority_log": "discover/priority-log.md",
+  "tracks": [
+    {
+      "id": "second-pilot",
+      "weight": 25,
+      "useful_outcome": "Evidence on whether the rubric fits a project unlike integer-mult-bounds.",
+      "tasks": [
+        {
+          "id": "assess-different-shape",
+          "question": "Does the §3 rubric grade a benchmark, replication or conjecture-style project sensibly?",
+          "starting_points": [
+            "spec/v0.md §3",
+            "discover/frontier.json"
+          ],
+          "methods": [
+            "read-only local assessment of a public candidate repo",
+            "orientation probe by hand"
+          ],
+          "acceptance_gate": "A written assessment with per-property grades, evidence links, and every place the rubric didn't fit, kept local and submitted to this repo only.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "--version"
+            ],
+            "expected": "discover 0.1.0"
+          },
+          "bottleneck_link": "The frontier's main gap is projects of other shapes.",
+          "overlap_terms": [
+            "second pilot",
+            "candidate",
+            "shape"
+          ],
+          "allowed_variations": [
+            "any field",
+            "any project shape except a single scalar bound"
+          ],
+          "scope_change_triggers": [
+            "the candidate's maintainers would need to be contacted",
+            "the rubric can't be applied at all"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assessment-tooling",
+      "weight": 25,
+      "useful_outcome": "Assessment cheap and repeatable enough to run weekly.",
+      "tasks": [
+        {
+          "id": "orientation-probe-runner",
+          "question": "Can the orientation probe run as one command with a pinned model, budget and transcript?",
+          "starting_points": [
+            "spec/v0.md §3.4",
+            "plugins/discover/cli/discover/"
+          ],
+          "methods": [
+            "CLI subcommand",
+            "headless agent run"
+          ],
+          "acceptance_gate": "A command that runs the probe against a repo at a pinned commit and saves answers and transcript; tests pass.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "validate",
+              "examples/integer-mult-bounds"
+            ],
+            "expected": "not conformant"
+          },
+          "bottleneck_link": "Without tooling every assessment is hand work.",
+          "overlap_terms": [
+            "probe",
+            "runner",
+            "assess"
+          ]
+        },
+        {
+          "id": "assessment-record-format",
+          "question": "What should an assessment record contain so hubs can exchange and compare them?",
+          "starting_points": [
+            "spec/v0.md §3.4, §12.3",
+            "registry/projects/integer-mult-bounds.json"
+          ],
+          "methods": [
+            "schema design",
+            "worked example"
+          ],
+          "acceptance_gate": "A schema in spec/schemas and the integer-mult-bounds smoke test rewritten in it; tests pass.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "--version"
+            ],
+            "expected": "discover 0.1.0"
+          },
+          "bottleneck_link": "Hubs exchange assessments by file format.",
+          "overlap_terms": [
+            "assessment record",
+            "schema"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verify-assessments",
+      "weight": 20,
+      "useful_outcome": "Independent reruns that confirm or contradict existing grades.",
+      "tasks": [
+        {
+          "id": "rerun-orientation-probe",
+          "question": "Does an independent orientation probe on the same commit give the same answers?",
+          "starting_points": [
+            "spec/v0.md §3.4",
+            "spec/v0.md §13 (probe reliability)"
+          ],
+          "methods": [
+            "rerun the probe at the recorded commit",
+            "compare to reference answers"
+          ],
+          "acceptance_gate": "A comparison naming each disagreement, with the commit and model used.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "--version"
+            ],
+            "expected": "discover 0.1.0"
+          },
+          "bottleneck_link": "Probe reliability is an open question the grades depend on.",
+          "overlap_terms": [
+            "probe reliability",
+            "rerun"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rubric",
+      "weight": 15,
+      "useful_outcome": "Spec changes justified by assessment evidence.",
+      "tasks": [
+        {
+          "id": "calibrate-thresholds",
+          "question": "Are the duplicate-rate and response-time thresholds in §3.2 sensible?",
+          "starting_points": [
+            "spec/v0.md §3.1-3.2"
+          ],
+          "methods": [
+            "measure listed projects in a 14-day window",
+            "compare against probe results"
+          ],
+          "acceptance_gate": "A proposed change to §3.2 backed by measurements from at least two projects.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "--version"
+            ],
+            "expected": "discover 0.1.0"
+          },
+          "bottleneck_link": "Uncalibrated thresholds make stages arbitrary.",
+          "overlap_terms": [
+            "threshold",
+            "calibration"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gallery",
+      "weight": 15,
+      "useful_outcome": "Listings that help people choose on human terms.",
+      "tasks": [
+        {
+          "id": "choosing-signals",
+          "question": "Which listing signals help a non-expert choose a project without becoming a popularity ranking?",
+          "starting_points": [
+            "spec/v0.md §12.2",
+            "site/app.js"
+          ],
+          "methods": [
+            "prototype on the site",
+            "short user test"
+          ],
+          "acceptance_gate": "A site change showing the chosen signals, with a note on why each helps choosing.",
+          "first_step": {
+            "command": [
+              "make",
+              "hub"
+            ],
+            "expected": "wrote site/data/projects.json"
+          },
+          "bottleneck_link": "People choose projects; the gallery is the main surface.",
+          "overlap_terms": [
+            "gallery",
+            "signals",
+            "needs reviewers"
+          ]
+        }
+      ]
+    }
+  ]
+}

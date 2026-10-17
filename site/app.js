@@ -195,7 +195,7 @@ function viewProject(slug) {
       <section class="panel">
         <h2>Read more</h2>
         <div class="cols"><ul class="clean">${links}<li>${link(p.url, "Repository")}</li></ul><ul class="clean">${threads}</ul></div>
-        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}<dt>Listed</dt><dd>${esc(p.added_on || "")}</dd></dl>
+        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd><dt>Listed</dt><dd>${esc(p.added_on || "")}</dd></dl>
       </section>
     </div>
     <div>${launcher(p)}</div>

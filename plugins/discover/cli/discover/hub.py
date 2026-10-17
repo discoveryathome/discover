@@ -15,13 +15,15 @@ from .validate import validate
 
 def project_summary(slug, entry, report, board=None):
     m = report.get("manifest") or {}
-    repo = entry["repo"]
-    blob = f"https://github.com/{repo}/blob/{entry.get('ref', 'HEAD')}/"
+    home = entry["repos"][0]
+    repo = home["repo"]
+    blob = f"https://github.com/{repo}/blob/{home.get('ref', 'HEAD')}/" + (home["path"].strip("/") + "/" if home.get("path") else "")
     f = report.get("frontier") or {}
     cat = report.get("catalog") or {}
     threads = (m.get("coordination") or {}).get("threads") or {}
     out = {
-        "slug": slug, "repo": repo, "url": f"https://github.com/{repo}",
+        "slug": slug, "repo": repo, "repos": entry["repos"], "url": f"https://github.com/{repo}",
+        "credit": (m.get("credit") or entry.get("credit")),
         "title": m.get("title", repo), "summary": m.get("summary", ""),
         "domains": m.get("domains", []), "maintainers": m.get("maintainers", []),
         "license": m.get("license"), "verification_profile": m.get("verification_profile"),
@@ -72,7 +74,7 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             problems.append({"slug": slug, "errors": errs})
             print(f"skip {slug}: {errs}", file=log)
             continue
-        source = Source(repo=entry["repo"], ref=entry.get("ref", "HEAD"))
+        source = Source.from_entry(entry)
         try:
             report = validate(source, entry.get("overlay"), entry.get("frontier_adapter"))
         except Exception as e:  # network, JSON, etc. Keep building the rest.
@@ -80,9 +82,10 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             print(f"skip {slug}: {e}", file=log)
             continue
         board = None
-        if with_board:
+        transport = ((report.get("manifest") or {}).get("coordination") or {}).get("transport")
+        if with_board and transport in (None, "github-discussions"):
             try:
-                msgs, _ = boardmod.messages(boardmod.fetch_posts(entry["repo"]))
+                msgs, _ = boardmod.messages(boardmod.fetch_posts(entry["repos"][0]["repo"]))
                 board = boardmod.state(msgs)
             except Exception as e:
                 print(f"{slug}: board unavailable ({e})", file=log)

@@ -37,7 +37,7 @@
     "coordination": {
       "type": "object", "required": ["transport"],
       "properties": {
-        "transport": { "enum": ["github-discussions"] },
+        "transport": { "enum": ["github-discussions", "github-issues"], "description": "Where claims, findings and handoffs are posted. The reference board reader supports Discussions; issues are read by agents directly." },
         "threads": {
           "type": "object",
           "description": "Hub thread numbers by role.",
@@ -85,13 +85,22 @@
     },
     "hubs": {
       "type": "array",
-      "description": "Hubs this project consents to, and what each may push to the repo. Listing implies pull; push is never implied.",
+      "description": "Consent record: which hubs may list this project and what each may push. A specific hub overrides *. Push is never implied.",
       "items": {
         "type": "object", "required": ["hub"],
         "properties": {
-          "hub": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", "description": "The hub repository, OWNER/REPO." },
+          "hub": { "type": "string", "pattern": "^([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+|\\*)$", "description": "The hub repository, OWNER/REPO, or * for all hubs." },
+          "list": { "type": "boolean", "default": true, "description": "Whether this hub may list the project." },
           "push": { "type": "array", "items": { "enum": ["notices", "suggestions", "prs"] }, "default": [] }
         }
+      }
+    },
+    "credit": {
+      "type": "object", "required": ["policy"],
+      "description": "How contributors are credited. Disclosed, not graded; required for listing with a launcher.",
+      "properties": {
+        "policy": { "type": "string" },
+        "kinds": { "type": "array", "items": { "enum": ["co-authorship", "acknowledgement", "contributors-file", "citation", "none"] } }
       }
     },
     "process_changed_on": {

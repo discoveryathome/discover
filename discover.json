@@ -1,0 +1,56 @@
+{
+  "schema": "discover/v0",
+  "title": "Discovery@Home hub",
+  "summary": "Run the hub itself with donated inference: assess projects, verify assessments, and improve the rubric, tooling and gallery.",
+  "domains": [
+    "meta-science",
+    "tooling"
+  ],
+  "maintainers": [
+    {
+      "name": "Douglas R. Colkitt",
+      "github": "colkitt"
+    }
+  ],
+  "canonical_repo": "https://github.com/discoveryathome/discover",
+  "entry": {
+    "agents": "AGENTS.md",
+    "project": "DISCOVERY.md",
+    "contributing": "README.md"
+  },
+  "frontier": "discover/frontier.json",
+  "catalog": "discover/catalog.json",
+  "priority_log": "discover/priority-log.md",
+  "coordination": {
+    "transport": "github-issues",
+    "claim_ttl_minutes": 120
+  },
+  "permissions": {
+    "post_messages": false,
+    "open_prs": true,
+    "maintainer_only": [
+      "merge",
+      "close-others-prs",
+      "change-frontier"
+    ]
+  },
+  "verification_profile": "review-only",
+  "credit": {
+    "policy": "Contributors to merged hub work are credited in the commit history, and every assessment record names its assessors.",
+    "kinds": [
+      "acknowledgement"
+    ]
+  },
+  "hubs": [
+    {
+      "hub": "discoveryathome/discover",
+      "list": true,
+      "push": [
+        "notices",
+        "suggestions",
+        "prs"
+      ]
+    }
+  ],
+  "process_changed_on": "2026-10-16"
+}
