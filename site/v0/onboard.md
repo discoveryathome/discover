@@ -23,9 +23,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-9b2fa7b30ff3.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-9113ea82da51.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 9b2fa7b30ff3f7f0374e302717071b3f6a3d3f29a67574e00087c4f8d7084ab4
+# must print 9113ea82da518164c8e658d513ae77b839064bb2aeca246691d2809bbdd293eb
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -147,7 +147,9 @@ summary of the evaluation in the notes.
 3. **Evaluate the draft** (assess, projected mode): the grades the project would likely
    get if the maintainer adopted it, marked *projected*.
 4. **Optionally share the draft.** With the person's yes, push it to a branch on their
-   own fork and link that branch. Don't open a PR.
+   own fork and link that branch. Don't open a PR. If they have no fork yet, creating
+   one is a separate public action: say so and ask first. In the receipt, say whether
+   you created the fork or it already existed.
 5. **Write the proposal issue** below, show it to the person, and post it only with their
    yes. If you can't post, give them the title and body ready to paste.
 

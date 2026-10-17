@@ -103,7 +103,9 @@ summary of the evaluation in the notes.
 3. **Evaluate the draft** (assess, projected mode): the grades the project would likely
    get if the maintainer adopted it, marked *projected*.
 4. **Optionally share the draft.** With the person's yes, push it to a branch on their
-   own fork and link that branch. Don't open a PR.
+   own fork and link that branch. Don't open a PR. If they have no fork yet, creating
+   one is a separate public action: say so and ask first. In the receipt, say whether
+   you created the fork or it already existed.
 5. **Write the proposal issue** below, show it to the person, and post it only with their
    yes. If you can't post, give them the title and body ready to paste.
 

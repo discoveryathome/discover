@@ -23,7 +23,7 @@ def iso(dt):
 
 class SchemaTests(unittest.TestCase):
     def test_plugin_copy_matches_spec(self):
-        cmp = filecmp.dircmp(ROOT / "spec" / "schemas", schema.SCHEMA_DIR)
+        cmp = filecmp.dircmp(ROOT / "spec" / "schemas", ROOT / "plugins" / "discover" / "cli" / "discover" / "schemas")
         self.assertFalse(cmp.left_only or cmp.right_only or cmp.diff_files,
                          "plugin schemas out of sync with spec/schemas: run `make sync`")
 
@@ -226,6 +226,12 @@ class BuildTests(unittest.TestCase):
         out = subprocess.run([sys.executable, str(self.pyz), "--version"], capture_output=True, text=True)
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertTrue(out.stdout.startswith("discover "))
+        # Commands that read packaged data (the schemas) must work from inside the zip too.
+        with tempfile.TemporaryDirectory() as d:
+            init.scaffold(d, "T", "S", ["math"], "M", "o/r")
+            for args in (["validate", d], ["pick", d, "--seed", "0" * 32]):
+                out = subprocess.run([sys.executable, "-I", str(self.pyz), *args], capture_output=True, text=True, cwd=d)
+                self.assertEqual(out.returncode, 0, out.stderr)
 
 
 class SourceTests(unittest.TestCase):

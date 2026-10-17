@@ -6,10 +6,8 @@ pattern, allOf, if/then, and local $ref ("#/$defs/..."). Formats are not checked
 """
 
 import json
+import pkgutil
 import re
-from pathlib import Path
-
-SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"  # synced copy of spec/schemas (make sync)
 
 _TYPES = {
     "object": dict, "array": list, "string": str,
@@ -18,7 +16,8 @@ _TYPES = {
 
 
 def load(name):
-    return json.loads((SCHEMA_DIR / name).read_text(encoding="utf-8"))
+    # The synced copy of spec/schemas (make sync). pkgutil also reads it from inside the .pyz.
+    return json.loads(pkgutil.get_data(__package__, "schemas/" + name).decode("utf-8"))
 
 
 def _is_type(value, name):
