@@ -307,6 +307,17 @@ def cmd_adapter_check(a):
     return 1 if r["problems"] else 0
 
 
+def cmd_permissions(a):
+    from . import presets
+    if a.write:
+        added = presets.merge_into(a.write, a.preset)
+        print(f"{a.write}: {len(added)} rule(s) added for {a.preset}" + "".join(f"\n  {r}" for r in added))
+        return 0
+    print(f"# {presets.PRESETS[a.preset]['about']}")
+    print(json.dumps(presets.settings(a.preset), indent=2))
+    return 0
+
+
 def cmd_hub_check(a):
     from . import HUB_REPO, hubcheck
     findings = hubcheck.check(a.registry, HUB_REPO)
@@ -470,6 +481,12 @@ def main(argv=None):
     s.add_argument("--hub", default=__import__("discover").HUB_REPO)
     s.add_argument("--dry-run", action="store_true")
     s.set_defaults(func=cmd_submit)
+
+    pm = sub.add_parser("permissions", help="print or write a coding-agent permission preset for a role")
+    pm.add_argument("preset", choices=["donor-local", "donor-post", "maintainer"])
+    pm.add_argument("--write", metavar="SETTINGS",
+                    help="merge into a settings file, e.g. .claude/settings.local.json (keeps existing rules)")
+    pm.set_defaults(func=cmd_permissions)
 
     hc = sub.add_parser("hub-check", help="the hub's scheduled check: consent, adapter drift, stale assessments")
     hc.add_argument("--registry", default="registry/projects")

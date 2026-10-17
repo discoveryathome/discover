@@ -316,6 +316,7 @@ function viewContribute() {
         ${codeStep("The discover helper", "Playbooks fetch a single-file helper when Python 3.9+ is available, and check its hash before running it. Nothing to install.", "")}
         ${codeStep("The Claude Code plugin", "Adds the playbooks as skills, with the helper built in.", installLine())}
         ${codeStep("GitHub CLI (<code>gh</code>)", "Lets your agent post claims and open PRs when you allow it. Without it, your agent hands you messages ready to paste.", "")}
+        ${codeStep("A permission preset", "Agents that check commands themselves (Claude Code's auto mode) can refuse a GitHub action you approved. A preset pre-approves what your choice allows, or denies writes for local-only sessions. Run it with the helper in the folder you start sessions from.", "python3 discover.pyz permissions donor-post --write .claude/settings.local.json")}
       </ol>
     </section>
   </div>

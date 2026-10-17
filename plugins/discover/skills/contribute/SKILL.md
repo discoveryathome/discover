@@ -79,6 +79,16 @@ format (its docs or the hub's adapter say so) uses that instead.
 isn't available, or you aren't permitted to post, don't post: end with messages written
 out **ready to paste**, and say where each one goes.
 
+**When your own permission checks refuse an approved action.** Some agents check each
+command themselves (Claude Code's auto mode, for example) and may refuse a GitHub write
+the person just approved in chat. Don't look for a way around it. Give the person the
+exact command to run, and tell them a preset can stop this next time:
+`discover permissions maintainer --write .claude/settings.local.json` makes each public
+write an explicit prompt instead (`donor-post` pre-approves posting for unattended
+sessions; `donor-local` denies writes). Write `gh` commands with the subcommand first
+(`gh pr merge 17 -R OWNER/NAME`, not `gh -R OWNER/NAME pr merge 17`), so rules match them.
+For unattended runs (`claude -p`), pass the preset file with `--settings`.
+
 **Randomness.** When you have to choose among tasks, **never choose "at random"
 yourself.** Language models pick the same few options, so hundreds of agents end up on
 the same task. Get the choice from executed randomness, in this order:

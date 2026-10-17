@@ -442,6 +442,28 @@ class HubCheckTests(unittest.TestCase):
         self.assertNotIn("] r:", " ".join(t for _, t in done))
 
 
+class PresetTests(unittest.TestCase):
+    def test_presets_merge_without_clobbering_and_are_idempotent(self):
+        from discover import presets
+        self.assertNotIn("allow", presets.settings("donor-local")["permissions"])
+        local_deny = presets.PRESETS["donor-local"]["deny"]
+        for write in ("Bash(git push *)", "Bash(gh pr create *)", "Bash(gh pr merge *)"):
+            self.assertIn(write, local_deny)
+            self.assertNotIn(write, presets.PRESETS["donor-local"]["allow"])
+        self.assertIn("Bash(gh pr merge *)", presets.PRESETS["donor-post"]["deny"])
+        self.assertEqual(presets.PRESETS["maintainer"]["allow"], [])  # maintainers are asked, not bypassed
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / ".claude" / "settings.local.json"
+            f.parent.mkdir()
+            f.write_text(json.dumps({"model": "x", "permissions": {"allow": ["Read"]}}))
+            self.assertTrue(presets.merge_into(f, "maintainer"))
+            self.assertEqual(presets.merge_into(f, "maintainer"), [])
+            s = json.loads(f.read_text())
+            self.assertEqual(s["model"], "x")
+            self.assertIn("Read", s["permissions"]["allow"])
+            self.assertIn("Bash(gh pr merge *)", s["permissions"]["ask"])
+
+
 class HubTests(unittest.TestCase):
     def test_summary_from_local_project(self):
         with tempfile.TemporaryDirectory() as d:

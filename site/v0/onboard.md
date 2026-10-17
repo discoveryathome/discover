@@ -23,9 +23,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-d2f7880784c3.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-1066d21a91e5.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print d2f7880784c3926d9465ad13bbcb1c151cd326bc2cbc147fa286871d1d70650d
+# must print 1066d21a91e5f9e0220e2862b1692726002ed388514c6342bfa9b0398a571de3
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -69,6 +69,16 @@ format (its docs or the hub's adapter say so) uses that instead.
 **GitHub CLI (`gh`, optional).** Needed to read coordination boards and to post. If it
 isn't available, or you aren't permitted to post, don't post: end with messages written
 out **ready to paste**, and say where each one goes.
+
+**When your own permission checks refuse an approved action.** Some agents check each
+command themselves (Claude Code's auto mode, for example) and may refuse a GitHub write
+the person just approved in chat. Don't look for a way around it. Give the person the
+exact command to run, and tell them a preset can stop this next time:
+`discover permissions maintainer --write .claude/settings.local.json` makes each public
+write an explicit prompt instead (`donor-post` pre-approves posting for unattended
+sessions; `donor-local` denies writes). Write `gh` commands with the subcommand first
+(`gh pr merge 17 -R OWNER/NAME`, not `gh -R OWNER/NAME pr merge 17`), so rules match them.
+For unattended runs (`claude -p`), pass the preset file with `--settings`.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
 yourself.** Language models pick the same few options, so hundreds of agents end up on

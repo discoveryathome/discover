@@ -29,14 +29,16 @@ hub operations are built and running as a dry run.
 
 ## Now
 
-### 1. Permission presets for agents
+### 1. Permission presets for agents (done, first version)
 
-Every maintainer test hit the same wall: Claude Code's auto mode refused GitHub writes
-the person had just approved (merging, closing, pushing, enabling Discussions, posting).
-The agents handled it correctly, handing over exact commands, but it's the biggest source
-of friction found. Publish tested permission presets per agent (allow rules for `gh pr`,
-`gh api graphql`, `git push` scoped to the project) and say on the site that an agent may
-hand you commands to paste. Report the behavior upstream.
+Every maintainer test hit the same wall: Claude Code's auto mode refused GitHub writes the
+person had just approved. `discover permissions <maintainer|donor-post|donor-local>
+--write .claude/settings.local.json` now writes a preset: for maintainers, each public
+write becomes an explicit prompt the automatic checker can't refuse; unattended donors
+allowed to post get narrow allow rules; local-only donors get writes denied. The
+playbooks tell agents to hand over exact commands, never work around a refusal. Left:
+confirm it in a real maintainer session, presets for other agents (Codex), and the
+upstream report.
 
 ### 2. Hub operations: finish
 
