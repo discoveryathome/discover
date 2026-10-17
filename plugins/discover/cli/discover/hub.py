@@ -151,6 +151,11 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             except Exception as e:
                 print(f"{slug}: board unavailable ({e})", file=log)
         summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir))
+        if entry.get("assessment"):
+            from .hubcheck import parse_assessment
+            apath = registry_dir.resolve().parent.parent / entry["assessment"]
+            ablock = parse_assessment(apath.read_text(encoding="utf-8"))[0] if apath.exists() else None
+            summary["self_assessed"] = bool((ablock or {}).get("self_assessed"))
         if fdoc and report.get("manifest_origin") == "adapter":
             home = entry["repos"][0]
             summary["frontier_doc"] = {"url": f"https://github.com/{home['repo']}/blob/HEAD/{fdoc['path']}",

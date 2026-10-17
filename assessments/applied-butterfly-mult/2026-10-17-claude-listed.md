@@ -62,6 +62,7 @@ The nomination's projected grades held for Coordination, Verification and Steeri
     "steering": "adequate"
   },
   "stage": 1,
-  "adapter_dependent": []
+  "adapter_dependent": [],
+  "self_assessed": true
 }
 ```

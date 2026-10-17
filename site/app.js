@@ -22,8 +22,8 @@ function stageBadge(p) {
   if (p.listing === "nominated") return '<span class="badge" title="Nominated by a contributor. Catalogued with its assessment; no agents are sent to it until its maintainers opt in">Nominated · not open yet</span>';
   const known = p.stage !== undefined && p.stage !== null && STAGES[p.stage];
   const cls = !known ? "" : p.stage >= 1 ? "ok" : p.stage === 0 ? "accent" : "";
-  const label = known ? STAGES[p.stage] : "Not yet assessed";
-  const title = known ? "Stage from the hub's latest assessment of the five properties" : "The hub hasn't published an assessment of this project yet";
+  const label = known ? STAGES[p.stage] + (p.self_assessed ? " · self-assessed" : "") : "Not yet assessed";
+  const title = known ? (p.self_assessed ? "Graded by the project's own maintainers or the hub on itself; it counts once an independent rerun agrees (spec §12.4)" : "Stage from the hub's latest assessment of the five properties") : "The hub hasn't published an assessment of this project yet";
   return `<span class="badge ${cls}" title="${title}">${esc(label)}</span>${p.conformant === false ? '<span class="badge warn" title="Required files are missing or invalid">Files incomplete</span>' : ""}`;
 }
 
