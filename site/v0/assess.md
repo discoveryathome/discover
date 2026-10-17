@@ -22,8 +22,10 @@ entry doc, its record of accepted results, its task list, and its coordination.
   latest assessment. Diff the project between its `assessed_commit` and now, rerun the
   probes only for properties the changes could affect, carry the other grades forward
   with "unchanged since <commit>", and set `mode: re-assess` and `previous` in the block.
-  Say what changed and why each grade did or didn't move. Close the hub-check issue in
-  the PR that lands it.
+  Say what changed and why each grade did or didn't move: label each grade "unchanged
+  since <commit>" (not looked at again), "regraded, unchanged" or "regraded" with the old
+  grade. Name the file `<date>-<handle>-reassess.md` if one with the plain name exists.
+  Close the hub-check issue, if there is one, in the PR that lands it.
 
 The rubric is spec §3: https://github.com/discoveryathome/discover/blob/main/spec/v0.md. Read §3.1 (grading principles) and §3.2 (the five
 properties) before starting; they change more often than this playbook.
@@ -60,9 +62,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-07b6b09acb90.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-d2f7880784c3.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 07b6b09acb90ce657349000216b595e33575f991698175509d8949569432f41c
+# must print d2f7880784c3926d9465ad13bbcb1c151cd326bc2cbc147fa286871d1d70650d
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`

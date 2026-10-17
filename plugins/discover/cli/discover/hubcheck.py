@@ -21,6 +21,7 @@ from .validate import catalogued, validate
 
 ASSESSMENT = re.compile(r"^```discover-assessment[ \t]*\n(.*?)^```[ \t]*$", re.S | re.M)
 STALE_DAYS = 30
+SETTLE_DAYS = 7  # changes newer than this are expected churn on an active project
 LABEL = "hub-check"
 GRADED = ("orientation", "coordination", "verification", "review", "steering")
 
@@ -54,16 +55,31 @@ def touches(changed, paths):
     return hit
 
 
-def changed_since(repo, base, head, paths, gh):
-    """Listed paths changed between two commits, via GitHub's compare API (no clone)."""
+def changed_since(repo, base, head, paths, gh, gone_only=False):
+    """Listed paths changed between two commits, via GitHub's compare API (no clone).
+    With gone_only, only paths that were deleted or renamed away."""
     if not base or not paths or head.startswith(base) or base.startswith(head):
         return []
     cmp = gh(f"repos/{repo}/compare/{base}...{head}")
-    files = [f["filename"] for f in cmp.get("files", [])]
+    files = [f["filename"] for f in cmp.get("files", [])
+             if not gone_only or f.get("status") in ("removed", "renamed")]
     hit = touches(files, paths)
-    if len(files) >= 300 and not hit:
+    if len(cmp.get("files", [])) >= 300 and not hit:
         hit = ["(more than 300 files changed; compare them by hand)"]
     return hit
+
+
+def missing_at(repo, head, paths, gh):
+    """Listed paths that don't exist at a commit. Asks for each path directly, which stays exact
+    however many files changed; a glob counts as present if its fixed prefix exists."""
+    gone = []
+    for p in paths:
+        q = re.split(r"[*?\[]", p)[0].rstrip("/") or "."
+        try:
+            gh(f"repos/{repo}/contents/{q}?ref={head}")
+        except RuntimeError:
+            gone.append(p)
+    return gone
 
 
 def check(registry_dir, hub_repo, gh=gh_api, today=None):
@@ -98,11 +114,20 @@ def check(registry_dir, hub_repo, gh=gh_api, today=None):
             continue
 
         if block and report.get("manifest_origin") == "adapter":
-            hit = changed_since(repo, block["as_of"]["commit"], head, block.get("paths", []), gh)
-            if hit:
-                add(slug, "adapter-drift", "warning", "Paths the adapter relies on changed since its as_of commit",
-                    f"Changed since {block['as_of']['commit'][:12]}: {', '.join(hit)}. Re-verify with the adapt "
-                    f"playbook in update mode and move as_of forward.")
+            # An adapter points to files rather than copying them, so only a path that moved or
+            # vanished makes it wrong; edits to the files it points to are noted, not flagged.
+            base, paths = block["as_of"]["commit"], block.get("paths", [])
+            gone = missing_at(repo, head, paths, gh) if not head.startswith(base) else []
+            if gone:
+                add(slug, "adapter-drift", "warning", "Paths the adapter relies on moved or were deleted",
+                    f"Gone since {base[:12]}: {', '.join(gone)}. Re-verify with the adapt playbook in update "
+                    f"mode and move as_of forward.")
+            else:
+                edited = changed_since(repo, base, head, paths, gh)
+                if edited:
+                    add(slug, "adapter-edits", "info", "Files the adapter points to were edited",
+                        f"Edited since {base[:12]}: {', '.join(edited)}. The adapter maps rather than copies, "
+                        f"so it's probably still right; refresh as_of at the next update.")
 
         if not entry.get("assessment"):
             if listing == "listed":
@@ -125,7 +150,11 @@ def check(registry_dir, hub_repo, gh=gh_api, today=None):
                 f"registry: {entry['grades']}; assessment: {ablock['grades']}")
         age = (today - date.fromisoformat(ablock["assessed_on"])).days
         stale = changed_since(repo, ablock["assessed_commit"], head, ablock.get("entry_paths", []), gh)
-        if stale:
+        if stale and age < SETTLE_DAYS:
+            add(slug, "assessment-changes", "info", "The entry docs changed since the assessment",
+                f"Changed since {ablock['assessed_commit'][:12]}: {', '.join(stale)}. Expected on an active "
+                f"project; it becomes a re-assessment if still true after {SETTLE_DAYS} days.")
+        elif stale:
             add(slug, "assessment-stale", "warning", "The entry docs changed since the assessment",
                 f"Changed since {ablock['assessed_commit'][:12]}: {', '.join(stale)}. Re-assess (assess playbook, "
                 f"re-assess mode).")

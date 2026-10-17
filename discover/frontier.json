@@ -1,7 +1,7 @@
 {
   "schema": "discover-frontier/v0",
-  "statement": "The v0 rubric (five properties, Stages 0-2) has recorded assessments of two shapes of project: applied-butterfly-mult, a benchmark project, assessed as a nomination and again after setup (Stage 1, 2026-10-17; the nomination's projected grades held, with Orientation one grade higher); and the hub itself. Adapters were tested on six third-party repositories, each probed with and without its adapter. Assessment records have a schema, and a weekly hub check flags stale listings. integer-mult-bounds was graded Stage 1 in an informal smoke test on 2026-10-16 with no record; that grade doesn't count until a recorded assessment replaces it.",
-  "status": "Rubric applied with records to two projects; record format and scheduled checks in place; thresholds uncalibrated; no donor-tier probe model yet.",
+  "statement": "The v0 rubric (five properties, Stages 0-2) has recorded assessments of one listed project: applied-butterfly-mult, a benchmark project, assessed as a nomination and again after setup (Stage 1, self-assessed, 2026-10-17). The nomination's projected grades held for Coordination, Verification and Steering; Orientation and Review came out one grade higher. Records for integer-mult-bounds and the hub itself are in review as PRs. Adapters were tested on six third-party repositories, each probed with and without its adapter. Assessment records have a schema, and a weekly hub check flags stale listings. integer-mult-bounds' informal Stage 1 from 2026-10-16 has no record and doesn't count.",
+  "status": "One project with merged records, two in review; every record self-assessed, awaiting an independent rerun; thresholds uncalibrated; no donor-tier probe model yet.",
   "evidence_level": [
     "author-checked"
   ],

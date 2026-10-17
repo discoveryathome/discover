@@ -394,16 +394,34 @@ class HubCheckTests(unittest.TestCase):
             def gh(path):
                 if path.endswith("/commits/HEAD"):
                     return {"sha": "bbbbbbbbbb"}
+                if "/contents/" in path:
+                    return {}
                 return {"files": [{"filename": "DISCOVERY.md"}, {"filename": "results/x.csv"}]}
             real = hubcheck.Source.from_entry
             hubcheck.Source.from_entry = classmethod(lambda cls, e: cls(local=proj))
             try:
                 found = hubcheck.check(hub / "registry" / "projects", "h/h", gh, date(2026, 1, 10))
+                fresh = hubcheck.check(hub / "registry" / "projects", "h/h", gh, date(2026, 1, 3))
             finally:
                 hubcheck.Source.from_entry = real
             kinds = {f["kind"] for f in found}
             self.assertEqual(kinds, {"registry-mismatch", "assessment-stale"}, found)
             self.assertIn("DISCOVERY.md", [f for f in found if f["kind"] == "assessment-stale"][0]["detail"])
+            # Within a week, changes on an active project are only noted.
+            self.assertEqual({f["kind"] for f in fresh}, {"registry-mismatch", "assessment-changes"})
+
+    def test_adapter_drift_only_when_paths_go(self):
+        from discover import hubcheck
+        edited = {"files": [{"filename": "docs/p.md", "status": "modified"}]}
+        moved = {"files": [{"filename": "docs/p.md", "status": "renamed"}]}
+        self.assertEqual(hubcheck.changed_since("o/r", "a1", "b2", ["docs/p.md"], lambda p: edited, gone_only=True), [])
+        self.assertEqual(hubcheck.changed_since("o/r", "a1", "b2", ["docs/p.md"], lambda p: moved, gone_only=True), ["docs/p.md"])
+
+        def gh(path):
+            if "docs/gone.md" in path:
+                raise RuntimeError("404")
+            return {}
+        self.assertEqual(hubcheck.missing_at("o/r", "b2", ["docs/p.md", "docs/gone.md", "research/*/"], gh), ["docs/gone.md"])
 
     def test_issue_sync_opens_updates_and_closes(self):
         from discover import hubcheck

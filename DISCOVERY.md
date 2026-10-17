@@ -14,10 +14,11 @@ properties and stages are §3, interfaces §11, hubs §12.
 ## Current state
 
 The frontier record is [`discover/frontier.json`](discover/frontier.json); read it for
-the details. In short: the rubric has recorded assessments of two shapes of project (an
-exact-certificate math project and a benchmark project), adapters have been tested on six
-third-party repositories, assessment records have a format, and a weekly hub check flags
-stale listings. Probe thresholds are uncalibrated, and probes haven't been run with a
+the details. In short: one listed project (a benchmark project) has recorded assessments,
+and records for the other two (an exact-certificate math project and the hub itself) are
+in review as PRs. Adapters have been tested on six third-party repositories, assessment
+records have a format, and a weekly hub check flags stale listings. Every record so far
+is self-assessed (spec §12.4): the hub's maintainers maintain the projects too. Probe thresholds are uncalibrated, and probes haven't been run with a
 donor-tier model.
 
 ## Where help is most useful

@@ -27,8 +27,10 @@ entry doc, its record of accepted results, its task list, and its coordination.
   latest assessment. Diff the project between its `assessed_commit` and now, rerun the
   probes only for properties the changes could affect, carry the other grades forward
   with "unchanged since <commit>", and set `mode: re-assess` and `previous` in the block.
-  Say what changed and why each grade did or didn't move. Close the hub-check issue in
-  the PR that lands it.
+  Say what changed and why each grade did or didn't move: label each grade "unchanged
+  since <commit>" (not looked at again), "regraded, unchanged" or "regraded" with the old
+  grade. Name the file `<date>-<handle>-reassess.md` if one with the plain name exists.
+  Close the hub-check issue, if there is one, in the PR that lands it.
 
 The rubric is spec §3: {{SPEC_URL}}. Read §3.1 (grading principles) and §3.2 (the five
 properties) before starting; they change more often than this playbook.
