@@ -118,7 +118,9 @@ jobs:
             labels="nomination${labels:+,$labels}"
           fi
           { echo "$verb \`$REPO\` (closes #$ISSUE)."; echo; echo "$note"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
-          url=$(gh pr view "$branch" --json url -q .url 2>/dev/null || gh pr create --head "$branch" --title "$verb $REPO in the registry" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})
+          # Only an open PR counts: a closed one for the same branch is history, not this request.
+          url=$(gh pr list --head "$branch" --state open --json url -q '.[0].url // empty')
+          [ -n "$url" ] || url=$(gh pr create --head "$branch" --title "$verb $REPO in the registry" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})
           if [ "$MODE" = consent ]; then
             msg="Thanks! Your project was already in the registry; this records your consent to be listed: $url. A hub maintainer will review it."
           elif [ "$NOMINATED" = true ]; then
