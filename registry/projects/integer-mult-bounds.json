@@ -6,12 +6,27 @@
   ],
   "added_on": "2026-10-15",
   "contact": "Mister-Meeseeks",
+  "adapter": "adapters/integer-mult-bounds.md",
+  "assessment": "assessments/integer-mult-bounds/2026-10-17-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "adequate",
+    "review": "strong",
+    "steering": "strong"
+  },
   "consent": {
     "source": "application",
     "checked_on": "2026-10-15",
     "list": true,
     "push": []
   },
-  "featured": true,
-  "adapter": "adapters/integer-mult-bounds.md"
+  "credit": {
+    "policy": "Useful contributions are credited in CONTRIBUTORS.md, including ones that are superseded or not imported; submissions identify predecessor work (CONTRIBUTING.md).",
+    "kinds": [
+      "contributors-file"
+    ]
+  },
+  "featured": true
 }
