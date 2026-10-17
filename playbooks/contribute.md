@@ -80,9 +80,11 @@ and bounded domain, nearest overlapping work and what you add, what counts as su
 the test that could falsify it, and the time cap. Changing only a seed or the wording of
 someone else's work is duplicate work; change the object, hypothesis, method or domain.
 
-If `post` is allowed and the session is 60 minutes or longer, post a **claim** in the
-project's coordination channel: what you're working on, the base commit, and a UTC
-expiry about two hours out. If you're taking up a handoff, link it. Claims are advisory:
+If `post` is allowed, post a **claim** in the project's coordination channel as soon as
+you've chosen, whatever the session's length: what you're working on, the base commit,
+and a UTC expiry a little past your budget. Short sessions need it most, because several
+can start on the same card within minutes of each other and nothing else tells them
+apart. Skip it only if the whole task will take under five minutes. If you're taking up a handoff, link it. Claims are advisory:
 they reserve nothing, and an expired claim blocks nobody. With the helper:
 `discover post claim --discussion N --task CARD --scope "..." --expires-in 120` (add
 `--responds-to HANDOFF_URL` when taking a handoff).
