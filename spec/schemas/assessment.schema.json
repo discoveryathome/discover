@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://discoveryathome.org/schema/v0/assessment.schema.json",
+  "title": "Assessment block (the fenced discover-assessment JSON ending assessments/<project-id>/<date>-<assessor>.md)",
+  "type": "object",
+  "required": ["schema", "project", "repo", "assessed_commit", "assessed_on", "rubric", "assessor", "grades", "stage"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "discover-assessment/v0" },
+    "project": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "repo": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+    "assessed_commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+    "assessed_on": { "type": "string", "format": "date" },
+    "window": { "type": "string", "description": "The activity window, e.g. 2026-10-03/2026-10-17." },
+    "rubric": { "type": "string", "description": "Spec version of the rubric, e.g. v0." },
+    "assessor": { "type": "string" },
+    "probe_model": { "type": "string" },
+    "mode": { "enum": ["hub", "re-assess"], "default": "hub" },
+    "previous": { "type": "string", "description": "Path of the assessment this one updates, for a re-assessment." },
+    "entry_paths": { "type": "array", "items": { "type": "string" }, "description": "Repo paths the orientation probe relied on; a change to any of them makes the assessment stale." },
+    "grades": { "$ref": "#/$defs/grades" },
+    "stage": { "enum": ["assessed", 0, 1, 2] },
+    "adapter_dependent": { "type": "array", "items": { "enum": ["orientation", "coordination", "verification", "review", "steering"] }, "description": "Grades that rest on the hub's adapter (spec §3.1, rule 5)." },
+    "projected": {
+      "type": "object", "description": "For a nomination with a proposal: the grades if the proposed setup were adopted.",
+      "properties": { "grades": { "$ref": "#/$defs/grades" }, "stage": { "enum": ["assessed", 0, 1, 2] }, "based_on": { "type": "string" } }
+    }
+  },
+  "$defs": {
+    "grade": { "enum": ["strong", "adequate", "weak", "unknown"] },
+    "grades": {
+      "type": "object", "additionalProperties": false,
+      "required": ["orientation", "coordination", "verification", "review", "steering"],
+      "properties": {
+        "orientation": { "$ref": "#/$defs/grade" }, "coordination": { "$ref": "#/$defs/grade" },
+        "verification": { "$ref": "#/$defs/grade" }, "review": { "$ref": "#/$defs/grade" },
+        "steering": { "$ref": "#/$defs/grade" }
+      }
+    }
+  }
+}

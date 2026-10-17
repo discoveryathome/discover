@@ -1,0 +1,39 @@
+# The hub's scheduled check (spec §12.6): consent records, adapter drift, stale assessments,
+# entries that no longer validate. Dry run by default: the report goes to the run summary.
+# To let it open, update and close one issue per finding, set the repository variable
+# HUB_CHECK_ISSUES to "true" (scheduled runs), or tick "open issues" on a manual run.
+name: Hub check
+
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      open_issues:
+        description: "Open, update and close hub-check issues"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DISCOVER_HUB: ${{ github.repository }}
+      OPEN_ISSUES: ${{ inputs.open_issues == true || vars.HUB_CHECK_ISSUES == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check every listing
+        run: |
+          args=""
+          if [ "$OPEN_ISSUES" = true ]; then args="--open-issues"; fi
+          python3 plugins/discover/cli/discover.py hub-check --registry registry/projects $args > "$RUNNER_TEMP/report.txt"
+          cat "$RUNNER_TEMP/report.txt"
+          { echo '## Hub check'; echo; echo "Issues: $([ "$OPEN_ISSUES" = true ] && echo synced || echo 'dry run, none opened')"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

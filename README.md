@@ -137,8 +137,13 @@ this hub, or your own copy of it (a community hub, an organization's internal hu
    permissions → "Allow GitHub Actions to create and approve pull requests". In an
    organization, enable it in the organization's Actions settings first, or the repo
    setting is locked. A hub maintainer still merges every PR.
-4. **Labels:** `add-project`, `needs-adapter`, `hub-work`.
-5. **Later, for push to projects** (spec §11.4): a bot account or GitHub App token
+4. **Labels:** `add-project`, `nomination`, `needs-adapter`, `hub-work`. The hub check
+   creates `hub-check` itself.
+5. **The weekly hub check** (`.github/workflows/hub-check.yml`, spec §12.6) runs as a dry
+   run, writing its report to the run summary. To let it open, update and close one issue
+   per finding, set the repository variable `HUB_CHECK_ISSUES` to `true`. Run it locally
+   with `discover hub-check`.
+6. **Later, for push to projects** (spec §11.4): a bot account or GitHub App token
    stored as a secret, since a workflow's built-in token can't write to other repos.
 
 Tooling talks to a hub other than the canonical one with `--hub OWNER/REPO` or

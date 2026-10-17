@@ -24,6 +24,12 @@ entry doc, its record of accepted results, its task list, and its coordination.
   draft branch), mark every grade *projected*, and grade Review and Steering *unknown*
   where they'd depend on answers only the maintainer can give. A projected grade is an
   estimate for the maintainer, never a listing grade.
+- **Re-assess** (from a hub-check issue, or the monthly refresh): start from the entry's
+  latest assessment. Diff the project between its `assessed_commit` and now, rerun the
+  probes only for properties the changes could affect, carry the other grades forward
+  with "unchanged since <commit>", and set `mode: re-assess` and `previous` in the block.
+  Say what changed and why each grade did or didn't move. Close the hub-check issue in
+  the PR that lands it.
 
 The rubric is spec §3: https://github.com/discoveryathome/discover/blob/main/spec/v0.md. Read §3.1 (grading principles) and §3.2 (the five
 properties) before starting; they change more often than this playbook.
@@ -196,9 +202,16 @@ Write `assessments/<project-id>/<YYYY-MM-DD>-<your-handle>.md` in the hub repo:
 - The computed stage, and what blocks the next one
 - **Suggestions** for the maintainers that don't affect grades
 - Anything that didn't fit the rubric. This is useful to the hub, so be specific.
+- **For the hub's tools,** end with one fenced `discover-assessment` JSON block
+  (https://github.com/discoveryathome/discover/tree/main/spec/schemas/assessment.schema.json): `project`, `repo`, `assessed_commit`,
+  `assessed_on`, `window`, `rubric`, `assessor`, `probe_model`, `mode`, `entry_paths` (the
+  files the orientation probe relied on: a change to any of them makes this assessment
+  stale), the five `grades`, `stage`, `adapter_dependent` (the grades that rest on the
+  adapter), and `projected` for a nomination with a proposal.
+  `assessments/applied-butterfly-mult/` has two examples.
 
-In `registry/projects/<project-id>.json`, set `assessment` to your file, `grades` to the
-five grades, and `stage`. For a **nomination** whose entry links a proposal
+In `registry/projects/<project-id>.json`, set `assessment` to your file, and copy `grades`
+and `stage` from the block exactly: the hub's checks fail if they differ. For a **nomination** whose entry links a proposal
 (`nomination.proposal`), also assess the proposed setup in projected mode (from the
 draft branch if there is one, otherwise from what the proposal describes) and record it
 as `projected: {assessment, stage, grades}`, so the listing shows both: the project as

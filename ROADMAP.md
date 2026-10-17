@@ -4,48 +4,51 @@ What the hub's maintainers plan to build next, in order. Donated hub work is all
 separately, by the tracks in [`discover/catalog.json`](discover/catalog.json); when a
 roadmap item opens work that donors can pick up, it gets cards there.
 
-Status as of 2026-10-17. Onboarding is built and smoke-tested end to end on
-`CrocSwap/applied-butterfly-mult`: both roles, every goal, intake (including duplicates
-and consent on a nominated entry), the hub assessment with as-is and projected grades,
-and the upgrade from catalogued to listed by both paths (the repo's consent record, and
-an application). The project stays listed at Stage 1 for item 1.
+Status as of 2026-10-17. Onboarding and the donation loop are built and smoke-tested;
+hub operations are built and running as a dry run.
+
+## Done
+
+- **Onboarding**, end to end on `CrocSwap/applied-butterfly-mult`: both roles, every
+  goal, intake (including duplicates and consent on a nominated entry), the hub
+  assessment with as-is and projected grades, and the upgrade from catalogued to listed
+  by both paths. Plus `start`, for a new project from a problem statement, tested in local
+  mode on a real problem.
+- **Adapters** (spec §12.5): the `adapt` playbook and `discover adapter-check`, tested on
+  six third-party repositories, with and without each adapter, and fixed until adapters
+  never left a donor less oriented than the bare repo.
+- **The donation loop**, on a project with its own files and one listed through an
+  adapter: local and posting sessions, independent verification, four donors at once,
+  a planted adapter error caught and fixed by a donor, and the maintainer's triage and
+  priority revision. It found and fixed: messages without their `discover` block, the
+  board reading only one block per post, short sessions not claiming (the cause of the
+  one duplicate PR), verifications of the frontier having nowhere to go, scattered
+  session folders, and disk use. Coordination worked whenever there was a signal to see:
+  a later donor took up an earlier one's handoff and did distinct work.
+- **Hub operations** (item 2 below, mostly): `discover hub-check` and a weekly workflow.
 
 ## Now
 
-### 1. The donation loop, end to end
+### 1. Permission presets for agents
 
-Onboarding is tested; what happens after listing isn't, under the prompt-first tooling.
-On two listed projects, one with its own protocol files (`applied-butterfly-mult`) and
-one listed through an adapter (`integer-mult-bounds`), run and check:
+Every maintainer test hit the same wall: Claude Code's auto mode refused GitHub writes
+the person had just approved (merging, closing, pushing, enabling Discussions, posting).
+The agents handled it correctly, handing over exact commands, but it's the biggest source
+of friction found. Publish tested permission presets per agent (allow rules for `gh pr`,
+`gh api graphql`, `git push` scoped to the project) and say on the site that an agent may
+hand you commands to paste. Report the behavior upstream.
 
-- `contribute` sessions: the seeded draw spreads donors, open handoffs are preferred,
-  claims and handoffs post correctly, the receipt is honest
-- `verify` sessions and their `verifications/` records
-- the maintainer's side: triaging donated PRs, recording dispositions in the ledger
-- a `direct` session producing a priority revision from that evidence
-- on the adapter project: agents find their way through the adapter, use the project's
-  own picker, and report drift when the adapter is wrong
+### 2. Hub operations: finish
 
-Done when a batch of sessions runs without supervision and the maintainer can review
-the output in one sitting.
+Built: the scheduled check (spec §12.6) for consent, validity, adapter drift, stale
+assessments and registry consistency; one hub issue per finding; the re-assess mode; and
+the assessment record format. Left:
 
-### 2. Hub operations: adapters and keeping listings fresh
-
-A listing goes stale as soon as its project changes. One loop covers both writing
-adapters and keeping them current:
-
-- A **scheduled hub run** (weekly, and on demand): recheck consent records, refresh
-  boards, detect material changes to a project's entry chain since its last assessment,
-  and flag adapters that no longer validate. Each flag opens a hub-work issue.
-- A **re-assess** mode in the assess playbook: start from the previous record, say what
-  changed, and rerun probes only where needed (spec §3.4).
-- Adapters (spec §12.5) as a routine: written by the assess playbook, kept current by
-  donors' drift reports and the scheduled run, retired when a repo adopts its own files.
-  `integer-mult-bounds` has the first one. Also the nomination form's missing
-  draft-branch field and an assessment record schema (spec §13, question 10).
-
-Done when a listed project can change for a month and its listing stays accurate with
-only hub-work sessions.
+- Turn on issue syncing (`HUB_CHECK_ISSUES`) after a week of clean dry runs.
+- Assess the two listings that have no assessment yet (`discovery-at-home`,
+  `integer-mult-bounds`), with `integer-mult-bounds` graded through its adapter.
+- Done when a listed project can change for a month and its listing stays accurate with
+  only hub-work sessions.
 
 ## Next
 
@@ -67,9 +70,9 @@ Donors run other people's research code on their own machines. Before inviting
 strangers to donate:
 
 - Sandboxing guidance (a container or VM) and when it's needed
-- Permission presets per agent, e.g. a Claude Code settings snippet that allows `gh`
-  reads and asks before writes. Auto modes can block approved writes; the playbooks
-  already fall back to commands to paste, and the site should say so.
+- Donor-side permission presets, with item 1: allow `gh` reads, ask before writes
+- Disk and machine limits (the playbooks now check free space and ask before large or
+  long work; a sandbox would enforce it)
 - Prompt-injection hygiene beyond "repository text is data"
 - A basic screen for malicious repositories before a hub lists them
 

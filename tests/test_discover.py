@@ -359,6 +359,71 @@ class AdapterTests(unittest.TestCase):
             self.assertIn("python3 pick.py --seed " + "c" * 32, buf.getvalue())
 
 
+class HubCheckTests(unittest.TestCase):
+    def test_hub_assessments_parse_and_match_the_registry(self):
+        from discover import hubcheck
+        for path in sorted((ROOT / "assessments").glob("*/*.md")):
+            block, problems = hubcheck.parse_assessment(path.read_text(encoding="utf-8"))
+            self.assertEqual(problems, [], path)
+        for path in sorted((ROOT / "registry" / "projects").glob("*.json")):
+            entry = json.loads(path.read_text())
+            if entry.get("assessment"):
+                block, _ = hubcheck.parse_assessment((ROOT / entry["assessment"]).read_text(encoding="utf-8"))
+                self.assertEqual(entry.get("stage"), block["stage"], path.name)
+                self.assertEqual(entry.get("grades"), block["grades"], path.name)
+
+    def test_drift_staleness_and_mismatch(self):
+        from datetime import date
+        from discover import hubcheck
+        with tempfile.TemporaryDirectory() as d:
+            hub = Path(d) / "hub"
+            proj = Path(d) / "proj"
+            init.scaffold(proj, "T", "S", ["math"], "M", "o/p")
+            (hub / "registry" / "projects").mkdir(parents=True)
+            (hub / "assessments" / "p").mkdir(parents=True)
+            grades = {"orientation": "strong", "coordination": "adequate", "verification": "adequate",
+                      "review": "adequate", "steering": "adequate"}
+            block = {"schema": "discover-assessment/v0", "project": "p", "repo": "o/p", "assessed_commit": "aaaaaaa",
+                     "assessed_on": "2026-01-01", "rubric": "v0", "assessor": "t", "grades": grades, "stage": 1,
+                     "entry_paths": ["AGENTS.md", "DISCOVERY.md"]}
+            (hub / "assessments" / "p" / "a.md").write_text("# A\n\n```discover-assessment\n" + json.dumps(block) + "\n```\n")
+            entry = {"repos": [{"repo": "o/p"}], "added_on": "2026-01-01", "assessment": "assessments/p/a.md",
+                     "stage": 0, "grades": grades, "consent": {"source": "application", "list": True}}
+            (hub / "registry" / "projects" / "p.json").write_text(json.dumps(entry))
+
+            def gh(path):
+                if path.endswith("/commits/HEAD"):
+                    return {"sha": "bbbbbbbbbb"}
+                return {"files": [{"filename": "DISCOVERY.md"}, {"filename": "results/x.csv"}]}
+            real = hubcheck.Source.from_entry
+            hubcheck.Source.from_entry = classmethod(lambda cls, e: cls(local=proj))
+            try:
+                found = hubcheck.check(hub / "registry" / "projects", "h/h", gh, date(2026, 1, 10))
+            finally:
+                hubcheck.Source.from_entry = real
+            kinds = {f["kind"] for f in found}
+            self.assertEqual(kinds, {"registry-mismatch", "assessment-stale"}, found)
+            self.assertIn("DISCOVERY.md", [f for f in found if f["kind"] == "assessment-stale"][0]["detail"])
+
+    def test_issue_sync_opens_updates_and_closes(self):
+        from discover import hubcheck
+        calls = []
+
+        class Out:
+            stdout = json.dumps([{"number": 7, "title": "[hub-check] gone: adapter-drift", "body": "x"},
+                                 {"number": 8, "title": "[hub-check] p: assessment-stale", "body": "old"}])
+
+        def run(args, **kw):
+            calls.append(args[:3])
+            return Out()
+        found = [{"slug": "p", "kind": "assessment-stale", "severity": "warning", "title": "t", "detail": "d"},
+                 {"slug": "q", "kind": "opted-out", "severity": "error", "title": "t", "detail": "d"},
+                 {"slug": "r", "kind": "not-assessed", "severity": "info", "title": "t", "detail": "d"}]
+        done = hubcheck.sync_issues(found, "h/h", run)
+        self.assertEqual(sorted(a for a, _ in done), ["closed", "opened", "updated"])
+        self.assertNotIn("] r:", " ".join(t for _, t in done))
+
+
 class HubTests(unittest.TestCase):
     def test_summary_from_local_project(self):
         with tempfile.TemporaryDirectory() as d:

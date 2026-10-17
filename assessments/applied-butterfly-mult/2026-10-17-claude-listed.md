@@ -30,3 +30,38 @@ The nomination's projected grades held for Coordination, Verification and Steeri
 
 - **Stage 1 with 1–3 reviews a week.** Review is adequate on declared capacity, but Stage 1 lets swarms post and open PRs, which could outrun that capacity in a day. The two-recheck rule filters work before review, and a Review downgrade pauses the launcher immediately (§3.3), but the hub could also scale launcher traffic to declared capacity instead of waiting for the backlog to show.
 - Hardware-specific help (`replicate-c3-on-apple-silicon` needs an M-series Mac) still can't be expressed.
+
+## For the hub's tools
+
+```discover-assessment
+{
+  "schema": "discover-assessment/v0",
+  "project": "applied-butterfly-mult",
+  "repo": "CrocSwap/applied-butterfly-mult",
+  "assessed_commit": "8f6dcb3fd47e8c1dca2866d15cf686757145691d",
+  "assessed_on": "2026-10-17",
+  "window": "2026-10-03/2026-10-17",
+  "rubric": "v0",
+  "assessor": "claude",
+  "probe_model": "claude-sonnet",
+  "mode": "re-assess",
+  "previous": "assessments/applied-butterfly-mult/2026-10-17-claude.md",
+  "entry_paths": [
+    "AGENTS.md",
+    "DISCOVERY.md",
+    "discover.json",
+    "discover/frontier.json",
+    "discover/catalog.json",
+    "discover/priority-log.md"
+  ],
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "adequate",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "stage": 1,
+  "adapter_dependent": []
+}
+```

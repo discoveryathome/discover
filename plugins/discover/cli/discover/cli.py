@@ -307,6 +307,16 @@ def cmd_adapter_check(a):
     return 1 if r["problems"] else 0
 
 
+def cmd_hub_check(a):
+    from . import HUB_REPO, hubcheck
+    findings = hubcheck.check(a.registry, HUB_REPO)
+    emit({"hub": HUB_REPO, "findings": findings}, a.json, lambda _: hubcheck.format_report(findings))
+    if a.open_issues:
+        for action, title in hubcheck.sync_issues(findings, HUB_REPO):
+            print(f"{action}: {title}", file=sys.stderr)
+    return 1 if a.strict and any(f["severity"] == "error" for f in findings) else 0
+
+
 class GitSource(Source):
     """A local clone read at a commit, without checking it out."""
 
@@ -460,6 +470,13 @@ def main(argv=None):
     s.add_argument("--hub", default=__import__("discover").HUB_REPO)
     s.add_argument("--dry-run", action="store_true")
     s.set_defaults(func=cmd_submit)
+
+    hc = sub.add_parser("hub-check", help="the hub's scheduled check: consent, adapter drift, stale assessments")
+    hc.add_argument("--registry", default="registry/projects")
+    hc.add_argument("--open-issues", action="store_true", help="open, update and close one hub issue per finding")
+    hc.add_argument("--strict", action="store_true", help="exit 1 if any finding is an error")
+    hc.add_argument("--json", action="store_true")
+    hc.set_defaults(func=cmd_hub_check)
 
     ac = sub.add_parser("adapter-check", help="check an adapter file against the repo it describes")
     ac.add_argument("file")
