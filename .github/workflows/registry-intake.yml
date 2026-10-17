@@ -40,6 +40,16 @@ jobs:
           fi
           echo "slug=$(jq -r .slug "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
           echo "repo=$(jq -r .repo "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
+      - name: Check the repository is public
+        env:
+          REPO: ${{ steps.entry.outputs.repo }}
+        run: |
+          vis=$(gh repo view "$REPO" --json visibility -q .visibility 2>/dev/null || echo MISSING)
+          if [ "$vis" != "PUBLIC" ]; then
+            echo "This hub lists public GitHub repositories, and \`$REPO\` isn't one it can read (visibility: $vis). Check the name and edit this issue to re-run." > "$RUNNER_TEMP/comment.md"
+            gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
+            exit 1
+          fi
       - name: Validate repository
         id: validate
         env:
@@ -49,11 +59,13 @@ jobs:
           python3 plugins/discover/cli/discover.py validate --registry-entry "registry/projects/$SLUG.json" --min-level 0 > "$RUNNER_TEMP/report.txt" 2>&1
           echo "ok=$([ $? -eq 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           cat "$RUNNER_TEMP/report.txt"
+      # Projects are met where they are (spec §3.4): a repo that doesn't validate yet still gets a
+      # registry PR, labelled needs-adapter, and the hub writes its adapter before merging.
       - name: Open registry PR
-        if: steps.validate.outputs.ok == 'true'
         env:
           SLUG: ${{ steps.entry.outputs.slug }}
           REPO: ${{ steps.entry.outputs.repo }}
+          OK: ${{ steps.validate.outputs.ok }}
         run: |
           branch="registry/add-$SLUG"
           git config user.name "discover-registry-bot"
@@ -62,14 +74,19 @@ jobs:
           git add "registry/projects/$SLUG.json"
           git commit -m "Add $REPO to the registry"
           git push --force -u origin "$branch"
-          { echo "Adds \`$REPO\` (closes #$ISSUE)."; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
-          url=$(gh pr view "$branch" --json url -q .url 2>/dev/null || gh pr create --head "$branch" --title "Add $REPO to the registry" --body-file "$RUNNER_TEMP/pr.md")
-          { echo "Validation passed. Registry PR: $url"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/comment.md"
-          gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
-      - name: Report validation failure
-        if: steps.validate.outputs.ok != 'true'
-        run: |
-          { echo "The repository isn't at Level 0 yet, so no registry PR was opened. Fix the items below and edit this issue to re-run."
-            echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'
-            echo; echo "The \`/discover:setup\` skill can create the missing files."; } > "$RUNNER_TEMP/comment.md"
+          if [ "$OK" = true ]; then
+            note="The repository validates as is."
+            labels=""
+          else
+            note="The repository doesn't follow the protocol's files yet, which is fine. Before merging, a hub maintainer (or a hub-work contributor) assesses it and adds an adapter to this entry: where its entry doc, current results and coordination live."
+            labels="needs-adapter"
+          fi
+          { echo "Adds \`$REPO\` (closes #$ISSUE)."; echo; echo "$note"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
+          url=$(gh pr view "$branch" --json url -q .url 2>/dev/null || gh pr create --head "$branch" --title "Add $REPO to the registry" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})
+          if [ "$OK" = true ]; then
+            msg="Thanks! Registry PR: $url. A hub maintainer will review it."
+          else
+            msg="Thanks! Registry PR: $url. Your repo doesn't need to change anything to be listed: the hub will map where things live in it before merging. If you'd like to make it agent-ready yourself, the \`/discover:setup\` skill can help, and enabling GitHub Discussions is the single most useful step."
+          fi
+          { echo "$msg"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/comment.md"
           gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"

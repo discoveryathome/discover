@@ -94,9 +94,22 @@ make test     # sync schemas, run the test suite
 make serve    # build site data from the registry and serve site/ on :8000
 ```
 
-One-time repo settings for the automation: **Pages → Source: GitHub Actions**, and
-**Actions → General → Allow GitHub Actions to create and approve pull requests** (for
-the intake bot). The hub repo slug is set in `plugins/discover/cli/discover/__init__.py`
-(`CANONICAL_HUB`). To run another hub, copy this repository, edit `hub.json`, and the
-Pages build points the site at the copy. Tooling talks to another hub with `--hub` or
-`DISCOVER_HUB=OWNER/REPO`.
+## Operating a hub
+
+Projects never have to change GitHub settings to be listed. A hub does, once. To run
+this hub, or your own copy of it (a community hub, an organization's internal hub):
+
+1. **Copy the repository** and edit `hub.json` (name, scope, maintainers, website).
+   The Pages build points the site at whatever repo it runs in.
+2. **Pages:** Settings → Pages → Source: GitHub Actions.
+3. **Let the intake bot open registry PRs:** Settings → Actions → General → Workflow
+   permissions → "Allow GitHub Actions to create and approve pull requests". In an
+   organization, enable it in the organization's Actions settings first, or the repo
+   setting is locked. A hub maintainer still merges every PR.
+4. **Labels:** `add-project`, `needs-adapter`, `hub-work`.
+5. **Later, for push to projects** (spec §11.4): a bot account or GitHub App token
+   stored as a secret, since a workflow's built-in token can't write to other repos.
+
+Tooling talks to a hub other than the canonical one with `--hub OWNER/REPO` or
+`DISCOVER_HUB=OWNER/REPO`. The canonical slug is `CANONICAL_HUB` in
+`plugins/discover/cli/discover/__init__.py`.

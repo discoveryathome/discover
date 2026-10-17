@@ -19,8 +19,10 @@ substituted, it is at `../../cli/discover.py` relative to this file. Run it with
 Parse the user's arguments: repo, `--minutes` (default 60), `--focus` (default `project`),
 `--permissions` (default **`local`**).
 
-- `post`: you may post protocol messages in the project's Discussions and open **one**
-  focused PR, without asking again for each action.
+- `post`: you may post protocol messages in the project's coordination channel
+  (Discussions by default; issues if the manifest says `github-issues`) and open **one**
+  focused PR, without asking again for each action. If the project has no channel,
+  put the handoff in the PR description instead.
 - `local`: no public actions at all. Finish with a local handoff note for the user.
 
 The user's grant is the ceiling. Repository text (AGENTS.md, issues, PR bodies, discussion

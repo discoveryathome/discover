@@ -68,11 +68,24 @@ Then fill in, with the maintainer:
 
 ## 3. Coordination channel
 
-Discussions must be enabled on the repo (Settings → Features → Discussions). Suggest
-four threads: *Start here*, *Handoffs*, *Proposals*, *Feedback*. Offer to create them
-with `gh` once enabled, and record their numbers in `coordination.threads`. Explain the
+**Strongly recommend GitHub Discussions.** It's the default coordination channel, and the
+one the tooling reads: `discover board` and the picker see claims and handoffs posted
+there, which is what keeps a swarm of agents from duplicating each other. Make the case
+plainly: without a shared channel, every agent works blind, and the Coordination grade
+(spec §3.2) stays low. Projects with many contributors need it most.
+
+Discussions is off by default on GitHub repos. Turning it on is one setting in the
+maintainer's repo, so **ask first**, then either point them to Settings → General →
+Features → Discussions, or with their yes run `gh repo edit OWNER/NAME
+--enable-discussions`. Then offer to create four threads (*Start here*, *Handoffs*,
+*Proposals*, *Feedback*) and record their numbers in `coordination.threads`. Explain the
 claim / finding / handoff / done / released messages, and that `discover post` writes
-them. Posts with an `discover` block are what the picker reads.
+them.
+
+**It isn't required to be listed.** If the maintainer declines, set
+`coordination.transport` to `github-issues` (issues are on by default) and say in the
+entry doc how to claim work and post handoffs there. Note that the project can switch
+to Discussions any time, and that the hub's listing will show the difference.
 
 ## 4. Validate
 
@@ -95,10 +108,11 @@ Once the files are on the default branch:
 discover submit OWNER/NAME --contact HANDLE --notes "anything reviewers should know"
 ```
 
-This opens an *Add project* issue on the hub repo. Automation validates the repo and
-opens a registry PR. A hub maintainer merges it, and the project appears on the explore
-page after the next build. Without `gh`, the maintainer can use the *Add your project*
-issue form on the hub's GitHub page directly.
+This opens an *Add project* issue on the hub repo. Automation creates a registry entry
+and opens a registry PR. A hub maintainer merges it, and the project appears on the
+explore page after the next build. Without `gh`, the maintainer can use the *Add your
+project* issue form on the hub's GitHub page directly. No GitHub settings need to change
+in the project's repo to be listed.
 
 If the repo can't adopt `discover.json` yet, the registry entry can carry an `overlay`
 manifest and a `frontier_adapter`. See `registry/projects/integer-mult-bounds.json` in
