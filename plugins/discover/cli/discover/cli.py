@@ -11,7 +11,7 @@ from pathlib import Path
 from . import board as boardmod
 from . import __version__, hub, init, pick, prompt, schema
 from .project import Source, load_manifest
-from .validate import format_report, normalize_catalog, validate
+from .validate import catalogued, format_report, normalize_catalog, validate
 
 REPO_RE = re.compile(r"(?:https?://github\.com/)?([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$")
 
@@ -47,6 +47,7 @@ def git_head(path="."):
 
 def cmd_validate(a):
     overlay = adapter = None
+    entry = {}
     if a.registry_entry:
         entry = json.loads(Path(a.registry_entry).read_text(encoding="utf-8"))
         overlay, adapter = entry.get("overlay"), entry.get("frontier_adapter")
@@ -55,7 +56,7 @@ def cmd_validate(a):
             a.repo, a.root = home["repo"], home.get("path", "")
     root = getattr(a, "root", "")
     source = Source(repo=parse_repo(a.repo), ref=a.ref, root=root) if a.repo else Source(local=a.path)
-    r = validate(source, overlay, adapter)
+    r = validate(source, overlay, adapter, catalogued(entry))
     slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog")}
     emit(slim, a.json, lambda _: format_report(r))
     return 0 if r["conformant"] else 1
