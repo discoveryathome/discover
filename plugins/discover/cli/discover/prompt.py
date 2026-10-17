@@ -36,6 +36,19 @@ ACTIONS = {
     "assess": "Fetch {site}v0/assess.md (for example with curl) and follow it to assess {repo_url} for the hub. Read-only toward that project: never post to it or contact its maintainers.",
 }
 
+# Onboarding a project: one prompt, two words swapped (spec §11.5). The page and the CLI
+# fill in role and goal; onboard.md routes to setup, apply and assess.
+ONBOARD = (
+    "Fetch {site}v0/onboard.md (for example with curl) and follow it. "
+    "Role: {role}. Goal: {goal}. Project: {repo_url}.{context} "
+    "Ask before posting anything, pushing, opening issues or PRs, or changing settings."
+)
+ONBOARD_CONTEXT = " Context: {context}."
+GOALS = {
+    "maintainer": ["evaluate", "setup", "submit", "setup-and-submit"],
+    "contributor": ["evaluate", "nominate", "propose", "propose-and-nominate"],
+}
+
 SKILL_COMMAND = "/discover:contribute {repo} --minutes {minutes} --focus {focus} --permissions {permissions} --seed {seed}"
 
 
@@ -52,6 +65,14 @@ def action_prompt(action, repo, minutes=60, permissions="local", site=None):
                                   minutes=minutes, permissions=PERMISSIONS[permissions])
 
 
+def onboard_prompt(role, goal, repo, context=None, site=None):
+    from . import SITE
+    if goal not in GOALS[role]:
+        raise ValueError(f"goal for a {role} must be one of {GOALS[role]}")
+    return ONBOARD.format(site=site or SITE, role=role, goal=goal, repo_url=f"https://github.com/{repo}",
+                          context=ONBOARD_CONTEXT.format(context=context) if context else "")
+
+
 def skill_command(repo, minutes=60, focus="project", permissions="post", seed=None):
     return SKILL_COMMAND.format(repo=repo, minutes=minutes, focus=focus, permissions=permissions,
                                 seed=seed or secrets.token_hex(16))
@@ -61,4 +82,5 @@ def templates(site=None):
     """Everything the explore page needs to build the same prompts client-side."""
     from . import SITE
     return {"site": site or SITE, "template": TEMPLATE, "drawn": DRAWN, "focus": FOCUS,
-            "permissions": PERMISSIONS, "actions": ACTIONS, "skill_command": SKILL_COMMAND}
+            "permissions": PERMISSIONS, "actions": ACTIONS, "skill_command": SKILL_COMMAND,
+            "onboard": ONBOARD, "onboard_context": ONBOARD_CONTEXT, "goals": GOALS}

@@ -155,6 +155,22 @@ class RegistryTests(unittest.TestCase):
             self.assertEqual(entry["consent"]["source"], "application")
             self.assertEqual(entry["contact"], "someone")
 
+    def test_nomination_records_nominator_and_no_consent(self):
+        from discover.cli import application_body
+        body = application_body("Some-Org/Other", "fan", "looks good", nominate=True,
+                                proposal="https://github.com/Some-Org/Other/issues/7")
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "body.md").write_text(body)
+            self.assertEqual(main(["registry-add", "--body-file", str(Path(d) / "body.md"), "--out", d,
+                                   "--intake", "https://github.com/h/h/issues/1"]), 0)
+            entry = json.loads((Path(d) / "other.json").read_text())
+            self.assertNotIn("consent", entry)
+            self.assertEqual(entry["nomination"]["by"], "fan")
+            self.assertEqual(entry["nomination"]["proposal"], "https://github.com/Some-Org/Other/issues/7")
+            self.assertEqual(entry["intake"], "https://github.com/h/h/issues/1")
+        maintainer = parse_issue_form(application_body("o/r", "me"))
+        self.assertEqual(maintainer["Your relationship to the project"], "I maintain it")
+
 
 class BuildTests(unittest.TestCase):
     """The published single-file CLI and rendered playbooks must match their sources."""
@@ -207,6 +223,31 @@ class HubTests(unittest.TestCase):
             self.assertEqual(s["title"], "T")
             self.assertEqual(s["tracks"][0]["weight"], 100)
             self.assertEqual(s["frontier"]["evidence_level"], ["author-checked"])
+
+    def test_listing_follows_the_consent_record(self):
+        nominated = {"repos": [{"repo": "o/r"}], "added_on": "2026-01-01", "nomination": {"by": "x", "on": "2026-01-01"}}
+        applied = {**nominated, "consent": {"source": "application", "list": True}}
+        rep = lambda hubs: {"manifest_origin": "discover.json", "manifest": {"hubs": hubs}}
+        none = Source(local=tempfile.gettempdir())
+        rec = lambda hubs: hub.consent_record(none, rep(hubs), "Hub/Repo")
+        self.assertEqual(hub.listing_state(nominated, rec(None)), "nominated")
+        self.assertEqual(hub.listing_state(applied, rec(None)), "listed")
+        # The maintainers adopt the proposal and name this hub: the nomination becomes a listing.
+        self.assertEqual(hub.listing_state(nominated, rec([{"hub": "hub/repo", "list": True}])), "listed")
+        self.assertEqual(hub.listing_state(applied, rec([{"hub": "*", "list": False}])), "opted-out")
+        # A specific line beats the wildcard; an overlay written by the hub proves nothing.
+        self.assertEqual(hub.listing_state(nominated, rec([{"hub": "*", "list": False}, {"hub": "Hub/Repo"}])), "listed")
+        overlay = {"manifest_origin": "registry overlay", "manifest": {"hubs": [{"hub": "Hub/Repo", "list": True}]}}
+        self.assertEqual(hub.listing_state(nominated, hub.consent_record(none, overlay, "Hub/Repo")), "nominated")
+
+    def test_onboard_prompt(self):
+        from discover import prompt
+        text = prompt.onboard_prompt("contributor", "propose-and-nominate", "o/r", site="https://h/")
+        self.assertTrue(text.startswith("Fetch https://h/v0/onboard.md"))
+        self.assertIn("Role: contributor. Goal: propose-and-nominate. Project: https://github.com/o/r.", text)
+        self.assertIn("Context: issue 3.", prompt.onboard_prompt("maintainer", "setup", "o/r", "issue 3", "https://h/"))
+        with self.assertRaises(ValueError):
+            prompt.onboard_prompt("contributor", "setup", "o/r")
 
 
 if __name__ == "__main__":

@@ -32,6 +32,27 @@
     "process_changed_on": { "type": "string", "format": "date", "description": "As in the manifest, for repos listed through an adapter." },
     "assessment": { "type": "string", "description": "Path of the latest assessment record, e.g. assessments/<id>/<date>-<assessor>.md." },
     "stage": { "enum": ["assessed", 0, 1, 2], "description": "The stage computed in that assessment (spec §3.3), copied here when a hub maintainer merges it. Absent: not yet assessed." },
+    "grades": { "$ref": "#/$defs/grades" },
+    "intake": { "type": "string", "description": "URL of the hub issue the entry came from." },
+    "nomination": {
+      "type": "object", "required": ["by", "on"],
+      "description": "Present when someone other than a maintainer nominated the project (spec §11.5). A nominated project is catalogued without a launcher until a consent record lists this hub.",
+      "properties": {
+        "by": { "type": "string", "description": "GitHub handle of the nominator." },
+        "on": { "type": "string", "format": "date" },
+        "proposal": { "type": "string", "description": "URL of the issue on the project proposing setup, if any." },
+        "draft": { "type": "string", "description": "URL of a branch holding drafted setup files, if any." }
+      }
+    },
+    "projected": {
+      "type": "object",
+      "description": "The assessment if the proposed setup were adopted with consent: what the project would look like after setup. Breadcrumb: nomination.proposal.",
+      "properties": {
+        "assessment": { "type": "string" },
+        "stage": { "enum": ["assessed", 0, 1, 2] },
+        "grades": { "$ref": "#/$defs/grades" }
+      }
+    },
     "consent": {
       "type": "object",
       "description": "What the hub last verified from the project's consent record (spec §11.4).",
@@ -48,5 +69,17 @@
       "properties": { "policy": { "type": "string" }, "kinds": { "type": "array", "items": { "type": "string" } } }
     },
     "featured": { "type": "boolean", "default": false }
+  },
+  "$defs": {
+    "grade": { "enum": ["strong", "adequate", "weak", "unknown"] },
+    "grades": {
+      "type": "object", "additionalProperties": false,
+      "description": "Per-property grades from the assessment (spec §3.2).",
+      "properties": {
+        "orientation": { "$ref": "#/$defs/grade" }, "coordination": { "$ref": "#/$defs/grade" },
+        "verification": { "$ref": "#/$defs/grade" }, "review": { "$ref": "#/$defs/grade" },
+        "steering": { "$ref": "#/$defs/grade" }
+      }
+    }
   }
 }

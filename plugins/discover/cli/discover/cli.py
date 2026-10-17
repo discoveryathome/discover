@@ -147,6 +147,12 @@ def cmd_post(a):
 
 def cmd_prompt(a):
     repo = parse_repo(a.repo)
+    if a.action == "onboard":
+        try:
+            print(prompt.onboard_prompt(a.role, a.goal or prompt.GOALS[a.role][-1], repo, a.context))
+        except ValueError as e:
+            raise SystemExit(str(e))
+        return 0
     if a.action != "contribute":
         print(prompt.action_prompt(a.action, repo, a.minutes, a.permissions))
         return 0
@@ -173,39 +179,61 @@ def parse_issue_form(body):
     return out
 
 
+NOMINATING = "nominat"  # matches the form's "I'm nominating it" option
+
+
 def cmd_registry_add(a):
     fields = parse_issue_form(Path(a.body_file).read_text(encoding="utf-8")) if a.body_file else {}
     repo = parse_repo(a.repo or fields.get("Repository", ""))
-    contact = (a.contact or fields.get("Maintainer GitHub handle", "")).lstrip("@") or None
+    handle = (a.contact or fields.get("Your GitHub handle") or fields.get("Maintainer GitHub handle") or "").lstrip("@") or None
+    nominated = a.nominate or NOMINATING in fields.get("Your relationship to the project", "").lower()
+    proposal = a.proposal or fields.get("Proposal issue on the project") or None
     slug = re.sub(r"[^a-z0-9-]+", "-", repo.split("/")[1].lower()).strip("-")
     out = Path(a.out) / f"{slug}.json"
     if out.exists():
         raise SystemExit(f"{out} already exists")
     today = date.today().isoformat()
-    # Submitting through the hub's form counts as consent to be listed (spec §11.4).
-    entry = {"repos": [{"repo": repo}], "added_on": today,
-             "consent": {"source": "application", "checked_on": today, "list": True, "push": []}}
-    if contact:
-        entry["contact"] = contact
+    entry = {"repos": [{"repo": repo}], "added_on": today}
+    if a.intake:
+        entry["intake"] = a.intake
+    if nominated:
+        # A nomination isn't consent: catalogued, no launcher, no contact (spec §11.5).
+        if not handle:
+            raise SystemExit("a nomination needs the nominator's GitHub handle")
+        entry["nomination"] = {"by": handle, "on": today, **({"proposal": proposal} if proposal else {})}
+    else:
+        # A maintainer submitting through the hub's form consents to be listed (spec §11.4).
+        entry["consent"] = {"source": "application", "checked_on": today, "list": True, "push": []}
+        if handle:
+            entry["contact"] = handle
     errs = schema.check("registry-entry.schema.json", entry)
     if errs:
         raise SystemExit("entry invalid: " + "; ".join(errs))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(entry, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"slug": slug, "path": str(out), "repo": repo}))
+    print(json.dumps({"slug": slug, "path": str(out), "repo": repo, "nominated": bool(nominated)}))
     return 0
 
 
+def application_body(repo, handle, notes=None, nominate=False, proposal=None):
+    """The hub's add-project issue form, filled in (.github/ISSUE_TEMPLATE/add-project.yml)."""
+    rel = "I'm nominating it; I don't maintain it" if nominate else "I maintain it"
+    none = "_No response_"
+    return (f"### Repository\n\nhttps://github.com/{repo}\n\n"
+            f"### Your relationship to the project\n\n{rel}\n\n"
+            f"### Your GitHub handle\n\n{handle or none}\n\n"
+            f"### Proposal issue on the project\n\n{proposal or none}\n\n"
+            f"### Notes\n\n{notes or none}\n\n"
+            "### Confirmation\n\n- [x] What I've said about my relationship to the project is accurate\n")
+
+
 def cmd_submit(a):
-    from . import HUB_REPO
     repo = parse_repo(a.repo)
-    body = (f"### Repository\n\nhttps://github.com/{repo}\n\n"
-            f"### Maintainer GitHub handle\n\n{a.contact or '_No response_'}\n\n"
-            f"### Notes\n\n{a.notes or '_No response_'}\n\n"
-            "### Maintainer confirmation\n\n- [x] I maintain this project and will review contributions to it\n")
-    args = ["gh", "issue", "create", "-R", a.hub, "--title", f"Add project: {repo}", "--body", body]
+    body = application_body(repo, a.contact, a.notes, a.nominate, a.proposal)
+    title = f"{'Nominate' if a.nominate else 'Add'} project: {repo}"
+    args = ["gh", "issue", "create", "-R", a.hub, "--title", title, "--body", body]
     if a.dry_run:
-        print(body)
+        print(title + "\n\n" + body)
         return 0
     out = subprocess.run(args, capture_output=True, text=True)
     if out.returncode != 0:
@@ -292,8 +320,11 @@ def main(argv=None):
     r.add_argument("--minutes", type=int, default=60)
     r.add_argument("--focus", choices=list(prompt.FOCUS), default="project")
     r.add_argument("--permissions", choices=list(prompt.PERMISSIONS), default="post")
-    r.add_argument("--action", choices=["contribute", *prompt.ACTIONS], default="contribute",
+    r.add_argument("--action", choices=["contribute", "onboard", *prompt.ACTIONS], default="contribute",
                    help="which playbook the prompt points to")
+    r.add_argument("--role", choices=list(prompt.GOALS), default="maintainer", help="onboard: who is asking")
+    r.add_argument("--goal", help="onboard: default setup-and-submit / propose-and-nominate")
+    r.add_argument("--context", help="onboard: a URL to start from, e.g. a proposal issue")
     r.add_argument("--seed", help="32 hex digits; default: fresh OS randomness")
     r.set_defaults(func=cmd_prompt)
 
@@ -308,13 +339,18 @@ def main(argv=None):
     g.add_argument("--repo")
     g.add_argument("--contact")
     g.add_argument("--body-file")
+    g.add_argument("--nominate", action="store_true", help="a nomination by a non-maintainer, not an application")
+    g.add_argument("--proposal", help="URL of the setup proposal issue on the project")
+    g.add_argument("--intake", help="URL of the hub issue this entry comes from")
     g.add_argument("--out", default="registry/projects")
     g.set_defaults(func=cmd_registry_add)
 
-    s = sub.add_parser("submit", help="request listing on the hub (opens an add-project issue)")
+    s = sub.add_parser("submit", help="apply to list your project, or nominate one (opens an issue on the hub)")
     s.add_argument("repo")
-    s.add_argument("--contact", help="maintainer GitHub handle")
+    s.add_argument("--contact", help="your GitHub handle")
     s.add_argument("--notes")
+    s.add_argument("--nominate", action="store_true", help="you don't maintain the project: nominate it")
+    s.add_argument("--proposal", help="URL of a setup proposal issue you opened on the project")
     s.add_argument("--hub", default=__import__("discover").HUB_REPO)
     s.add_argument("--dry-run", action="store_true")
     s.set_defaults(func=cmd_submit)

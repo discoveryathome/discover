@@ -142,3 +142,21 @@ details[open] > summary { margin-bottom: 8px; }
 .steps > li > div { display: grid; gap: 8px; min-width: 0; }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .empty { padding: 40px; text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: var(--radius); }
+
+/* Add page: progressive decision tree */
+.tree { display: grid; gap: 16px; max-width: 820px; }
+.tree .step-label { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.choices { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.choice { text-align: left; display: grid; gap: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 14px 16px; font: inherit; cursor: pointer; }
+.choice:hover { background: var(--surface-2); }
+.choice b { font-size: 15px; }
+.choice span { font-size: 13px; color: var(--muted); }
+.choice[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.choice.recommended { border-width: 2px; border-color: var(--accent); }
+.choice .tag { font-size: 11px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+.choices.secondary { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.choices.secondary .choice { padding: 10px 12px; }
+.repo-input { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; background: var(--surface); color: var(--text); }
+.grades { width: 100%; border-collapse: collapse; font-size: 14px; }
+.grades th, .grades td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border); }
+.grades th { font-weight: 600; color: var(--muted); font-size: 12px; }

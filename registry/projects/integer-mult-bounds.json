@@ -2,6 +2,7 @@
   "repos": [{ "repo": "CrocSwap/integer-mult-bounds" }],
   "added_on": "2026-10-15",
   "contact": "colkitt",
+  "consent": { "source": "application", "checked_on": "2026-10-15", "list": true, "push": [] },
   "featured": true,
   "overlay": {
     "schema": "discover/v0",

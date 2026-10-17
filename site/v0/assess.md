@@ -6,6 +6,19 @@ evidence behind each, and suggestions. For an application waiting on a
 `needs-adapter` registry PR, you also write the **adapter**: where this repo keeps its
 entry doc, its record of accepted results, its task list, and its coordination.
 
+## Modes
+
+- **Hub** (the default): the hub's own assessment, written to the hub repo. Everything
+  below applies.
+- **Self-check** (the `evaluate` goal in onboard): the same probes and grades, for the
+  person who asked. Write the report to `~/discover-work/assess-OWNER-NAME/report.md` and
+  show it. Skip §5's hub files and §6: write nothing to the hub or the project.
+- **Projected**: grade a drafted setup that hasn't been adopted, as the project would be
+  if its maintainer accepted it. Run the probes against the draft (a local copy, or the
+  draft branch), mark every grade *projected*, and grade Review and Steering *unknown*
+  where they'd depend on answers only the maintainer can give. A projected grade is an
+  estimate for the maintainer, never a listing grade.
+
 The rubric is spec §3: https://github.com/discoveryathome/discover/blob/main/spec/v0.md. Read §3.1 (grading principles) and §3.2 (the five
 properties) before starting; they change more often than this playbook.
 
@@ -30,9 +43,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-57a0d3438fb6.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-c6cc30039732.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 57a0d3438fb63ceee80458315c5626ffb95f42c8063d1d2e76c3bc8eee700de3
+# must print c6cc30039732f8189995edca5fdbfe8233ee6077ce9f34efdefc4856e980a695
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -110,7 +123,9 @@ Coordination, not Orientation.
 ## 4. Compute the stage
 
 Apply §3.3 mechanically: consent, a disclosed credit policy, and the minimum grades.
-Never adjust a grade to reach a stage.
+Never adjust a grade to reach a stage. A **nominated** project has no consent, so as is
+its stage is `assessed`, whatever its grades. Its projected stage assumes the maintainer
+adopts the proposal, consents and states a credit policy.
 
 ## 5. Write the assessment
 
@@ -123,7 +138,14 @@ Write `assessments/<project-id>/<YYYY-MM-DD>-<your-handle>.md` in the hub repo:
 - **Suggestions** for the maintainers that don't affect grades
 - Anything that didn't fit the rubric. This is useful to the hub, so be specific.
 
-For a `needs-adapter` application, also edit `registry/projects/<project-id>.json`:
+In `registry/projects/<project-id>.json`, set `assessment` to your file, `grades` to the
+five grades, and `stage`. For a **nomination** whose entry links a proposal
+(`nomination.proposal`), also assess the proposed setup in projected mode (from the
+draft branch if there is one, otherwise from what the proposal describes) and record it
+as `projected: {assessment, stage, grades}`, so the listing shows both: the project as
+is, and what it could be after setup.
+
+For a `needs-adapter` entry, also edit it:
 add an `overlay` (a manifest describing where things live in the repo, same shape as
 `discover.json`), a `frontier_adapter` if their results file isn't in the protocol's
 shape, and `assessment` pointing to your file. With the helper, check it with

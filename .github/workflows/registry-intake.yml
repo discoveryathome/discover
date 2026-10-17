@@ -17,13 +17,14 @@ concurrency:
 
 jobs:
   intake:
-    if: startsWith(github.event.issue.title, 'Add project:') || contains(github.event.issue.labels.*.name, 'add-project')
+    if: startsWith(github.event.issue.title, 'Add project:') || startsWith(github.event.issue.title, 'Nominate project:') || contains(github.event.issue.labels.*.name, 'add-project')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
       ISSUE: ${{ github.event.issue.number }}
       # Untrusted input: only ever passed through env and files, never interpolated into scripts.
       ISSUE_BODY: ${{ github.event.issue.body }}
+      INTAKE_URL: ${{ github.event.issue.html_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,13 +34,14 @@ jobs:
         id: entry
         run: |
           printf '%s' "$ISSUE_BODY" > "$RUNNER_TEMP/body.md"
-          if ! python3 plugins/discover/cli/discover.py registry-add --body-file "$RUNNER_TEMP/body.md" --out registry/projects > "$RUNNER_TEMP/entry.json" 2> "$RUNNER_TEMP/err.txt"; then
+          if ! python3 plugins/discover/cli/discover.py registry-add --body-file "$RUNNER_TEMP/body.md" --intake "$INTAKE_URL" --out registry/projects > "$RUNNER_TEMP/entry.json" 2> "$RUNNER_TEMP/err.txt"; then
             { echo "Couldn't create a registry entry:"; echo; echo '```'; cat "$RUNNER_TEMP/err.txt"; echo '```'; } > "$RUNNER_TEMP/comment.md"
             gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
             exit 1
           fi
           echo "slug=$(jq -r .slug "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
           echo "repo=$(jq -r .repo "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
+          echo "nominated=$(jq -r .nominated "$RUNNER_TEMP/entry.json")" >> "$GITHUB_OUTPUT"
       - name: Check the repository is public
         env:
           REPO: ${{ steps.entry.outputs.repo }}
@@ -66,13 +68,15 @@ jobs:
           SLUG: ${{ steps.entry.outputs.slug }}
           REPO: ${{ steps.entry.outputs.repo }}
           OK: ${{ steps.validate.outputs.ok }}
+          NOMINATED: ${{ steps.entry.outputs.nominated }}
         run: |
           branch="registry/add-$SLUG"
           git config user.name "discover-registry-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git add "registry/projects/$SLUG.json"
-          git commit -m "Add $REPO to the registry"
+          if [ "$NOMINATED" = true ]; then verb="Nominate"; else verb="Add"; fi
+          git commit -m "$verb $REPO in the registry"
           git push --force -u origin "$branch"
           if [ "$OK" = true ]; then
             note="The repository validates as is."
@@ -81,12 +85,18 @@ jobs:
             note="The repository doesn't follow the protocol's files yet, which is fine. Before merging, a hub maintainer (or a hub-work contributor) assesses it and adds an adapter to this entry: where its entry doc, current results and coordination live."
             labels="needs-adapter"
           fi
-          { echo "Adds \`$REPO\` (closes #$ISSUE)."; echo; echo "$note"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
-          url=$(gh pr view "$branch" --json url -q .url 2>/dev/null || gh pr create --head "$branch" --title "Add $REPO to the registry" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})
-          if [ "$OK" = true ]; then
+          if [ "$NOMINATED" = true ]; then
+            note="**Nomination.** Catalogued without a launcher until the project's maintainers add a consent record naming this hub. Don't contact them about it (spec §11.5). Assess it as is, and, if the entry links a proposal, as it would be after setup (\`projected\`). $note"
+            labels="nomination${labels:+,$labels}"
+          fi
+          { echo "$verb \`$REPO\` (closes #$ISSUE)."; echo; echo "$note"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
+          url=$(gh pr view "$branch" --json url -q .url 2>/dev/null || gh pr create --head "$branch" --title "$verb $REPO in the registry" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})
+          if [ "$NOMINATED" = true ]; then
+            msg="Thanks for the nomination! Registry PR: $url. Once merged, the project is catalogued on the hub without a launcher, and the hub won't contact its maintainers. It gets a launcher only if they add a consent record to their repo."
+          elif [ "$OK" = true ]; then
             msg="Thanks! Registry PR: $url. A hub maintainer will review it."
           else
-            msg="Thanks! Registry PR: $url. Your repo doesn't need to change anything to be listed: the hub will map where things live in it before merging. If you'd like to make it agent-ready yourself, the \`/discover:setup\` skill can help, and enabling GitHub Discussions is the single most useful step."
+            msg="Thanks! Registry PR: $url. Your repo doesn't need to change anything to be listed: the hub will map where things live in it before merging. If you'd like to make it agent-ready yourself, the onboarding prompt on the hub's Add page can help, and enabling GitHub Discussions is the single most useful step."
           fi
           { echo "$msg"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/comment.md"
           gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"

@@ -26,6 +26,7 @@ Project pages build the prompt for you, with your budget and a randomly drawn ta
 | Donate a research session | [`contribute`](playbooks/contribute.md) | `discover prompt OWNER/REPO` |
 | Check someone else's result | [`verify`](playbooks/verify.md) | `discover prompt OWNER/REPO --action verify` |
 | Work on a project with your agent | [`collaborate`](playbooks/collaborate.md) | `--action collaborate` |
+| Bring a project onto the hub: yours, or one you'd nominate | [`onboard`](playbooks/onboard.md) | `--action onboard --role maintainer\|contributor --goal …` |
 | Make your repo agent-ready | [`setup`](playbooks/setup.md) | `--action setup` |
 | List your project | [`apply`](playbooks/apply.md) | `--action apply` |
 | Review your project's priorities | [`direct`](playbooks/direct.md) | `--action direct` |
@@ -91,11 +92,22 @@ playbooks. Tests fail if anything generated is out of date.
 
 ## Adding a project
 
-1. Optionally make the repo agent-ready with the `setup` playbook.
-2. Apply with the `apply` playbook, `discover submit OWNER/REPO`, or the *Add a project*
-   issue form. Nothing in your repo or its settings has to change.
-3. A bot opens a registry PR. If the repo doesn't follow the conventions, it's labelled
-   `needs-adapter`, and the hub maps where things live before a maintainer merges it.
+The site's *Add* page asks two things, whether you maintain the project and what you
+want to do, then gives you one prompt (spec §11.5):
+
+| Role | Goals (the last is recommended) |
+|---|---|
+| Maintainer | `evaluate` · `setup` · `submit` · **`setup-and-submit`** |
+| Contributor | `evaluate` · `nominate` · `propose` · **`propose-and-nominate`** |
+
+- **Maintainers** set up on a branch of their repo and apply. Applying is consent to be
+  listed. Nothing in the repo or its settings has to change to apply.
+- **Contributors** never push to the project. *Propose* opens one issue on it, with an
+  evaluation and a prompt the maintainers can paste to go ahead. *Nominate* catalogues
+  the project on the hub, with its assessment as is and after setup, but with no
+  launcher and no contact, until the maintainers add a consent record.
+- Either way, a bot opens a registry PR (labelled `nomination` for nominations, and
+  `needs-adapter` if the hub has to map where things live) for a hub maintainer to merge.
 
 See [`registry/projects/integer-mult-bounds.json`](registry/projects/integer-mult-bounds.json)
 for a project listed through an adapter.

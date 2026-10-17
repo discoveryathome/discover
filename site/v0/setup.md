@@ -10,6 +10,17 @@ The protocol is at https://github.com/discoveryathome/discover/blob/main/spec/v0
 Work on a branch in the maintainer's repo. Show diffs before committing, and ask before
 pushing, opening PRs, or changing any repository setting.
 
+**Starting from a proposal.** If you were given a context, such as a contributor's
+proposal issue or a draft branch, read it first and reuse what holds up. It's a starting
+point written without the maintainer, so still confirm every answer in §1 with them.
+
+**Draft mode** (a contributor drafting for maintainers, from the onboard playbook):
+don't interview anyone about the project. Answer from the repository, and turn
+everything only the maintainer can decide into open questions: the accepted result and
+its scope, review capacity, credit, consent. Never record `maintainer-reviewed`, a ledger
+acceptance, or a consent record. Work in a local clone; nothing goes to the project's
+repo.
+
 ## Tools, and what to do without them
 
 This playbook needs nothing but a coding agent, git and a shell. Helpers make it more
@@ -20,9 +31,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-57a0d3438fb6.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-c6cc30039732.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 57a0d3438fb63ceee80458315c5626ffb95f42c8063d1d2e76c3bc8eee700de3
+# must print c6cc30039732f8189995edca5fdbfe8233ee6077ce9f34efdefc4856e980a695
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`

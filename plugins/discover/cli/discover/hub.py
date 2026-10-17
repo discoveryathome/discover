@@ -13,7 +13,36 @@ from .prompt import templates
 from .validate import validate
 
 
-def project_summary(slug, entry, report, board=None):
+def consent_record(source, report, hub):
+    """This hub's line in the project's own consent record (spec §11.4), or None.
+
+    Read from the repo only: a registry overlay is written by the hub and proves nothing.
+    """
+    hubs = None
+    if report.get("manifest_origin") == "discover.json":
+        hubs = (report.get("manifest") or {}).get("hubs")
+    if hubs is None:
+        try:
+            hubs = (source.read_json(".github/discover-hubs.json") or {}).get("hubs")
+        except Exception:
+            hubs = None
+    if not isinstance(hubs, list):
+        return None
+    mine = [h for h in hubs if isinstance(h, dict) and str(h.get("hub", "")).lower() == hub.lower()]
+    anyhub = [h for h in hubs if isinstance(h, dict) and h.get("hub") == "*"]
+    return (mine or anyhub or [None])[0]
+
+
+def listing_state(entry, record):
+    """listed (consented), nominated (catalogued, no launcher) or opted-out (not shown)."""
+    if record is not None:
+        return "listed" if record.get("list", True) else "opted-out"
+    if (entry.get("consent") or {}).get("list"):
+        return "listed"
+    return "nominated"
+
+
+def project_summary(slug, entry, report, board=None, listing="listed"):
     m = report.get("manifest") or {}
     home = entry["repos"][0]
     repo = home["repo"]
@@ -27,7 +56,9 @@ def project_summary(slug, entry, report, board=None):
         "title": m.get("title", repo), "summary": m.get("summary", ""),
         "domains": m.get("domains", []), "maintainers": m.get("maintainers", []),
         "license": m.get("license"), "verification_profile": m.get("verification_profile"),
-        "stage": entry.get("stage"), "assessment": entry.get("assessment"),
+        "listing": listing, "nomination": entry.get("nomination"), "intake": entry.get("intake"),
+        "stage": entry.get("stage"), "assessment": entry.get("assessment"), "grades": entry.get("grades"),
+        "projected": entry.get("projected"),
         "conformant": report["conformant"], "manifest_origin": report.get("manifest_origin"),
         "warnings": report["warnings"], "problems": report["problems"],
         "conventions": report["conventions"],
@@ -92,16 +123,22 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             problems.append({"slug": slug, "errors": [f"{type(e).__name__}: {e}"]})
             print(f"skip {slug}: {e}", file=log)
             continue
+        record = consent_record(source, report, HUB_REPO)
+        listing = listing_state(entry, record)
+        if listing == "opted-out":
+            print(f"hide {slug}: its consent record opts out of {HUB_REPO}", file=log)
+            continue
         board = None
         transport = ((report.get("manifest") or {}).get("coordination") or {}).get("transport")
-        if with_board and transport in (None, "github-discussions"):
+        if with_board and listing == "listed" and transport in (None, "github-discussions"):
             try:
                 msgs, _ = boardmod.messages(boardmod.fetch_posts(entry["repos"][0]["repo"]))
                 board = boardmod.state(msgs)
             except Exception as e:
                 print(f"{slug}: board unavailable ({e})", file=log)
-        projects.append(project_summary(slug, entry, report, board))
-        print(f"ok {slug}: {'conformant' if report['conformant'] else 'not conformant'}, stage {entry.get('stage', 'not assessed')}", file=log)
+        projects.append(project_summary(slug, entry, report, board, listing))
+        print(f"ok {slug}: {listing}, {'conformant' if report['conformant'] else 'not conformant'}, "
+              f"stage {entry.get('stage', 'not assessed')}", file=log)
     data = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "hub_repo": HUB_REPO, "projects": projects, "problems": problems,
             "prompts": templates(site_url(registry_dir))}

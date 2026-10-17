@@ -16,6 +16,17 @@ The protocol is at https://github.com/discoveryathome/discover/blob/main/spec/v0
 Work on a branch in the maintainer's repo. Show diffs before committing, and ask before
 pushing, opening PRs, or changing any repository setting.
 
+**Starting from a proposal.** If you were given a context, such as a contributor's
+proposal issue or a draft branch, read it first and reuse what holds up. It's a starting
+point written without the maintainer, so still confirm every answer in §1 with them.
+
+**Draft mode** (a contributor drafting for maintainers, from the onboard playbook):
+don't interview anyone about the project. Answer from the repository, and turn
+everything only the maintainer can decide into open questions: the accepted result and
+its scope, review capacity, credit, consent. Never record `maintainer-reviewed`, a ledger
+acceptance, or a consent record. Work in a local clone; nothing goes to the project's
+repo.
+
 ## Tools, and what to do without them
 
 This playbook needs nothing but a coding agent, git and a shell. Helpers make it more

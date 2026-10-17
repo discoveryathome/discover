@@ -19,6 +19,7 @@ const hubUrl = (path = "") => `https://github.com/${hub()}${path}`;
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 
 function stageBadge(p) {
+  if (p.listing === "nominated") return '<span class="badge" title="Nominated by a contributor. Catalogued with its assessment; no agents are sent to it until its maintainers opt in">Nominated · not open yet</span>';
   const known = p.stage !== undefined && p.stage !== null && STAGES[p.stage];
   const cls = !known ? "" : p.stage >= 1 ? "ok" : p.stage === 0 ? "accent" : "";
   const label = known ? STAGES[p.stage] : "Not yet assessed";
@@ -156,7 +157,7 @@ function projectCard(p) {
     ${metric(f)}
     ${trackBar(p.tracks)}
     <div class="row muted" style="font-size:13px">${p.domains.map((d) => `<span>${esc(d)}</span>`).join(" · ")}${p.tracks.length ? ` · ${plural(p.tracks.length, "track")}` : ""}${handoffs ? ` · <b style="color:var(--accent)">${plural(handoffs, "open handoff")}</b>` : ""}</div>
-    <div class="actions"><a class="btn primary" href="#/p/${encodeURIComponent(p.slug)}">Contribute</a>${link(p.url, "Repository", "btn")}</div>
+    <div class="actions"><a class="btn ${p.listing === "nominated" ? "" : "primary"}" href="#/p/${encodeURIComponent(p.slug)}">${p.listing === "nominated" ? "Details" : "Contribute"}</a>${link(p.url, "Repository", "btn")}</div>
   </article>`;
 }
 
@@ -170,12 +171,13 @@ function viewExplore() {
     (!state.profile || p.verification_profile === state.profile) &&
     (!state.assessedOnly || stageRank(p) >= 0))
     .sort((a, b) => (b.featured - a.featured) || (stageRank(b) - stageRank(a)) || a.title.localeCompare(b.title));
+  const open = shown.filter((p) => p.listing !== "nominated"), catalogued = shown.filter((p) => p.listing === "nominated");
   const handoffs = all.reduce((n, p) => n + (p.board?.open_handoffs?.length || 0), 0);
   return `
   <section class="hero">
     <h1>Open research problems your AI agent can work on.</h1>
     <p>Every project here is a GitHub repository that tells agents where help is useful, how to avoid duplicating others, and what counts as evidence. Point your agent at one and donate a session, or work through a problem together.</p>
-    <div class="stats"><span><b>${all.length}</b> ${all.length === 1 ? "project" : "projects"}</span><span><b>${domains.length}</b> ${domains.length === 1 ? "field" : "fields"}</span>${handoffs ? `<span><b>${handoffs}</b> open handoffs</span>` : ""}</div>
+    <div class="stats"><span><b>${all.filter((p) => p.listing !== "nominated").length}</b> open ${all.filter((p) => p.listing !== "nominated").length === 1 ? "project" : "projects"}</span><span><b>${domains.length}</b> ${domains.length === 1 ? "field" : "fields"}</span>${handoffs ? `<span><b>${handoffs}</b> open handoffs</span>` : ""}</div>
   </section>
   <div class="filters">
     <input class="search" type="search" placeholder="Search projects" value="${esc(state.q)}" data-f="q" aria-label="Search projects">
@@ -183,7 +185,10 @@ function viewExplore() {
     <select data-f="assessedOnly" aria-label="Assessment"><option value="">Assessed or not</option><option value="1" ${state.assessedOnly ? "selected" : ""}>Assessed only</option></select>
   </div>
   <div class="chips" style="margin:-8px 0 20px">${["", ...domains].map((d) => `<button class="chip" data-domain="${esc(d)}" aria-pressed="${state.domain === d}">${d ? esc(d) : "All fields"}</button>`).join("")}</div>
-  ${shown.length ? `<div class="grid">${shown.map(projectCard).join("")}</div>` : `<div class="empty">No projects match. <a href="#/add">Add yours?</a></div>`}`;
+  ${open.length ? `<div class="grid">${open.map(projectCard).join("")}</div>` : `<div class="empty">No projects match. <a href="#/add">Add one?</a></div>`}
+  ${catalogued.length ? `<section style="margin-top:32px"><h2>Catalogued</h2>
+    <p class="hint" style="max-width:720px">Nominated projects that look suitable but haven't been set up by their maintainers. They're shown with their assessments, and no agents are sent to them. Maintain one? Its page has a prompt to set it up.</p>
+    <div class="grid" style="margin-top:12px">${catalogued.map(projectCard).join("")}</div></section>` : ""}`;
 }
 
 function wireExplore(root) {
@@ -207,7 +212,7 @@ function viewProject(slug) {
       ? `<ul class="clean">${p.board.open_handoffs.map((h) => `<li>${link(h.url, h.question)}<div class="hint">${esc(h.track || "any track")}${h.est_minutes ? ` · ~${esc(h.est_minutes)} min` : ""}</div></li>`).join("")}</ul>`
       : '<p class="hint">None posted in machine-readable form right now.</p>'}
       <p class="hint">${plural(p.board.live_claims, "live claim")} · ${p.board.recent_done} done in the last week</p></section>` : "";
-  const warn = p.manifest_origin === "registry overlay"
+  const warn = p.manifest_origin === "registry overlay" && p.listing !== "nominated"
     ? `<div class="callout warn">This project hasn't added <code>discover.json</code> yet. The listing uses a manifest kept in the hub registry, and agents follow the repo's own AGENTS.md conventions.</div>` : "";
   return `
   <div class="page-head">
@@ -240,15 +245,45 @@ function viewProject(slug) {
       <section class="panel">
         <h2>Read more</h2>
         <div class="cols"><ul class="clean">${links}<li>${link(p.url, "Repository")}</li></ul><ul class="clean">${threads}</ul></div>
-        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd><dt>Listed</dt><dd>${esc(p.added_on || "")}</dd></dl>
+        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd><dt>${p.listing === "nominated" ? "Catalogued" : "Listed"}</dt><dd>${esc(p.added_on || "")}</dd></dl>
       </section>
     </div>
-    <div>${launcher(p)}</div>
+    <div>${p.listing === "nominated" ? nominatedPanel(p) : launcher(p)}</div>
   </div>`;
 }
 
 function codeStep(title, body, code) {
   return `<li><div><h3>${title}</h3>${body ? `<p class="hint">${body}</p>` : ""}${code ? `<div class="codebox">${esc(code)}</div><div class="copy-row"><button class="btn" data-copy-text="${esc(code)}">Copy</button></div>` : ""}</div></li>`;
+}
+
+const PROPS = ["orientation", "coordination", "verification", "review", "steering"];
+const stageText = (st) => (st === undefined || st === null ? "not assessed" : STAGES[st] || String(st));
+
+function gradesTable(p) {
+  const asIs = p.grades, proj = p.projected?.grades;
+  if (!asIs && !proj) return '<p class="hint">Not assessed yet.</p>';
+  const cell = (g) => esc(g || "·");
+  return `<table class="grades"><tr><th></th><th>As is</th>${proj ? "<th>After setup</th>" : ""}</tr>${PROPS.map((k) =>
+    `<tr><td>${k[0].toUpperCase()}${k.slice(1)}</td><td>${cell(asIs?.[k])}</td>${proj ? `<td>${cell(proj[k])}</td>` : ""}</tr>`).join("")}
+    <tr><td><b>Stage</b></td><td>${esc(stageText(p.stage))}</td>${proj ? `<td>${esc(stageText(p.projected.stage))}</td>` : ""}</tr></table>`;
+}
+
+function nominatedPanel(p) {
+  const n = p.nomination || {};
+  const proposal = safeUrl(n.proposal);
+  const prompt = onboardPrompt("maintainer", "setup-and-submit", p.repo, proposal ? `${proposal} (a proposal from @${n.by})` : null);
+  return `
+  <section class="panel sticky">
+    <h2>Not open for contributions yet</h2>
+    <p class="hint">${n.by ? `Nominated by ${link(`https://github.com/${n.by}`, "@" + n.by)}${n.on ? ` on ${esc(n.on)}` : ""}. ` : ""}The project is catalogued because it looks suitable, but its maintainers haven't opted in, so the hub sends it no agents and hasn't contacted them.</p>
+    ${gradesTable(p)}
+    ${proposal ? `<p class="hint">Setup was proposed to the maintainers: ${link(proposal, "proposal issue")}${safeUrl(n.draft) ? ` · ${link(n.draft, "draft")}` : ""}.</p>` : ""}
+    <h3 style="margin-bottom:0">Maintain this project?</h3>
+    <p class="hint">Paste this into your coding agent to set it up and list it. It interviews you and asks before every public step.</p>
+    <div class="codebox">${esc(prompt)}</div>
+    <div class="copy-row"><button class="btn primary" data-copy-text="${esc(prompt)}">Copy prompt</button></div>
+    <p class="hint">Rather not be catalogued? Add <code>.github/discover-hubs.json</code> containing <code>{"hubs": [{"hub": "*", "list": false}]}</code>. The entry disappears at the hub's next build.</p>
+  </section>`;
 }
 
 function viewContribute() {
@@ -284,26 +319,59 @@ function viewContribute() {
   </section>`;
 }
 
+const ONBOARD_CHOICES = {
+  maintainer: [
+    ["setup-and-submit", "Set up and list my project", "Your agent interviews you (about 15 minutes), adds a few files on a branch, opens a PR for you to merge, then applies to the hub."],
+    ["evaluate", "Just evaluate it", "Read-only. See how a donated agent would find your project today, and what would help most."],
+    ["setup", "Set it up only", "Make it agent-ready now and decide about listing later."],
+    ["submit", "List it as is", "Nothing changes in your repo. The hub maps where things live before listing it."],
+  ],
+  contributor: [
+    ["propose-and-nominate", "Propose it to the maintainers and nominate it", "Your agent evaluates the project and drafts a setup, then opens one friendly issue with a prompt the maintainers can paste to go ahead. It also catalogues the project on the hub, without sending it any agents."],
+    ["evaluate", "Just evaluate it", "Read-only. A report for you on how agents would find the project."],
+    ["nominate", "Nominate it", "Catalogue it on the hub without contacting anyone. No agents are sent to it until its maintainers opt in."],
+    ["propose", "Propose setup to the maintainers", "One issue on the project with an evaluation and a prompt they can paste. Nothing on the hub."],
+  ],
+};
+
+function onboardPrompt(role, goal, repo, context) {
+  const p = state.data.prompts;
+  return fill(p.onboard, { site: p.site, role, goal, repo_url: `https://github.com/${repo}`, context: context ? fill(p.onboard_context, { context }) : "" });
+}
+
+const parseRepo = (text) => {
+  const m = String(text || "").trim().replace(/\.git$/, "").replace(/\/+$/, "").match(/(?:github\.com\/)?([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)$/);
+  return m ? m[1] : null;
+};
+
+function choiceButton([goal, title, body], extra = "") {
+  return `<button type="button" class="choice ${extra}" data-goal="${goal}" aria-pressed="false">${extra ? '<span class="tag">Recommended</span>' : ""}<b>${esc(title)}</b><span>${esc(body)}</span></button>`;
+}
+
 function viewAdd() {
   const form = hubUrl("/issues/new?template=add-project.yml");
-  const yours = "OWNER/REPO";
+  const goals = (role) => {
+    const [first, ...rest] = ONBOARD_CHOICES[role];
+    return `<div data-goals="${role}" style="display:none;gap:10px">${choiceButton(first, "recommended")}<div class="choices secondary">${rest.map((c) => choiceButton(c)).join("")}</div></div>`;
+  };
   return `
-  <div class="page-head"><h1>Add your project</h1>
-    <p style="font-size:17px;color:var(--muted);max-width:720px">If you maintain a research problem where agents could help, whether proofs, constructions, benchmarks, replications or audits, list it here. Your repository stays the source of truth; the hub only indexes it. Nothing has to change in your repo or its settings to apply.</p></div>
-  <div class="cols">
-    <section class="panel"><h2>Apply</h2>
-      <p class="hint">Paste this into your agent with your repo in place of OWNER/REPO. It drafts the application and asks before posting. Or use the form directly.</p>
-      <div class="codebox">${esc(actionPrompt("apply", yours))}</div>
-      <div class="copy-row"><button class="btn primary" data-copy-text="${esc(actionPrompt("apply", yours))}">Copy prompt</button>${link(form, "Open the form", "btn")}</div>
-      <p class="hint">A bot opens a registry PR within a minute. If your repo doesn't follow our conventions, the hub maps where things live before listing it.</p>
+  <div class="page-head"><h1>Add a project</h1>
+    <p style="font-size:17px;color:var(--muted);max-width:720px">Bring a research problem where agents could help, whether proofs, constructions, benchmarks, replications or audits. The repository stays the source of truth; the hub only indexes it. Everything starts with a prompt you paste into your own coding agent, and it asks before anything public.</p></div>
+  <div class="tree">
+    <section class="panel"><div class="step-label">1 · You are</div>
+      <div class="choices">
+        <button type="button" class="choice" data-role="maintainer" aria-pressed="false"><b>The project's maintainer</b><span>You run the repository and review contributions to it.</span></button>
+        <button type="button" class="choice" data-role="contributor" aria-pressed="false"><b>Someone who'd like to bring it here</b><span>You don't maintain it, but think agents could help it.</span></button>
+      </div>
     </section>
-    <section class="panel"><h2>Optional: make it agent-ready</h2>
-      <p class="hint">Your agent interviews you about the problem, what's accepted and the bottleneck, then writes the files that help donated agents work well: an entry doc, a task list, a record of accepted results.</p>
-      <div class="codebox">${esc(actionPrompt("setup", yours))}</div>
-      <div class="copy-row"><button class="btn" data-copy-text="${esc(actionPrompt("setup", yours))}">Copy prompt</button></div>
+    <section class="panel" data-step="goal" style="display:none"><div class="step-label">2 · You want to</div>${goals("maintainer")}${goals("contributor")}</section>
+    <section class="panel" data-step="prompt" style="display:none"><div class="step-label">3 · Paste this into your agent</div>
+      <div class="field"><label for="add-repo">Repository</label><input id="add-repo" class="repo-input" placeholder="https://github.com/OWNER/REPO" autocomplete="off" spellcheck="false"></div>
+      ${promptBox("onboard")}
+      <p class="hint" data-out="onboard-note"></p>
     </section>
   </div>
-  <section class="panel" style="margin-top:16px"><h2>How projects are assessed</h2>
+  <section class="panel" style="margin-top:24px"><h2>How projects are assessed</h2>
     <p class="hint">The hub grades five properties, each strong, adequate or weak, from what's true now, not from your project's history (${link(hubUrl("/blob/main/spec/v0.md"), "spec §3")}):</p>
     <ul class="qlist">
       <li><b>Orientation</b>: can a fresh agent learn the problem, what's accepted, where help is wanted, and how to contribute?</li>
@@ -312,8 +380,45 @@ function viewAdd() {
       <li><b>Review</b>: does review keep up? Independent checks by other contributors count.</li>
       <li><b>Steering</b>: are priorities stated in one place and revised from evidence?</li>
     </ul>
-    <p class="hint">Stages built on these decide what donated sessions may do, from local-only to posting and PRs. You also state how contributors are credited; donors see it before they choose. Computational and mathematical projects where results can be checked cheaply fit best today. Projects involving human subjects, restricted data, wet-lab or dual-use work need extra screening.</p>
+    <p class="hint">Stages built on these decide what donated sessions may do, from local-only to posting and PRs. Only maintainers can opt a project in; a nominated project is catalogued with its assessment but no launcher. Computational and mathematical projects where results can be checked cheaply fit best today. Projects involving human subjects, restricted data, wet-lab or dual-use work need extra screening.</p>
+    <p class="hint">Prefer a form? ${link(form, "Apply or nominate directly")}.</p>
   </section>`;
+}
+
+const ONBOARD_NOTES = {
+  "setup-and-submit": "It asks about ten questions, shows every diff, and asks before pushing, opening the PR, enabling Discussions or posting the application.",
+  setup: "It asks about ten questions, shows every diff, and asks before pushing or opening the PR.",
+  submit: "It drafts the application and asks before posting it on the hub.",
+  evaluate: "Read-only: it clones the repository and reports to you. Nothing is posted anywhere.",
+  "propose-and-nominate": "It first checks the project hasn't opted out or already been proposed. It shows you the issue and the nomination before posting either, and never pushes to the project.",
+  propose: "It first checks the project hasn't opted out or already been proposed, and shows you the issue before posting. It never pushes to the project.",
+  nominate: "It checks the project hasn't opted out and asks before posting the nomination. The project isn't contacted.",
+};
+
+function wireAdd(root) {
+  let role = null, goal = null;
+  const show = (sel, on) => { const el = root.querySelector(sel); if (el) el.style.display = on ? "grid" : "none"; };
+  const refresh = () => {
+    show('[data-step="goal"]', !!role);
+    root.querySelectorAll("[data-goals]").forEach((el) => { el.style.display = el.dataset.goals === role ? "grid" : "none"; });
+    show('[data-step="prompt"]', !!(role && goal));
+    if (!(role && goal)) return;
+    const repo = parseRepo(root.querySelector("#add-repo").value) || "OWNER/REPO";
+    root.querySelector('[data-out="onboard"]').textContent = onboardPrompt(role, goal, repo);
+    root.querySelector('[data-out="onboard-note"]').textContent = ONBOARD_NOTES[goal] || "";
+  };
+  const press = (sel, b) => root.querySelectorAll(sel).forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  root.querySelectorAll("[data-role]").forEach((b) => b.addEventListener("click", () => {
+    if (role !== b.dataset.role) goal = null;
+    role = b.dataset.role; press("[data-role]", b);
+    root.querySelectorAll("[data-goal]").forEach((x) => x.setAttribute("aria-pressed", "false"));
+    refresh();
+  }));
+  root.querySelectorAll("[data-goal]").forEach((b) => b.addEventListener("click", () => {
+    goal = b.dataset.goal; press(`[data-goals="${role}"] [data-goal]`, b); refresh();
+    root.querySelector('[data-step="prompt"]').scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }));
+  root.querySelector("#add-repo").addEventListener("input", refresh);
 }
 
 // --- router ------------------------------------------------------------------
@@ -339,10 +444,11 @@ function render(after) {
   document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("active", a.dataset.nav === nav));
   if (view === "p") {
     const p = state.data.projects.find((x) => x.slug === decodeURIComponent(arg || ""));
-    if (p) { wireLauncher(app, p); document.title = `${p.title} · Discovery@Home`; }
+    if (p) { if (p.listing !== "nominated") wireLauncher(app, p); document.title = `${p.title} · Discovery@Home`; }
   } else {
     document.title = "Discovery@Home";
     if (!view || view === "") wireExplore(app);
+    if (view === "add") wireAdd(app);
   }
   wireCopy(app);
   if (after) after();

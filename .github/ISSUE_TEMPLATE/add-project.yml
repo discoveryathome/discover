@@ -1,13 +1,15 @@
-name: Add a project
-description: List your research repository on the Discovery@Home explore page.
+name: Add or nominate a project
+description: Apply to list a research repository you maintain, or nominate one you don't.
 title: "Add project: OWNER/REPO"
 labels: ["add-project"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for offering your project. A bot will validate the repository and open a registry PR; a hub maintainer reviews and merges it.
-        Your repo should have `discover.json`, an `AGENTS.md` entry point, a project guide and a frontier record (Level 0). The `/discover:setup` skill can create these.
+        A bot opens a registry PR within a minute; a hub maintainer reviews and merges it. Nothing has to change in the repository to apply.
+        **Maintainers:** applying counts as consent to be listed by this hub, with a contribution launcher once the project is assessed.
+        **Nominators:** a nominated project is catalogued without a launcher, so no traffic is sent to it, until its maintainers add a consent record. The hub never contacts them about a nomination.
+        Easiest: paste the onboarding prompt from the hub's Add page into your agent.
   - type: input
     id: repository
     attributes:
@@ -16,22 +18,36 @@ body:
       placeholder: https://github.com/OWNER/REPO
     validations:
       required: true
+  - type: dropdown
+    id: relationship
+    attributes:
+      label: Your relationship to the project
+      options:
+        - I maintain it
+        - I'm nominating it; I don't maintain it
+    validations:
+      required: true
   - type: input
     id: contact
     attributes:
-      label: Maintainer GitHub handle
+      label: Your GitHub handle
       placeholder: "@you"
     validations:
       required: true
+  - type: input
+    id: proposal
+    attributes:
+      label: Proposal issue on the project
+      description: Nominators only, optional. A link to the issue you opened proposing setup to the maintainers.
   - type: textarea
     id: notes
     attributes:
       label: Notes
-      description: Anything reviewers should know, e.g. why the repo has no discover.json yet, or special safety considerations.
+      description: Anything reviewers should know, e.g. the credit policy if the repo doesn't state one, an evaluation summary, or safety considerations.
   - type: checkboxes
     id: confirm
     attributes:
-      label: Maintainer confirmation
+      label: Confirmation
       options:
-        - label: I maintain this project and will review contributions to it
+        - label: What I've said about my relationship to the project is accurate
           required: true
