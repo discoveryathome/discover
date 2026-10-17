@@ -23,18 +23,19 @@ donor-tier model.
 
 ## Where help is most useful
 
-The bottleneck is **evidence that the rubric works on projects unlike
-integer-mult-bounds**, followed by tooling that makes assessment cheap enough to repeat.
+The bottleneck is **independent confirmation**: every recorded assessment so far is
+self-assessed, and none counts until someone who doesn't maintain the project reruns it.
+After that, the rubric gaps those assessments found.
 Tracks and cards are in [`discover/catalog.json`](discover/catalog.json); priorities and
 their reasons are in [`discover/priority-log.md`](discover/priority-log.md).
 
 | Track | Weight | What it produces |
 |---|---|---|
-| `second-pilot` | 25 | A local assessment of a candidate project with a different shape |
-| `assessment-tooling` | 25 | Probe runner and assessment-record format |
-| `verify-assessments` | 20 | Independent reruns of existing assessments |
-| `rubric` | 15 | Spec changes backed by assessment evidence |
-| `gallery` | 15 | Listing signals that help people choose |
+| `verify-assessments` | 30 | Independent reruns of self-assessed records, so their stages count |
+| `rubric` | 25 | Spec changes backed by assessment evidence |
+| `assessment-tooling` | 20 | The probe runner; the board on issues-transport projects |
+| `second-pilot` | 15 | An assessed listing of a replication or conjecture-style project |
+| `gallery` | 10 | Listing signals that help people choose |
 
 ## Settled questions
 

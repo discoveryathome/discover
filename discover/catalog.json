@@ -1,17 +1,207 @@
 {
   "schema": "discover-catalog/v0",
-  "priority_revision": 1,
-  "assessed_on": "2026-10-16",
+  "priority_revision": 2,
+  "assessed_on": "2026-10-17",
   "priority_log": "discover/priority-log.md",
   "tracks": [
     {
-      "id": "second-pilot",
+      "id": "verify-assessments",
+      "weight": 30,
+      "useful_outcome": "Independent reruns of self-assessed records, so their stages can count (spec §12.4).",
+      "tasks": [
+        {
+          "id": "independent-rerun",
+          "question": "Does an assessor who doesn't maintain the project reproduce the grades of a self-assessed record (applied-butterfly-mult, integer-mult-bounds or the hub)?",
+          "starting_points": [
+            "assessments/ (each record's discover-assessment block)",
+            "spec/v0.md §12.4",
+            "playbooks/assess.md (re-assess mode)"
+          ],
+          "methods": [
+            "rerun the assess playbook at the record's assessed_commit, on a different account",
+            "compare grade by grade and name each disagreement"
+          ],
+          "acceptance_gate": "A new record with self_assessed false, the commit and probe model used, and each grade marked agree or disagree with the original, with evidence.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "validate",
+              "--registry-entry",
+              "registry/projects/applied-butterfly-mult.json"
+            ],
+            "expected": "conformant"
+          },
+          "bottleneck_link": "Every recorded stage is self-assessed and counts only after an independent rerun agrees.",
+          "overlap_terms": [
+            "independent rerun",
+            "self-assessed",
+            "reassess"
+          ]
+        },
+        {
+          "id": "rerun-orientation-probe",
+          "question": "Does an independent orientation probe on the same commit give the same answers?",
+          "starting_points": [
+            "spec/v0.md §3.4",
+            "spec/v0.md §13 (probe reliability)"
+          ],
+          "methods": [
+            "rerun the probe at the recorded commit",
+            "compare to reference answers"
+          ],
+          "acceptance_gate": "A comparison naming each disagreement, with the commit and model used.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "--version"
+            ],
+            "expected": "a line starting with discover (the version)"
+          },
+          "bottleneck_link": "Probe reliability is an open question the grades depend on.",
+          "overlap_terms": [
+            "probe reliability",
+            "rerun"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rubric",
       "weight": 25,
-      "useful_outcome": "Evidence on whether the rubric fits a project unlike integer-mult-bounds.",
+      "useful_outcome": "Spec changes justified by assessment evidence.",
+      "tasks": [
+        {
+          "id": "calibrate-thresholds",
+          "question": "Are the duplicate-rate and response-time thresholds in §3.2 sensible?",
+          "starting_points": [
+            "spec/v0.md §3.1-3.2"
+          ],
+          "methods": [
+            "measure listed projects in a 14-day window",
+            "compare against probe results"
+          ],
+          "acceptance_gate": "A proposed change to §3.2 backed by measurements from at least two projects.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "--version"
+            ],
+            "expected": "a line starting with discover (the version)"
+          },
+          "bottleneck_link": "Uncalibrated thresholds make stages arbitrary.",
+          "overlap_terms": [
+            "threshold",
+            "calibration"
+          ]
+        },
+        {
+          "id": "rubric-gaps-from-testing",
+          "question": "Which gaps found in testing should change the spec, and how: review counted by first response where merging is only intake; duplicate-rate sampling at thousands of PRs; the coordination probe when nothing is open; verification capped by the run policy; hardware-specific help; a missing LICENSE; Stage 1 on very low review capacity?",
+          "starting_points": [
+            "each record's 'Doesn't fit the rubric' section in assessments/",
+            "ROADMAP.md (Rubric gaps found in testing)",
+            "spec/v0.md §3.2, §3.3"
+          ],
+          "methods": [
+            "one gap per proposal, with the records that show it",
+            "a spec diff and the grade it would change"
+          ],
+          "acceptance_gate": "A spec PR for one gap, citing the assessment records that motivate it and the grades it would change.",
+          "first_step": {
+            "command": [
+              "grep",
+              "-rln",
+              "Doesn't fit the rubric",
+              "assessments"
+            ],
+            "expected": "assessments/"
+          },
+          "bottleneck_link": "The rubric is uncalibrated; these are the gaps real assessments hit.",
+          "overlap_terms": [
+            "rubric gap",
+            "review measure",
+            "sampling",
+            "license",
+            "hardware"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assessment-tooling",
+      "weight": 20,
+      "useful_outcome": "Assessment cheap and repeatable enough to run weekly.",
+      "tasks": [
+        {
+          "id": "orientation-probe-runner",
+          "question": "Can the orientation probe run as one command with a pinned model, budget and transcript?",
+          "starting_points": [
+            "spec/v0.md §3.4",
+            "plugins/discover/cli/discover/"
+          ],
+          "methods": [
+            "CLI subcommand",
+            "headless agent run"
+          ],
+          "acceptance_gate": "A command that runs the probe against a repo at a pinned commit and saves answers and transcript; tests pass.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "validate",
+              "examples/integer-mult-bounds"
+            ],
+            "expected": "not conformant"
+          },
+          "bottleneck_link": "Without tooling every assessment is hand work.",
+          "overlap_terms": [
+            "probe",
+            "runner",
+            "assess"
+          ]
+        },
+        {
+          "id": "board-issues-transport",
+          "question": "Can discover board and discover post read and write protocol messages on GitHub issues, so projects whose transport is issues (the hub itself) get the same claim and handoff state as Discussions?",
+          "starting_points": [
+            "plugins/discover/cli/discover/board.py",
+            "spec/v0.md §6",
+            "discover.json (coordination.transport: github-issues)"
+          ],
+          "methods": [
+            "read issue comments as posts, with the same discover blocks",
+            "a test with fixtures for both transports"
+          ],
+          "acceptance_gate": "board and post work on an issues-transport project, with tests; the hub's own board shows its claims.",
+          "first_step": {
+            "command": [
+              "python3",
+              "plugins/discover/cli/discover.py",
+              "board",
+              "--help"
+            ],
+            "expected": "usage"
+          },
+          "bottleneck_link": "The hub coordinates through issues, but the board only reads Discussions, which caps its Coordination grade.",
+          "overlap_terms": [
+            "board",
+            "issues transport",
+            "claims"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "second-pilot",
+      "weight": 15,
+      "useful_outcome": "A listed project of a shape not yet assessed: replication, or conjecture-style.",
       "tasks": [
         {
           "id": "assess-different-shape",
-          "question": "Does the §3 rubric grade a benchmark, replication or conjecture-style project sensibly?",
+          "question": "Does the §3 rubric grade a replication or conjecture-style project sensibly? (A benchmark project, applied-butterfly-mult, is done.)",
           "starting_points": [
             "spec/v0.md §3",
             "discover/frontier.json"
@@ -47,134 +237,8 @@
       ]
     },
     {
-      "id": "assessment-tooling",
-      "weight": 25,
-      "useful_outcome": "Assessment cheap and repeatable enough to run weekly.",
-      "tasks": [
-        {
-          "id": "orientation-probe-runner",
-          "question": "Can the orientation probe run as one command with a pinned model, budget and transcript?",
-          "starting_points": [
-            "spec/v0.md §3.4",
-            "plugins/discover/cli/discover/"
-          ],
-          "methods": [
-            "CLI subcommand",
-            "headless agent run"
-          ],
-          "acceptance_gate": "A command that runs the probe against a repo at a pinned commit and saves answers and transcript; tests pass.",
-          "first_step": {
-            "command": [
-              "python3",
-              "plugins/discover/cli/discover.py",
-              "validate",
-              "examples/integer-mult-bounds"
-            ],
-            "expected": "not conformant"
-          },
-          "bottleneck_link": "Without tooling every assessment is hand work.",
-          "overlap_terms": [
-            "probe",
-            "runner",
-            "assess"
-          ]
-        },
-        {
-          "id": "assessment-record-format",
-          "question": "What should an assessment record contain so hubs can exchange and compare them?",
-          "starting_points": [
-            "spec/v0.md §3.4, §12.3",
-            "registry/projects/integer-mult-bounds.json"
-          ],
-          "methods": [
-            "schema design",
-            "worked example"
-          ],
-          "acceptance_gate": "A schema in spec/schemas and the integer-mult-bounds smoke test rewritten in it; tests pass.",
-          "first_step": {
-            "command": [
-              "python3",
-              "plugins/discover/cli/discover.py",
-              "--version"
-            ],
-            "expected": "a line starting with discover (the version)"
-          },
-          "bottleneck_link": "Hubs exchange assessments by file format.",
-          "overlap_terms": [
-            "assessment record",
-            "schema"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "verify-assessments",
-      "weight": 20,
-      "useful_outcome": "Independent reruns that confirm or contradict existing grades.",
-      "tasks": [
-        {
-          "id": "rerun-orientation-probe",
-          "question": "Does an independent orientation probe on the same commit give the same answers?",
-          "starting_points": [
-            "spec/v0.md §3.4",
-            "spec/v0.md §13 (probe reliability)"
-          ],
-          "methods": [
-            "rerun the probe at the recorded commit",
-            "compare to reference answers"
-          ],
-          "acceptance_gate": "A comparison naming each disagreement, with the commit and model used.",
-          "first_step": {
-            "command": [
-              "python3",
-              "plugins/discover/cli/discover.py",
-              "--version"
-            ],
-            "expected": "a line starting with discover (the version)"
-          },
-          "bottleneck_link": "Probe reliability is an open question the grades depend on.",
-          "overlap_terms": [
-            "probe reliability",
-            "rerun"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "rubric",
-      "weight": 15,
-      "useful_outcome": "Spec changes justified by assessment evidence.",
-      "tasks": [
-        {
-          "id": "calibrate-thresholds",
-          "question": "Are the duplicate-rate and response-time thresholds in §3.2 sensible?",
-          "starting_points": [
-            "spec/v0.md §3.1-3.2"
-          ],
-          "methods": [
-            "measure listed projects in a 14-day window",
-            "compare against probe results"
-          ],
-          "acceptance_gate": "A proposed change to §3.2 backed by measurements from at least two projects.",
-          "first_step": {
-            "command": [
-              "python3",
-              "plugins/discover/cli/discover.py",
-              "--version"
-            ],
-            "expected": "a line starting with discover (the version)"
-          },
-          "bottleneck_link": "Uncalibrated thresholds make stages arbitrary.",
-          "overlap_terms": [
-            "threshold",
-            "calibration"
-          ]
-        }
-      ]
-    },
-    {
       "id": "gallery",
-      "weight": 15,
+      "weight": 10,
       "useful_outcome": "Listings that help people choose on human terms.",
       "tasks": [
         {
