@@ -214,7 +214,7 @@ def cmd_registry_add(a):
         entry, mode = None, "add"
     out = Path(a.out) / f"{slug}.json"
     if entry is not None:
-        out.write_text(json.dumps(entry, indent=2) + "\n", encoding="utf-8")
+        out.write_text(json.dumps(entry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(json.dumps({**result, "slug": slug, "path": str(out), "mode": mode}))
         return 0
     entry = {"repos": [{"repo": repo}], "added_on": today}
@@ -234,7 +234,7 @@ def cmd_registry_add(a):
     if errs:
         raise SystemExit("entry invalid: " + "; ".join(errs))
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(entry, indent=2) + "\n", encoding="utf-8")
+    out.write_text(json.dumps(entry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps({**result, "slug": slug, "path": str(out), "mode": mode}))
     return 0
 

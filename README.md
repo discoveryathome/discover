@@ -112,6 +112,10 @@ want to do, then gives you one prompt (spec §11.5):
 See [`registry/projects/integer-mult-bounds.json`](registry/projects/integer-mult-bounds.json)
 for a project listed through an adapter.
 
+## Roadmap
+
+What's planned next is in [`ROADMAP.md`](ROADMAP.md).
+
 ## Development
 
 ```sh
