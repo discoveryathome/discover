@@ -147,8 +147,12 @@ def cmd_post(a):
 
 def cmd_prompt(a):
     repo = parse_repo(a.repo)
-    print(prompt.donation_prompt(repo, a.minutes, a.focus, a.permissions))
-    print("\nWith the discover plugin installed:\n  " + prompt.skill_command(repo, a.minutes, a.focus, a.permissions))
+    if a.action != "contribute":
+        print(prompt.action_prompt(a.action, repo, a.minutes, a.permissions))
+        return 0
+    seed = a.seed or __import__("secrets").token_hex(16)
+    print(prompt.donation_prompt(repo, a.minutes, a.focus, a.permissions, seed=seed))
+    print("\nWith the discover plugin installed:\n  " + prompt.skill_command(repo, a.minutes, a.focus, a.permissions, seed))
     return 0
 
 
@@ -289,6 +293,9 @@ def main(argv=None):
     r.add_argument("--minutes", type=int, default=60)
     r.add_argument("--focus", choices=list(prompt.FOCUS), default="project")
     r.add_argument("--permissions", choices=list(prompt.PERMISSIONS), default="post")
+    r.add_argument("--action", choices=["contribute", *prompt.ACTIONS], default="contribute",
+                   help="which playbook the prompt points to")
+    r.add_argument("--seed", help="32 hex digits; default: fresh OS randomness")
     r.set_defaults(func=cmd_prompt)
 
     h = sub.add_parser("hub", help="build the explore page data from the registry")

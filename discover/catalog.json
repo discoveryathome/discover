@@ -27,7 +27,7 @@
               "plugins/discover/cli/discover.py",
               "--version"
             ],
-            "expected": "discover 0.1.0"
+            "expected": "a line starting with discover (the version)"
           },
           "bottleneck_link": "The frontier's main gap is projects of other shapes.",
           "overlap_terms": [
@@ -97,7 +97,7 @@
               "plugins/discover/cli/discover.py",
               "--version"
             ],
-            "expected": "discover 0.1.0"
+            "expected": "a line starting with discover (the version)"
           },
           "bottleneck_link": "Hubs exchange assessments by file format.",
           "overlap_terms": [
@@ -130,7 +130,7 @@
               "plugins/discover/cli/discover.py",
               "--version"
             ],
-            "expected": "discover 0.1.0"
+            "expected": "a line starting with discover (the version)"
           },
           "bottleneck_link": "Probe reliability is an open question the grades depend on.",
           "overlap_terms": [
@@ -162,7 +162,7 @@
               "plugins/discover/cli/discover.py",
               "--version"
             ],
-            "expected": "discover 0.1.0"
+            "expected": "a line starting with discover (the version)"
           },
           "bottleneck_link": "Uncalibrated thresholds make stages arbitrary.",
           "overlap_terms": [

@@ -1,0 +1,146 @@
+"""Build the hub's published artifacts from their sources.
+
+- The CLI as one file, site/cli/discover-<sha12>.pyz, named by its SHA-256 so a URL never
+  changes meaning. A new file is written only when the code changes; old ones stay.
+- Playbooks (playbooks/*.md) rendered for the site (site/v0/<name>.md) and into the
+  plugin's skills (plugins/discover/skills/<name>/SKILL.md).
+
+Run through `make sync`. Standard library only.
+"""
+
+import hashlib
+import io
+import json
+import re
+import sys
+import zipfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+CLI_SRC = ROOT / "plugins" / "discover" / "cli" / "discover"
+CLI_OUT = ROOT / "site" / "cli"
+PLAYBOOKS = ROOT / "playbooks"
+SITE_OUT = ROOT / "site" / "v0"
+SKILLS_OUT = ROOT / "plugins" / "discover" / "skills"
+
+MAIN = b"import sys\nfrom discover.cli import main\nsys.exit(main())\n"
+
+PLUGIN_HELPER = """\
+**The `discover` helper** is installed with this plugin: run it as
+`python3 ${CLAUDE_PLUGIN_ROOT}/cli/discover.py` (if that variable wasn't substituted, it's
+at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
+Don't download it.
+"""
+
+
+def cli_members():
+    """Archive name -> bytes, for everything the single-file CLI contains."""
+    members = {"__main__.py": MAIN}
+    for p in sorted(CLI_SRC.rglob("*")):
+        if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc":
+            members["discover/" + p.relative_to(CLI_SRC).as_posix()] = p.read_bytes()
+    return members
+
+
+def read_members(path):
+    with zipfile.ZipFile(path) as z:
+        return {n: z.read(n) for n in z.namelist()}
+
+
+def pack(members):
+    buf = io.BytesIO()
+    buf.write(b"#!/usr/bin/env python3\n")
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for name in sorted(members):
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.external_attr = 0o644 << 16
+            info.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(info, members[name])
+    return buf.getvalue()
+
+
+def release_cli():
+    """Return (filename, sha256) of the current CLI, writing a new file only if the code changed."""
+    from_src = cli_members()
+    latest = CLI_OUT / "latest.json"
+    if latest.exists():
+        info = json.loads(latest.read_text(encoding="utf-8"))
+        current = CLI_OUT / info["file"]
+        if current.exists() and read_members(current) == from_src:
+            return info["file"], info["sha256"]
+    data = pack(from_src)
+    sha = hashlib.sha256(data).hexdigest()
+    name = f"discover-{sha[:12]}.pyz"
+    CLI_OUT.mkdir(parents=True, exist_ok=True)
+    (CLI_OUT / name).write_bytes(data)
+    version = re.search(r'__version__ = "([^"]+)"', (CLI_SRC / "__init__.py").read_text()).group(1)
+    latest.write_text(json.dumps({"file": name, "sha256": sha, "version": version}, indent=2) + "\n",
+                      encoding="utf-8")
+    return name, sha
+
+
+def values(cli_file, cli_sha):
+    hub = json.loads((ROOT / "hub.json").read_text(encoding="utf-8"))
+    site = hub["website"].rstrip("/") + "/"
+    sys.path.insert(0, str(CLI_SRC.parent))
+    from discover import HUB_REPO  # honors DISCOVER_HUB for copied hubs
+    return {
+        "SITE": site, "HUB_REPO": HUB_REPO,
+        "CLI_URL": f"{site}cli/{cli_file}", "CLI_SHA256": cli_sha,
+        "SPEC_URL": f"https://github.com/{HUB_REPO}/blob/main/spec/v0.md",
+        "SCHEMAS_URL": f"https://github.com/{HUB_REPO}/tree/main/spec/schemas",
+    }
+
+
+def split_frontmatter(text):
+    m = re.match(r"---\n(.*?)\n---\n\n?", text, re.S)
+    return (m.group(1), text[m.end():]) if m else ("", text)
+
+
+def fill(text, vals):
+    out = re.sub(r"\{\{([A-Z0-9_]+)\}\}", lambda m: vals[m.group(1)], text)
+    left = re.findall(r"\{\{[A-Z0-9_]+\}\}", out)
+    if left:
+        raise SystemExit(f"unfilled placeholders: {left}")
+    return out
+
+
+def render(vals):
+    """Return {path: text} for every rendered playbook."""
+    tools = (PLAYBOOKS / "_tools.md").read_text(encoding="utf-8")
+    plugin_tools = re.sub(r"<!-- helper -->.*?<!-- /helper -->\n", PLUGIN_HELPER, tools, flags=re.S)
+    site_tools = re.sub(r"<!-- /?helper -->\n", "", tools)
+    out = {}
+    for src in sorted(PLAYBOOKS.glob("[!_]*.md")):
+        front, body = split_frontmatter(src.read_text(encoding="utf-8"))
+        name = src.stem
+        note = f"<!-- Generated from playbooks/{name}.md by tools/build.py. Edit the source, not this file. -->\n"
+        out[SITE_OUT / f"{name}.md"] = fill(body.replace("{{TOOLS}}", site_tools), vals)
+        out[SKILLS_OUT / name / "SKILL.md"] = (
+            f"---\n{front}\n---\n{note}\n" + fill(body.replace("{{TOOLS}}", plugin_tools), vals))
+    return out
+
+
+def main(check=False):
+    if check:  # verify only: never writes
+        info = json.loads((CLI_OUT / "latest.json").read_text(encoding="utf-8"))
+        cli_file, cli_sha = info["file"], info["sha256"]
+    else:
+        cli_file, cli_sha = release_cli()
+    rendered = render(values(cli_file, cli_sha))
+    stale = []
+    for path, text in rendered.items():
+        if check:
+            if not path.exists() or path.read_text(encoding="utf-8") != text:
+                stale.append(str(path.relative_to(ROOT)))
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
+                f.write(text)
+    if check and stale:
+        raise SystemExit("out of date (run make sync): " + ", ".join(stale))
+    print(f"cli {cli_file}  sha256 {cli_sha}  playbooks {len(rendered) // 2}")
+
+
+if __name__ == "__main__":
+    main(check="--check" in sys.argv)

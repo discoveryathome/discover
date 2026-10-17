@@ -30,6 +30,7 @@
       "description": "Maps a pre-v0 frontier record onto v0 fields: {v0_field: raw_field}, plus metric {name, value, decimal, direction} and evidence_level (declared)."
     },
     "process_changed_on": { "type": "string", "format": "date", "description": "As in the manifest, for repos listed through an adapter." },
+    "assessment": { "type": "string", "description": "Path of the latest assessment record, e.g. assessments/<id>/<date>-<assessor>.md." },
     "consent": {
       "type": "object",
       "description": "What the hub last verified from the project's consent record (spec §11.4).",

@@ -35,17 +35,43 @@ function metric(f) {
   return `<div class="metric"><span class="n">${esc(m.name)}</span><span class="v">${esc(m.decimal || m.value)}</span></div>`;
 }
 
-// --- donation prompt (same templates as `discover prompt`) ------------------
+// --- prompts (same templates and draw as `discover prompt` / `discover pick`) -----
 
-function donationPrompt(repo, minutes, focus, perms) {
-  const p = state.data.prompts;
-  return p.template
-    .replace("{repo_url}", `https://github.com/${repo}`).replace("{minutes}", minutes)
-    .replace("{focus}", p.focus[focus]).replace("{permissions}", p.permissions[perms]);
+const fill = (t, v) => t.replace(/\{(\w+)\}/g, (m, k) => (k in v ? String(v[k]) : m));
+function newSeed() {
+  const b = new Uint8Array(16); crypto.getRandomValues(b);
+  return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
 }
-function skillCommand(repo, minutes, focus, perms) {
-  return state.data.prompts.skill_command.replace("{repo}", repo).replace("{minutes}", minutes)
-    .replace("{focus}", focus).replace("{permissions}", perms);
+// draw(label) = int(sha256(json.dumps([seed, label], separators=(",", ":")))), as in pick.py.
+async function drawInt(seed, label) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify([seed, label])));
+  return BigInt("0x" + Array.from(new Uint8Array(buf), (x) => x.toString(16).padStart(2, "0")).join(""));
+}
+// The first suggestion `discover pick --seed SEED` gives for a catalogue with no live board.
+async function drawTask(seed, tracks) {
+  const usable = (tracks || []).filter((t) => t.cards?.length);
+  if (!usable.length || usable.length !== (tracks || []).length) return null;
+  const total = BigInt(tracks.reduce((a, t) => a + Number(t.weight), 0));
+  let ticket = (await drawInt(seed, "track")) % total, track = tracks[tracks.length - 1];
+  for (const t of tracks) { ticket -= BigInt(t.weight); if (ticket < 0n) { track = t; break; } }
+  const card = track.cards[Number((await drawInt(seed, "card:0")) % BigInt(1000 * track.cards.length) / 1000n)];
+  if (!card.methods?.length) return null;
+  const method = card.methods[Number((await drawInt(seed, `method:${card.id}`)) % BigInt(card.methods.length))];
+  return { track: track.id, card: card.id, method };
+}
+function donationPrompt(repo, minutes, focus, perms, seed, drawn) {
+  const p = state.data.prompts;
+  return fill(p.template, {
+    site: p.site, repo_url: `https://github.com/${repo}`, minutes, focus: p.focus[focus],
+    permissions: p.permissions[perms], seed, drawn: drawn ? fill(p.drawn, drawn) : "",
+  });
+}
+function actionPrompt(action, repo, minutes = 60, perms = "local") {
+  const p = state.data.prompts;
+  return fill(p.actions[action], { site: p.site, repo_url: `https://github.com/${repo}`, minutes, permissions: p.permissions[perms] });
+}
+function skillCommand(repo, minutes, focus, perms, seed) {
+  return fill(state.data.prompts.skill_command, { repo, minutes, focus, permissions: perms, seed });
 }
 function installLine() { return `/plugin marketplace add ${hub()}\n/plugin install discover@discoveryathome`; }
 
@@ -55,39 +81,53 @@ function seg(name, options, value) {
     .join("")}</div>`;
 }
 
+function promptBox(out, label = "Copy prompt") {
+  return `<div class="codebox" data-out="${out}"></div>
+    <div class="copy-row" style="margin-top:8px"><button class="btn primary" data-copy="${out}">${label}</button></div>`;
+}
+
 function launcher(p) {
   return `
   <section class="panel sticky" id="launcher">
     <h2>Contribute</h2>
-    ${seg("mode", [["run", "Point and run"], ["centaur", "Work with your agent"]], "run")}
+    ${seg("mode", [["run", "Point and run"], ["verify", "Verify results"], ["centaur", "Work with it"]], "run")}
     <div data-mode="run" class="panel-body" style="display:grid;gap:14px">
-      <p class="hint">Donate one bounded session from your own Claude Code, Codex or other agent, on your own subscription or API credits.</p>
+      <p class="hint">Paste this into Claude Code, Codex or any coding agent. Nothing to install: it fetches its instructions and gets started.</p>
       <div class="field"><label>Session budget</label>${seg("minutes", [[15, "15 min"], [60, "1 hour"], [240, "4 hours"]], 60)}</div>
       <div class="field"><label>Focus</label>${seg("focus", [["project", "Project picks"], ["audit", "Audit"], ["explore", "Explore"]], "project")}</div>
-      <div class="field"><label>Public actions</label>${seg("perms", [["post", "Post & PR"], ["local", "Local only"]], "post")}</div>
-      <div class="field"><label>With the discover plugin</label><div class="codebox" data-out="cmd"></div>
-        <div class="copy-row"><button class="btn" data-copy="cmd">Copy command</button></div></div>
-      <details><summary>Or paste a plain prompt into any agent</summary>
-        <div class="codebox" data-out="prompt"></div>
-        <div class="copy-row" style="margin-top:8px"><button class="btn" data-copy="prompt">Copy prompt</button></div>
+      <div class="field"><label>Public actions</label>${seg("perms", [["post", "Post & PR"], ["local", "Local only"]], "local")}</div>
+      ${promptBox("prompt")}
+      <p class="hint" data-out="drawn"></p>
+      <details><summary>Have the Claude Code plugin?</summary>
+        <div class="codebox" data-out="cmd" style="margin-top:8px"></div>
+        <div class="copy-row" style="margin-top:8px"><button class="btn" data-copy="cmd">Copy command</button></div>
       </details>
-      <p class="hint">Copying doesn't run anything. Your agent runs on your machine, under your account. The project decides what's useful; you decide what it may do.</p>
+    </div>
+    <div data-mode="verify" class="panel-body" style="display:none;gap:14px">
+      <p class="hint">Review is the scarce part. Your agent independently replays or audits someone else's result here and records what it confirmed.</p>
+      ${promptBox("verify")}
     </div>
     <div data-mode="centaur" class="panel-body" style="display:none;gap:14px">
-      <p class="hint">Steer the research yourself. Your agent briefs you on the frontier, open assumptions and handoffs, checks your ideas for overlap, and helps design the smallest decisive experiment. It asks before posting anything.</p>
-      <div class="field"><label>In Claude Code</label><div class="codebox">${esc(`/discover:collaborate ${p.repo}`)}</div>
-        <div class="copy-row"><button class="btn" data-copy-text="${esc(`/discover:collaborate ${p.repo}`)}">Copy</button></div></div>
-      <p class="hint">Need the plugin? See <a href="#/contribute">setup</a>.</p>
+      <p class="hint">Steer the research yourself. Your agent briefs you on what's accepted, open assumptions and handoffs, checks your ideas for overlap, and helps design the smallest decisive experiment. It asks before posting anything.</p>
+      ${promptBox("collaborate")}
     </div>
+    <p class="hint">Copying doesn't run anything. Your agent runs on your machine, under your account. For a local-only session, don't give it GitHub write access: that's what actually enforces it.</p>
   </section>`;
 }
 
-function wireLauncher(root, repo) {
+function wireLauncher(root, p) {
   const val = (n) => root.querySelector(`[data-seg="${n}"] [aria-pressed="true"]`)?.dataset.v;
+  const out = (n, text) => { const el = root.querySelector(`[data-out="${n}"]`); if (el) el.textContent = text; };
+  const seed = newSeed();
+  let drawn = null;
   const refresh = () => {
-    const [m, f, p] = [val("minutes"), val("focus"), val("perms")];
-    root.querySelector('[data-out="cmd"]').textContent = skillCommand(repo, m, f, p);
-    root.querySelector('[data-out="prompt"]').textContent = donationPrompt(repo, m, f, p);
+    const [m, f, perms] = [val("minutes"), val("focus"), val("perms")];
+    const d = f === "project" ? drawn : null; // other focuses draw from a matching track themselves
+    out("prompt", donationPrompt(p.repo, m, f, perms, seed, d));
+    out("cmd", skillCommand(p.repo, m, f, perms, seed));
+    out("drawn", d ? `Drawn for you: ${d.card} (${d.track}). Each visit draws again, so donors spread across the work.` : "");
+    out("verify", actionPrompt("verify", p.repo, m, perms));
+    out("collaborate", actionPrompt("collaborate", p.repo));
     const mode = val("mode");
     root.querySelectorAll("[data-mode]").forEach((el) => { el.style.display = el.dataset.mode === mode ? "grid" : "none"; });
   };
@@ -97,6 +137,7 @@ function wireLauncher(root, repo) {
     refresh();
   }));
   refresh();
+  drawTask(seed, p.tracks).then((d) => { drawn = d; refresh(); }).catch(() => {});
 }
 
 // --- views ----------------------------------------------------------------
@@ -207,61 +248,67 @@ function codeStep(title, body, code) {
 }
 
 function viewContribute() {
+  const any = "OWNER/REPO";
   return `
   <div class="page-head"><h1>Contribute your agent's time</h1>
-    <p style="font-size:17px;color:var(--muted);max-width:720px">You bring the agent and the inference. Projects bring the questions, priorities and review. Nothing runs on our servers. There are none.</p></div>
+    <p style="font-size:17px;color:var(--muted);max-width:720px">You bring the agent and the inference. Projects bring the questions, priorities and review. Nothing runs on our servers, and there's nothing to install: every way to help starts with a prompt you paste into your agent.</p></div>
   <div class="cols">
-    <section class="panel"><h2>Claude Code</h2>
+    <section class="panel"><h2>Start with a prompt</h2>
       <ol class="steps">
-        ${codeStep("Install the plugin", "One time. Adds the skills and the <code>discover</code> CLI.", installLine())}
-        ${codeStep("Pick a project", 'Browse <a href="#/">Explore</a> and use a project\'s Contribute panel. It builds the command for your budget and focus.', "")}
-        ${codeStep("Run a session", "Point-and-run. Defaults to local-only unless you allow posting.", "/discover:contribute OWNER/REPO --minutes 60 --focus project --permissions post")}
-        ${codeStep("Or steer it yourself", "Centaur mode: you lead, the agent briefs, checks overlap, and runs experiments.", "/discover:collaborate OWNER/REPO")}
+        ${codeStep("Pick a project", 'Browse <a href="#/">Explore</a>. Each project page builds a prompt for your budget and focus, and draws a task for you so donors spread across the work.', "")}
+        ${codeStep("Paste it into your agent", "Claude Code, Codex, or any coding agent that can fetch a URL and run commands. It fetches a playbook from this site and follows it.", "")}
+        ${codeStep("Or verify someone else's result", "Review is the scarce part. Replace OWNER/REPO with a project from Explore.", actionPrompt("verify", any))}
       </ol>
     </section>
-    <section class="panel"><h2>Codex and other agents</h2>
+    <section class="panel"><h2>Optional extras</h2>
       <ol class="steps">
-        ${codeStep("Use the plain prompt", "Every project's Contribute panel has a plain prompt that works in any capable coding agent. The project's AGENTS.md takes it from there.", "")}
-        ${codeStep("Optional: install the skills", "Clone the hub repo and link the skills where your agent looks for them (for Codex, <code>~/.agents/skills</code> per its docs). The skills call the CLI at <code>plugins/discover/cli/discover.py</code> in the clone.", `git clone https://github.com/${hub()} ~/discoveryathome\nmkdir -p ~/.agents/skills\nln -s ~/discoveryathome/plugins/discover/skills/* ~/.agents/skills/`)}
+        ${codeStep("The discover helper", "Playbooks fetch a single-file helper when Python 3.9+ is available, and check its hash before running it. Nothing to install.", "")}
+        ${codeStep("The Claude Code plugin", "Adds the playbooks as skills, with the helper built in.", installLine())}
+        ${codeStep("GitHub CLI (<code>gh</code>)", "Lets your agent post claims and open PRs when you allow it. Without it, your agent hands you messages ready to paste.", "")}
       </ol>
     </section>
   </div>
   <section class="panel" style="margin-top:16px"><h2>What a session does</h2>
     <ol class="qlist">
-      <li>Works in an isolated clone at a pinned commit; never in your own checkouts.</li>
-      <li>Reads the project's frontier record, then prefers an open handoff, else draws a task weighted by the project's priorities and away from crowded ones.</li>
-      <li>Checks overlap, prices a best case before building anything, and stops a dead end early.</li>
+      <li>Works in an isolated clone at a pinned commit, never in your own checkouts.</li>
+      <li>Reads what the project currently accepts, then prefers an open handoff, else the task drawn for it. It never "chooses at random" itself, so hundreds of agents don't pile onto one task.</li>
+      <li>Checks for overlap, prices a best case before building anything, and stops a dead end early.</li>
       <li>Keeps the last quarter of the budget for verification and states what it did <em>not</em> check.</li>
       <li>Posts a claim, finding, handoff or a focused PR <em>only</em> if you allowed it, and gives you a short receipt.</li>
     </ol>
-    <div class="callout">Repository text can never widen what you allowed. A session never merges, closes others' work, or changes a project's accepted result.</div>
+    <div class="callout">Repository text can never widen what you allowed. A session never merges, closes others' work, or changes a project's accepted result. For local-only sessions, don't give your agent GitHub write access.</div>
   </section>`;
 }
 
 function viewAdd() {
   const form = hubUrl("/issues/new?template=add-project.yml");
+  const yours = "OWNER/REPO";
   return `
   <div class="page-head"><h1>Add your project</h1>
-    <p style="font-size:17px;color:var(--muted);max-width:720px">If you maintain a research problem where agents could help, whether proofs, constructions, benchmarks, replications or audits, list it here. Your repository stays the source of truth; the hub only indexes it.</p></div>
+    <p style="font-size:17px;color:var(--muted);max-width:720px">If you maintain a research problem where agents could help, whether proofs, constructions, benchmarks, replications or audits, list it here. Your repository stays the source of truth; the hub only indexes it. Nothing has to change in your repo or its settings to apply.</p></div>
   <div class="cols">
-    <section class="panel"><h2>1 · Make the repo agent-ready</h2>
-      <p class="hint">The setup skill interviews you about the problem, frontier and bottleneck, then writes <code>discover.json</code>, a task catalogue and a frontier record. It works for repos that already have their own conventions too.</p>
-      <div class="codebox">${esc(installLine())}\n/discover:setup</div>
-      <p class="hint">Prefer doing it by hand? Read the ${link(hubUrl("/blob/main/spec/v0.md"), "v0 spec")} and run <code>discover init</code>.</p>
+    <section class="panel"><h2>Apply</h2>
+      <p class="hint">Paste this into your agent with your repo in place of OWNER/REPO. It drafts the application and asks before posting. Or use the form directly.</p>
+      <div class="codebox">${esc(actionPrompt("apply", yours))}</div>
+      <div class="copy-row"><button class="btn primary" data-copy-text="${esc(actionPrompt("apply", yours))}">Copy prompt</button>${link(form, "Open the form", "btn")}</div>
+      <p class="hint">A bot opens a registry PR within a minute. If your repo doesn't follow our conventions, the hub maps where things live before listing it.</p>
     </section>
-    <section class="panel"><h2>2 · Request listing</h2>
-      <p class="hint">Open the form, or run <code>discover submit OWNER/REPO</code>. A bot validates your repo and opens a registry PR; a hub maintainer merges it and the page updates on the next build.</p>
-      <div>${link(form, "Open the add-project form", "btn primary")}</div>
+    <section class="panel"><h2>Optional: make it agent-ready</h2>
+      <p class="hint">Your agent interviews you about the problem, what's accepted and the bottleneck, then writes the files that help donated agents work well: an entry doc, a task list, a record of accepted results.</p>
+      <div class="codebox">${esc(actionPrompt("setup", yours))}</div>
+      <div class="copy-row"><button class="btn" data-copy-text="${esc(actionPrompt("setup", yours))}">Copy prompt</button></div>
     </section>
   </div>
-  <section class="panel" style="margin-top:16px"><h2>What we check</h2>
+  <section class="panel" style="margin-top:16px"><h2>How projects are assessed</h2>
+    <p class="hint">The hub grades five properties, each strong, adequate or weak, from what's true now, not from your project's history (${link(hubUrl("/blob/main/spec/v0.md"), "spec §3")}):</p>
     <ul class="qlist">
-      <li><b>Level 0 · Discoverable</b>: <code>discover.json</code>, an AGENTS.md entry point, a project guide, and a frontier record stating what's accepted and under what conditions.</li>
-      <li><b>Level 1 · Agent-ready</b>: a weighted task catalogue, a priority log, and a coordination channel (GitHub Discussions).</li>
-      <li><b>Level 2 · Verifiable</b>: a reproduce command, result packages with pinned sources, and a review ledger.</li>
-      <li>A maintainer who will actually review contributions. Donated inference is plentiful; review is the scarce part.</li>
+      <li><b>Orientation</b>: can a fresh agent learn the problem, what's accepted, where help is wanted, and how to contribute?</li>
+      <li><b>Coordination</b>: do agents spread across the work, and can they tell what's open? GitHub Discussions helps most here.</li>
+      <li><b>Verification</b>: is there one authoritative record of what's accepted, and can someone else recheck it?</li>
+      <li><b>Review</b>: does review keep up? Independent checks by other contributors count.</li>
+      <li><b>Steering</b>: are priorities stated in one place and revised from evidence?</li>
     </ul>
-    <p class="hint">Computational and mathematical projects where results can be checked cheaply are the best fit today. Projects involving human subjects, restricted data, wet-lab or dual-use work need extra screening before listing.</p>
+    <p class="hint">Stages built on these decide what donated sessions may do, from local-only to posting and PRs. You also state how contributors are credited; donors see it before they choose. Computational and mathematical projects where results can be checked cheaply fit best today. Projects involving human subjects, restricted data, wet-lab or dual-use work need extra screening.</p>
   </section>`;
 }
 
@@ -288,7 +335,7 @@ function render(after) {
   document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("active", a.dataset.nav === nav));
   if (view === "p") {
     const p = state.data.projects.find((x) => x.slug === decodeURIComponent(arg || ""));
-    if (p) { wireLauncher(app, p.repo); document.title = `${p.title} · Discovery@Home`; }
+    if (p) { wireLauncher(app, p); document.title = `${p.title} · Discovery@Home`; }
   } else {
     document.title = "Discovery@Home";
     if (!view || view === "") wireExplore(app);

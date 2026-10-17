@@ -153,6 +153,38 @@ class RegistryTests(unittest.TestCase):
             self.assertEqual(entry["contact"], "someone")
 
 
+class BuildTests(unittest.TestCase):
+    """The published single-file CLI and rendered playbooks must match their sources."""
+
+    def setUp(self):
+        sys.path.insert(0, str(ROOT / "tools"))
+        import build
+        self.build = build
+        self.info = json.loads((ROOT / "site" / "cli" / "latest.json").read_text())
+        self.pyz = ROOT / "site" / "cli" / self.info["file"]
+
+    def test_cli_file_matches_source_and_hash(self):
+        self.assertEqual(self.build.read_members(self.pyz), self.build.cli_members(),
+                         "site/cli is stale: run make sync")
+        import hashlib
+        self.assertEqual(hashlib.sha256(self.pyz.read_bytes()).hexdigest(), self.info["sha256"])
+        self.assertTrue(self.info["file"].startswith("discover-" + self.info["sha256"][:12]))
+
+    def test_playbooks_rendered(self):
+        self.build.main(check=True)  # raises SystemExit if anything is stale
+
+    def test_playbooks_carry_the_hash(self):
+        text = (ROOT / "site" / "v0" / "contribute.md").read_text()
+        self.assertIn(self.info["sha256"], text)
+        self.assertNotIn("{{", text)
+
+    def test_single_file_cli_runs(self):
+        import subprocess
+        out = subprocess.run([sys.executable, str(self.pyz), "--version"], capture_output=True, text=True)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertTrue(out.stdout.startswith("discover "))
+
+
 class SourceTests(unittest.TestCase):
     def test_project_in_subdirectory(self):
         with tempfile.TemporaryDirectory() as d:

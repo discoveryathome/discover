@@ -21,7 +21,8 @@ PROJECT_DOC = """\
 **Start here if you were told to contribute without a specific task.** Aim for one useful,
 independently reviewable result in the time available (default {minutes} minutes).
 The generic session procedure (refresh, orient, choose, bound, verify, hand off) comes from
-the Discovery@Home `contribute` skill; this file holds only what is specific to this project.
+the Discovery@Home playbooks (https://github.com/discoveryathome/discover/tree/main/playbooks);
+this file holds only what is specific to this project.
 
 ## The problem
 
@@ -53,7 +54,17 @@ hypothesis that would have to change to reopen each one.
 ## Verification
 
 TODO: what counts as evidence here, how to reproduce the frontier, and what checks are
-expected before a PR.
+expected before a PR. Say whether independent verification by other contributors counts
+toward acceptance, and how many such checks you want.
+
+## Coordination
+
+TODO: where to post claims, findings and handoffs (GitHub Discussions is recommended).
+
+## Credit
+
+TODO: how contributors are credited (co-authorship, acknowledgements, a contributors file,
+citation). Also state it as `credit` in `discover.json`.
 """
 
 PRIORITY_LOG = """\
@@ -85,7 +96,7 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
     today = date.today().isoformat()
     paths = {"frontier": "discover/frontier.json", "catalog": "discover/catalog.json",
              "priority_log": "discover/priority-log.md", "ledger": "discover/ledger.md"}
-    entry_project = "autoresearch.md"
+    entry_project = "DISCOVERY.md"
     maint = {"name": maintainer}
     if github:
         maint["github"] = github
@@ -143,7 +154,8 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
             skipped.append(rel)
             continue
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(text, encoding="utf-8", newline="\n")
+        with open(p, "w", encoding="utf-8", newline="\n") as f:  # LF on every OS; works on 3.9
+            f.write(text)
         created.append(rel)
     snippet = AGENTS_SNIPPET.format(project=entry_project, frontier=paths["frontier"])
     agents = root / "AGENTS.md"
@@ -153,7 +165,8 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
         else:
             snippet = None
     else:
-        agents.write_text("# Agent entry point\n\n" + snippet, encoding="utf-8", newline="\n")
+        with open(agents, "w", encoding="utf-8", newline="\n") as f:
+            f.write("# Agent entry point\n\n" + snippet)
         created.append("AGENTS.md")
         snippet = None
     return {"created": created, "skipped": skipped, "agents_snippet": snippet}

@@ -50,7 +50,8 @@ def project_summary(slug, entry, report, board=None):
         out["priority_revision"] = cat.get("priority_revision")
         out["assessed_on"] = cat.get("assessed_on")
         out["tracks"] = [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome"),
-                          "cards": [{"id": c["id"], "question": c["question"]} for c in t.get("tasks", [])]}
+                          "cards": [{"id": c["id"], "question": c["question"], "methods": c.get("methods", [])}
+                                    for c in t.get("tasks", [])]}
                          for t in cat.get("tracks", [])]
     if board:
         out["board"] = {
@@ -61,6 +62,15 @@ def project_summary(slug, entry, report, board=None):
             "recent_done": sum(board["recent_done_by_task"].values()),
         }
     return out
+
+
+def site_url(registry_dir):
+    """The hub's website from hub.json next to the registry, else the configured default."""
+    hub_json = Path(registry_dir).resolve().parent.parent / "hub.json"
+    try:
+        return json.loads(hub_json.read_text(encoding="utf-8"))["website"].rstrip("/") + "/"
+    except (OSError, ValueError, KeyError):
+        return None
 
 
 def build(registry_dir, out_path, with_board=False, log=sys.stderr):
@@ -93,7 +103,7 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
         print(f"ok {slug}: level {report['level']}", file=log)
     data = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "hub_repo": HUB_REPO, "projects": projects, "problems": problems,
-            "prompts": templates()}
+            "prompts": templates(site_url(registry_dir))}
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

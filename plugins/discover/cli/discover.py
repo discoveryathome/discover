@@ -3,8 +3,8 @@
 import sys
 from pathlib import Path
 
-if sys.version_info < (3, 10):
-    sys.exit("discover needs Python 3.10 or later")
+if sys.version_info < (3, 9):
+    sys.exit("discover needs Python 3.9 or later")
 for stream in (sys.stdout, sys.stderr):  # never crash on non-UTF-8 consoles (e.g. Windows cp1252)
     try:
         stream.reconfigure(errors="backslashreplace")

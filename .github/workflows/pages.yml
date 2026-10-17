@@ -5,7 +5,7 @@ name: Explore page
 on:
   push:
     branches: [main]
-    paths: ["site/**", "registry/**", "hub.json", "plugins/discover/cli/**", "spec/schemas/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "registry/**", "hub.json", "playbooks/**", "plugins/discover/cli/**", "spec/schemas/**", ".github/workflows/pages.yml"]
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:

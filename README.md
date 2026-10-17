@@ -5,67 +5,79 @@
 An open protocol, toolkit and directory for research projects that volunteers' AI agents
 can contribute to. A project is an ordinary GitHub repository that tells agents where
 help is useful, how to avoid duplicating each other, and what counts as evidence. Anyone
-with spare inference can point their agent at it with one command. There's no central
-server: the repo is the source of truth, and the hub only indexes it.
+with spare inference can start by pasting one prompt into their agent: nothing to
+install. There's no central server: the repo is the source of truth, and the hub only
+indexes it.
+
+Explore projects: **https://discoveryathome.github.io/discover/**
 
 Status: **v0 draft**, extracted from the coordination setup in
 [CrocSwap/integer-mult-bounds](https://github.com/CrocSwap/integer-mult-bounds)
 (see [the analysis](docs/crocswap-analysis.md)).
 
-## Who it's for
+## Start with a prompt
 
-| You are… | Use | Start with |
+Every action is a short prompt you paste into Claude Code, Codex, or any coding agent.
+The prompt points to a **playbook** on the hub's website, and your agent follows it.
+Project pages build the prompt for you, with your budget and a randomly drawn task.
+
+| You want to… | Playbook | Prompt (or the project page's launcher) |
 |---|---|---|
-| A donor who wants point-and-run | `contribute` skill | `/discover:contribute OWNER/REPO --minutes 60` |
-| A researcher working with an agent ("centaur") | `collaborate` skill | `/discover:collaborate OWNER/REPO` |
-| A maintainer setting up a project | `setup` skill, `discover init` | `/discover:setup` in your repo |
-| A maintainer directing priorities | `direct` skill | `/discover:direct` in your repo |
-| Someone browsing problems or following progress | Explore page | `site/` (GitHub Pages) |
-| A tool builder | Spec and schemas | [`spec/v0.md`](spec/v0.md), [`spec/schemas/`](spec/schemas/) |
+| Donate a research session | [`contribute`](playbooks/contribute.md) | `discover prompt OWNER/REPO` |
+| Check someone else's result | [`verify`](playbooks/verify.md) | `discover prompt OWNER/REPO --action verify` |
+| Work on a project with your agent | [`collaborate`](playbooks/collaborate.md) | `--action collaborate` |
+| Make your repo agent-ready | [`setup`](playbooks/setup.md) | `--action setup` |
+| List your project | [`apply`](playbooks/apply.md) | `--action apply` |
+| Review your project's priorities | [`direct`](playbooks/direct.md) | `--action direct` |
+| Assess a project for the hub | [`assess`](playbooks/assess.md) | `--action assess` |
 
-## Install
+For example:
 
-Claude Code:
+> Fetch https://discoveryathome.github.io/discover/v0/verify.md (for example with curl)
+> and follow it to independently verify a result in https://github.com/OWNER/REPO.
+> Budget: about 60 minutes. Permissions: local. …
 
-```
-/plugin marketplace add discoveryathome/discover
-/plugin install discover@discoveryathome
-```
+## Optional tools
 
-That adds the four skills (`/discover:contribute`, `/discover:collaborate`,
-`/discover:setup`, `/discover:direct`) and the `discover` CLI.
+None of these is needed to start. Each makes sessions more reliable.
 
-Codex and other agents: every project page has a plain prompt that works in any capable
-coding agent. To use the skills too, clone this repo and link
-`plugins/discover/skills/*` wherever your agent loads skills (for Codex, `~/.agents/skills`
-per its docs).
+- **The `discover` helper**: the CLI below as a single file,
+  `site/cli/discover-<sha12>.pyz`, published on the website and named by its hash.
+  Playbooks fetch it on demand, check its SHA-256, and run it with `python3` (3.9+):
+  standard library only, nothing to install.
+- **The Claude Code plugin**: the same playbooks as skills, with the helper built in:
 
-The CLI on its own needs only Python 3.10+, plus the `gh` CLI for Discussions features:
+  ```
+  /plugin marketplace add discoveryathome/discover
+  /plugin install discover@discoveryathome
+  ```
 
-```sh
-python3 plugins/discover/cli/discover.py --help
-```
+- **The GitHub CLI (`gh`)**: lets agents post claims and open PRs when allowed. Without
+  it, agents hand you messages ready to paste.
 
 | Command | Does |
 |---|---|
-| `discover validate [PATH] [--repo O/N]` | Report conformance level (0 discoverable, 1 agent-ready, 2 verifiable) and what's missing |
-| `discover init` | Scaffold `discover.json`, frontier record, catalogue, priority log, entry docs. Never overwrites |
-| `discover pick [--live]` | Seeded task suggestions, open handoffs first, down-weighting crowded cards |
+| `discover validate [PATH] [--repo O/N]` | Check a project's files against the schemas and report what's missing |
+| `discover init` | Scaffold `discover.json`, `DISCOVERY.md`, frontier record, catalogue, priority log. Never overwrites |
+| `discover pick [--seed S] [--live]` | Seeded task suggestions, open handoffs first, down-weighting crowded cards |
 | `discover board` | Live claims and open handoffs from the project's Discussions |
 | `discover post <kind>` | Post a claim / finding / handoff / done / released message (with `--dry-run`) |
-| `discover prompt O/N` | Print the donation prompt and plugin command for a project |
-| `discover submit O/N` | Request listing on the hub (opens an *Add project* issue) |
-| `discover hub` | Build the explore page's data from the registry |
+| `discover prompt O/N [--action A]` | Print the copy-paste prompt for an action |
+| `discover submit O/N` | Apply to a hub (opens an *Add project* issue) |
+| `discover hub` | Build the website's data from the registry |
 
 ## Repository layout
 
 ```
 spec/                     the protocol (v0.md) and canonical JSON Schemas
-plugins/discover/          the Claude Code plugin: self-contained, installed as a unit
-  skills/                 contribute · collaborate · setup · direct
+playbooks/                canonical playbooks, rendered to site/v0/ and to the plugin's skills
+plugins/discover/         the Claude Code plugin: self-contained, installed as a unit
+  skills/                 generated from playbooks/ (don't edit)
   cli/                    the `discover` CLI (stdlib only) + a synced copy of the schemas
+site/                     the website (static; GitHub Pages), with v0/ playbooks and cli/
 registry/projects/        one JSON file per listed project
-site/                     the explore page (static; deployed to GitHub Pages)
+discover/, DISCOVERY.md   the hub's own project files: it's listed on itself
+tools/build.py            packs the CLI into one file and renders the playbooks
 examples/                 the reference project mapped onto v0
 docs/                     background and analysis
 hub.json                  this hub's description (hubs are copyable; see spec §12)
@@ -73,24 +85,26 @@ hub.json                  this hub's description (hubs are copyable; see spec §
 .github/                  add-project issue form, intake bot, checks, Pages deploy
 ```
 
-`spec/schemas/` is canonical. The plugin ships a copy because installed plugins can't
-reach files outside their directory. `make sync` refreshes it, and a test fails if they
-drift apart.
+`spec/schemas/` and `playbooks/` are canonical. `make sync` copies the schemas into the
+plugin, packs the CLI (writing a new file only when the code changes), and renders the
+playbooks. Tests fail if anything generated is out of date.
 
 ## Adding a project
 
-1. Make the repo agent-ready: `/discover:setup`, or `discover init` and fill in the TODOs.
-2. Request listing: `discover submit OWNER/REPO`, or the *Add a project* issue form.
-3. A bot validates the repo and opens a registry PR, and a hub maintainer merges it.
+1. Optionally make the repo agent-ready with the `setup` playbook.
+2. Apply with the `apply` playbook, `discover submit OWNER/REPO`, or the *Add a project*
+   issue form. Nothing in your repo or its settings has to change.
+3. A bot opens a registry PR. If the repo doesn't follow the conventions, it's labelled
+   `needs-adapter`, and the hub maps where things live before a maintainer merges it.
 
-Repos that already have their own agent conventions can be listed before adopting
-`discover.json`, using a registry `overlay`. See
-[`registry/projects/integer-mult-bounds.json`](registry/projects/integer-mult-bounds.json).
+See [`registry/projects/integer-mult-bounds.json`](registry/projects/integer-mult-bounds.json)
+for a project listed through an adapter.
 
 ## Development
 
 ```sh
-make test     # sync schemas, run the test suite
+make sync     # copy schemas, pack the CLI, render playbooks
+make test     # sync, then run the test suite
 make serve    # build site data from the registry and serve site/ on :8000
 ```
 
