@@ -5,7 +5,7 @@
     }
   ],
   "added_on": "2026-10-17",
-  "intake": "https://github.com/discoveryathome/discover/issues/18",
+  "intake": "https://github.com/discoveryathome/discover/issues/20",
   "nomination": {
     "by": "Mister-Meeseeks",
     "on": "2026-10-17",
@@ -35,7 +35,7 @@
   "overlay": {
     "schema": "discover/v0",
     "title": "Applied butterfly multiplication",
-    "summary": "Turning integer-multiplication theory into measured, exactly checked speedups of complete operations in FLINT: so far about 3% for large-integer squaring, 4–15% for polynomial matrix products and 4–9% for theta evaluation, on one Apple M2.",
+    "summary": "Turning integer-multiplication theory into measured, exactly checked speedups of complete operations in FLINT: so far about 3% for large-integer squaring, 4\u201315% for polynomial matrix products and 4\u20139% for theta evaluation, on one Apple M2.",
     "domains": [
       "math",
       "algorithms",
@@ -53,5 +53,12 @@
       "project": "docs/project-plan.md"
     },
     "verification_profile": "benchmark"
-  }
+  },
+  "consent": {
+    "source": "application",
+    "checked_on": "2026-10-17",
+    "list": true,
+    "push": []
+  },
+  "contact": "Mister-Meeseeks"
 }
