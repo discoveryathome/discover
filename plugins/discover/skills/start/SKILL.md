@@ -44,6 +44,14 @@ Don't download it.
 drafts) inside one folder under `~/discover-work/` named for the project and the task,
 never loose at the top level, so the person can see and delete it in one place.
 
+**Disk and machine.** Research repos and builds can be large: one listed project's
+checkout is several GB, and a library build can add more. Before cloning or building,
+check free space (`df -h ~`). Prefer a shallow clone (`git clone --depth 1`) unless you
+need history. Ask the person before anything that will use more than about 2 GB or run a
+build longer than a few minutes, and don't start one with less than 10 GB free. When you
+finish, say how much space your session folder uses. Timing measurements are unreliable
+while other heavy work runs on the machine; say so if they did.
+
 **Messages.** In a project that follows the protocol (it has `discover.json`, or its docs
 say so), every claim, finding, handoff, done or released message, whether you post it or
 leave it ready to paste, is prose that **ends with one fenced `discover` JSON block**, so
