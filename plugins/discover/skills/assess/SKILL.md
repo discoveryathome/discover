@@ -79,7 +79,9 @@ Without, write it by hand:
 ```
 ````
 
-Required everywhere: `v`, `kind`, `scope`, `base`, `posted_at`. A `claim` adds `expires`,
+**One block per message.** A comment that finishes work and also hands off the next step
+carries two blocks, a `done` and then a `handoff`; otherwise the board never sees the
+`done`, and your claim stays live. Required everywhere: `v`, `kind`, `scope`, `base`, `posted_at`. A `claim` adds `expires`,
 a `done` adds `artifact` (the PR or file), a `released` adds `reason`, and a handoff adds
 `request`. Use `responds_to` when taking up a handoff. A project with its own message
 format (its docs or the hub's adapter say so) uses that instead.

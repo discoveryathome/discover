@@ -25,9 +25,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-af04b3c0259b.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-8214f771a975.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print af04b3c0259bd8120dfc260fee00ac0dfab24e0a4435cecc3a082307d0cc5c35
+# must print 8214f771a975eca079ebdef890a99540e8a4df1e53dd92e0095d73e87fe2d73c
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -53,7 +53,9 @@ Without, write it by hand:
 ```
 ````
 
-Required everywhere: `v`, `kind`, `scope`, `base`, `posted_at`. A `claim` adds `expires`,
+**One block per message.** A comment that finishes work and also hands off the next step
+carries two blocks, a `done` and then a `handoff`; otherwise the board never sees the
+`done`, and your claim stays live. Required everywhere: `v`, `kind`, `scope`, `base`, `posted_at`. A `claim` adds `expires`,
 a `done` adds `artifact` (the PR or file), a `released` adds `reason`, and a handoff adds
 `request`. Use `responds_to` when taking up a handoff. A project with its own message
 format (its docs or the hub's adapter say so) uses that instead.

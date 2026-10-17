@@ -154,6 +154,22 @@ class BoardTests(unittest.TestCase):
         self.assertEqual(s["recent_done_by_task"], {"u": 1})
 
 
+class MultiBlockTests(unittest.TestCase):
+    def test_a_post_can_carry_a_done_and_a_handoff(self):
+        base = {"v": 0, "task": "t", "base": "abc1234", "posted_at": "2026-01-01T00:00:00Z"}
+        claim = {**base, "kind": "claim", "scope": "s", "expires": "2099-01-01T00:00:00Z"}
+        done = {**base, "kind": "done", "scope": "s", "artifact": "PR #1"}
+        hand = {**base, "kind": "handoff", "scope": "next", "request": {"question": "q", "first_step": "f"}}
+        posts = [{"url": "u1", "author": "a", "created_at": "2026-01-01T00:00:00Z", "body": board.render(claim)},
+                 {"url": "u2", "author": "a", "created_at": "2026-01-01T00:10:00Z",
+                  "body": board.render(done, "finished") + board.render(hand)}]
+        msgs, bad = board.messages(posts)
+        self.assertEqual(([m["kind"] for m in msgs], bad), (["claim", "done", "handoff"], []))
+        s = board.state(msgs)
+        self.assertEqual(s["live_claims"], [])
+        self.assertEqual([h["_url"] for h in s["open_handoffs"]], ["u2"])
+
+
 class RegistryTests(unittest.TestCase):
     def test_issue_form_to_entry(self):
         body = ("### Repository\n\nhttps://github.com/Some-Org/My.Repo\n\n"

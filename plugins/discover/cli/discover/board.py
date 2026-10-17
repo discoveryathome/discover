@@ -35,6 +35,20 @@ def extract(body):
     return payload, schema.check("message.schema.json", payload)
 
 
+def extract_all(body):
+    """Every discover block in a post, as [(payload, problems)]. A post may carry several
+    messages, e.g. a done for the finished work and a handoff for what's next."""
+    out = []
+    for block in FENCE.findall(body or ""):
+        try:
+            payload = json.loads(block)
+        except json.JSONDecodeError as e:
+            out.append((None, [f"invalid JSON in discover block: {e}"]))
+            continue
+        out.append((payload, schema.check("message.schema.json", payload)))
+    return out
+
+
 def render(payload, prose=""):
     """A post body: human prose followed by the machine-readable block."""
     block = json.dumps(payload, indent=2, ensure_ascii=False)
@@ -119,13 +133,11 @@ def messages(posts):
     """Valid protocol messages, oldest first, plus a list of malformed posts."""
     good, bad = [], []
     for p in posts:
-        payload, problems = extract(p["body"])
-        if payload is None and not problems:
-            continue
-        if problems:
-            bad.append({"url": p["url"], "problems": problems})
-            continue
-        good.append({**payload, "_url": p["url"], "_author": p["author"], "_created": p["created_at"]})
+        for payload, problems in extract_all(p["body"]):
+            if problems:
+                bad.append({"url": p["url"], "problems": problems})
+                continue
+            good.append({**payload, "_url": p["url"], "_author": p["author"], "_created": p["created_at"]})
     good.sort(key=lambda m: m["_created"])
     return good, bad
 
