@@ -15,5 +15,14 @@
       "suggestions",
       "prs"
     ]
+  },
+  "assessment": "assessments/discovery-at-home/2026-10-17-claude-reassess.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "adequate",
+    "coordination": "adequate",
+    "verification": "weak",
+    "review": "unknown",
+    "steering": "adequate"
   }
 }
