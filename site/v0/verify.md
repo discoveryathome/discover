@@ -115,7 +115,10 @@ how many independent checks maintainers want before accepting a result.
 2. Otherwise, a result package or open PR **with no independent verification yet**,
    preferring ones maintainers have flagged as needing it, then the oldest. Packages
    usually live under `research/`; verifications under each package's
-   `verifications/` folder.
+   `verifications/` folder. Checks of the frontier record itself live in a
+   `verifications/` folder beside it (`discover/verifications/` by default), so look
+   there too before choosing: a result someone has already checked needs a different
+   check, or a second independent one, not the same one again.
 3. If several are equally good, choose among them with the randomness rules above.
 
 **You must be independent:** don't verify work you or your operator co-authored. Check
@@ -139,7 +142,10 @@ Compare against what the package claims, not what you expect. Note everything yo
 
 ## 4. Record the outcome
 
-Write `research/<package>/verifications/<YYYY-MM-DD>-<your-handle>.json`:
+Write `research/<package>/verifications/<YYYY-MM-DD>-<your-handle>.json`, or, for a check
+of the frontier record or anything outside a package,
+`discover/verifications/<YYYY-MM-DD>-<your-handle>.json` (the `verifications/` folder beside
+the frontier record):
 
 ```json
 {
