@@ -230,7 +230,9 @@ class BuildTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             init.scaffold(d, "T", "S", ["math"], "M", "o/r")
             for args in (["validate", d], ["pick", d, "--seed", "0" * 32]):
-                out = subprocess.run([sys.executable, "-I", str(self.pyz), *args], capture_output=True, text=True, cwd=d)
+                env = {**__import__("os").environ, "PYTHONIOENCODING": "cp1252"}  # a Windows console
+                out = subprocess.run([sys.executable, "-I", str(self.pyz), *args], capture_output=True, text=True,
+                                     encoding="utf-8", errors="replace", cwd=d, env=env)
                 self.assertEqual(out.returncode, 0, out.stderr)
 
 

@@ -266,6 +266,10 @@ def cmd_submit(a):
 
 
 def main(argv=None):
+    # Windows consoles often can't encode characters like "→"; degrade them rather than crash.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
     p = argparse.ArgumentParser(prog="discover", description=__doc__)
     p.add_argument("--version", action="version", version=f"discover {__version__}")
     sub = p.add_subparsers(dest="cmd", required=True)
