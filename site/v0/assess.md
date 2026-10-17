@@ -54,9 +54,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-01f31a6cca76.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-e9a40155da25.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 01f31a6cca76cadd0b8298640832cdc107be3d898d5bd339d729faedc9cfaefc
+# must print e9a40155da25f84eee360d298559e389b80d7391c3740969e0c19e0f0ea94ac8
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -181,10 +181,9 @@ If the intake issue (the entry's `intake`) states a credit policy the repo doesn
 into the entry's `credit` so the listing shows it, and quote where it came from in the
 assessment.
 
-For a `needs-adapter` entry, write the project's **adapter** (spec §12.5):
-`adapters/<project-id>.md`, and set the entry's `adapter` to it. It's written for donors'
-agents, who fetch it from the prompt, so make it a short page they can act on.
-`adapters/integer-mult-bounds.md` is a worked example.
+For a `needs-adapter` entry, write the project's **adapter** by following the **adapt**
+playbook (https://discoveryathome.github.io/discover/v0/adapt.md) in hub mode: `adapters/<project-id>.md`, with the entry's
+`adapter` set to it. In short, the rules it applies:
 
 - **Say what it is up front:** written by the hub, not the maintainers; describes the
   repo as of a stated commit; the repository wins where they disagree.

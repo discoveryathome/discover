@@ -278,6 +278,36 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(adapter.parse(one)[1], [])
         self.assertIsNone(adapter.parse(one + one)[0])
 
+    def test_adapter_check_reads_the_repo_at_as_of(self):
+        import io, contextlib, subprocess
+        with tempfile.TemporaryDirectory() as d:
+            git = lambda *a: subprocess.run(["git", "-C", d, *a], capture_output=True, text=True, check=True).stdout.strip()
+            git("init", "-q"); git("config", "user.email", "t@t"); git("config", "user.name", "t")
+            (Path(d) / "README.md").write_text("x"); (Path(d) / "notes").mkdir(); (Path(d) / "notes" / "a.md").write_text("a")
+            git("add", "-A"); git("commit", "-qm", "one")
+            as_of = git("rev-parse", "HEAD")
+            block = {"schema": "discover-adapter/v0", "project": "p", "repo": "o/p",
+                     "as_of": {"commit": as_of, "date": "2026-01-01"}, "paths": ["README.md", "notes/a.md"],
+                     "manifest": {"schema": "discover/v0", "title": "P", "summary": "S", "domains": ["m"],
+                                  "maintainers": [{"name": "x"}], "canonical_repo": "https://github.com/o/p",
+                                  "entry": {"agents": "README.md", "project": "README.md"}}}
+            f = Path(d) / "adapter.md"
+            write = lambda b: f.write_text("# A\n\n```discover-adapter\n" + json.dumps(b) + "\n```\n")
+            run = lambda: (lambda buf: (main(["adapter-check", str(f), "--path", d]), buf))(io.StringIO())
+            write(block)
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                self.assertEqual(main(["adapter-check", str(f), "--path", d]), 0)
+            self.assertIn("no listed path changed", buf.getvalue())
+            (Path(d) / "notes" / "a.md").write_text("b"); git("commit", "-qam", "two")
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                self.assertEqual(main(["adapter-check", str(f), "--path", d]), 0)
+            self.assertIn("changed since as_of: notes/a.md", buf.getvalue())
+            write({**block, "paths": ["README.md", "missing.md"]})
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(["adapter-check", str(f), "--path", d]), 1)
+
     def test_prompts_link_the_adapter(self):
         from discover import prompt
         url = "https://h/adapters/p.md"

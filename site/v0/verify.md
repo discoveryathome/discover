@@ -24,9 +24,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-01f31a6cca76.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-e9a40155da25.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 01f31a6cca76cadd0b8298640832cdc107be3d898d5bd339d729faedc9cfaefc
+# must print e9a40155da25f84eee360d298559e389b80d7391c3740969e0c19e0f0ea94ac8
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`

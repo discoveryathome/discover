@@ -121,10 +121,9 @@ If the intake issue (the entry's `intake`) states a credit policy the repo doesn
 into the entry's `credit` so the listing shows it, and quote where it came from in the
 assessment.
 
-For a `needs-adapter` entry, write the project's **adapter** (spec §12.5):
-`adapters/<project-id>.md`, and set the entry's `adapter` to it. It's written for donors'
-agents, who fetch it from the prompt, so make it a short page they can act on.
-`adapters/integer-mult-bounds.md` is a worked example.
+For a `needs-adapter` entry, write the project's **adapter** by following the **adapt**
+playbook ({{SITE}}v0/adapt.md) in hub mode: `adapters/<project-id>.md`, with the entry's
+`adapter` set to it. In short, the rules it applies:
 
 - **Say what it is up front:** written by the hub, not the maintainers; describes the
   repo as of a stated commit; the repository wins where they disagree.

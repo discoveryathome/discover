@@ -37,6 +37,7 @@ ACTIONS = {
     "setup": "Fetch {site}v0/setup.md (for example with curl) and follow it to help me make my repository agent-ready for Discovery@Home. Ask before pushing, opening PRs or changing settings.",
     "apply": "Fetch {site}v0/apply.md (for example with curl) and follow it to apply to list my project {repo_url} on the Discovery@Home hub. Ask before posting anything.",
     "direct": "Fetch {site}v0/direct.md (for example with curl) and follow it to review priorities for my project {repo_url}. Propose one revision; ask before merging or posting.",
+    "adapt": "Fetch {site}v0/adapt.md (for example with curl) and follow it in local mode to write the hub's adapter for {repo_url}. Read-only toward that project: never post to it or contact its maintainers.",
     "assess": "Fetch {site}v0/assess.md (for example with curl) and follow it to assess {repo_url} for the hub. Read-only toward that project: never post to it or contact its maintainers.",
 }
 

@@ -275,6 +275,63 @@ def cmd_submit(a):
     return 0
 
 
+def cmd_adapter_check(a):
+    import subprocess
+    from . import adapter as adaptermod
+    text = Path(a.file).read_text(encoding="utf-8")
+    block, _ = adaptermod.parse(text)
+    repo = a.repo or (block or {}).get("repo")
+    if a.path:
+        def at(commit):
+            return GitSource(a.path, commit)
+
+        def changed(commit, paths):
+            out = subprocess.run(["git", "-C", a.path, "diff", "--name-only", f"{commit}..HEAD", "--", *paths],
+                                 capture_output=True, text=True)
+            return out.stdout.split() if out.returncode == 0 else None
+    else:
+        def at(commit):
+            return Source(repo=parse_repo(repo), ref=commit or "HEAD")
+        changed = None
+    r = adaptermod.check(text, at, changed)
+    emit(r, a.json, adaptermod.format_check)
+    return 1 if r["problems"] else 0
+
+
+class GitSource(Source):
+    """A local clone read at a commit, without checking it out."""
+
+    def __init__(self, path, commit):
+        super().__init__(local=path)
+        self.commit = commit or "HEAD"
+
+    def describe(self):
+        return f"{self.local}@{self.commit[:12]}"
+
+    def read(self, path):
+        import subprocess
+        out = subprocess.run(["git", "-C", str(self.local), "show", f"{self.commit}:{self._p(path)}"],
+                             capture_output=True)
+        return out.stdout.decode("utf-8", "replace") if out.returncode == 0 else None
+
+    def exists(self, path):
+        import glob as globmod
+        import subprocess
+        p = self._p(path)
+        if any(c in p for c in "*?["):
+            out = subprocess.run(["git", "-C", str(self.local), "ls-tree", "-r", "-d", "--name-only", self.commit],
+                                 capture_output=True, text=True)
+            import fnmatch
+            pat = p.rstrip("/")
+            return any(fnmatch.fnmatch(d, pat) for d in out.stdout.split())
+        out = subprocess.run(["git", "-C", str(self.local), "cat-file", "-e", f"{self.commit}:{p.rstrip('/')}"],
+                             capture_output=True)
+        return out.returncode == 0
+
+    def last_modified(self, path):
+        return None
+
+
 def main(argv=None):
     # Windows consoles often can't encode characters like "→"; degrade them rather than crash.
     for stream in (sys.stdout, sys.stderr):
@@ -391,6 +448,13 @@ def main(argv=None):
     s.add_argument("--hub", default=__import__("discover").HUB_REPO)
     s.add_argument("--dry-run", action="store_true")
     s.set_defaults(func=cmd_submit)
+
+    ac = sub.add_parser("adapter-check", help="check an adapter file against the repo it describes")
+    ac.add_argument("file")
+    ac.add_argument("--path", help="a local clone of the repo (reads it at the adapter's as_of commit)")
+    ac.add_argument("--repo", help="owner/name, if not the adapter's own")
+    ac.add_argument("--json", action="store_true")
+    ac.set_defaults(func=cmd_adapter_check)
 
     a = p.parse_args(argv)
     a.path_given = "path" in a and a.path != "."
