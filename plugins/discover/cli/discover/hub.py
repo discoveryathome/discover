@@ -5,6 +5,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from . import adapter as adaptermod
 from . import board as boardmod
 from . import schema
 from .project import Source
@@ -16,7 +17,7 @@ from .validate import catalogued, validate
 def consent_record(source, report, hub):
     """This hub's line in the project's own consent record (spec §11.4), or None.
 
-    Read from the repo only: a registry overlay is written by the hub and proves nothing.
+    Read from the repo only: the hub writes adapters, so they prove nothing.
     """
     hubs = None
     if report.get("manifest_origin") == "discover.json":
@@ -42,7 +43,7 @@ def listing_state(entry, record):
     return "nominated"
 
 
-def project_summary(slug, entry, report, board=None, listing="listed"):
+def project_summary(slug, entry, report, board=None, listing="listed", site=None):
     m = report.get("manifest") or {}
     home = entry["repos"][0]
     repo = home["repo"]
@@ -69,6 +70,8 @@ def project_summary(slug, entry, report, board=None, listing="listed"):
                          **{k: f"https://github.com/{repo}/discussions/{n}" for k, n in threads.items()}}
                         if (m.get("coordination") or {}).get("transport") in (None, "github-discussions")
                         and m.get("coordination") else {}),
+        "adapter_url": f"{site}{entry['adapter']}" if entry.get("adapter") and site else None,
+        "picker": bool(m.get("picker")),
         "assessment_url": (f"https://github.com/{HUB_REPO}/blob/main/{entry['assessment']}"
                            if entry.get("assessment") else None),
         "session_minutes": (m.get("session") or {}).get("default_minutes", 60),
@@ -122,8 +125,13 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             print(f"skip {slug}: {errs}", file=log)
             continue
         source = Source.from_entry(entry)
+        overlay, fadapter, _, aprobs = adaptermod.for_entry(entry, registry_dir.resolve().parent.parent)
+        if aprobs:
+            problems.append({"slug": slug, "errors": aprobs})
+            print(f"skip {slug}: {aprobs}", file=log)
+            continue
         try:
-            report = validate(source, entry.get("overlay"), entry.get("frontier_adapter"), catalogued(entry))
+            report = validate(source, overlay, fadapter, catalogued(entry))
         except Exception as e:  # network, JSON, etc. Keep building the rest.
             problems.append({"slug": slug, "errors": [f"{type(e).__name__}: {e}"]})
             print(f"skip {slug}: {e}", file=log)
@@ -141,7 +149,7 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
                 board = boardmod.state(msgs)
             except Exception as e:
                 print(f"{slug}: board unavailable ({e})", file=log)
-        projects.append(project_summary(slug, entry, report, board, listing))
+        projects.append(project_summary(slug, entry, report, board, listing, site_url(registry_dir)))
         print(f"ok {slug}: {listing}, {'conformant' if report['conformant'] else 'not conformant'}, "
               f"stage {entry.get('stage', 'not assessed')}", file=log)
     data = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

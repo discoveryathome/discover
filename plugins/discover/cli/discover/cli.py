@@ -49,8 +49,11 @@ def cmd_validate(a):
     overlay = adapter = None
     entry = {}
     if a.registry_entry:
+        from . import adapter as adaptermod
         entry = json.loads(Path(a.registry_entry).read_text(encoding="utf-8"))
-        overlay, adapter = entry.get("overlay"), entry.get("frontier_adapter")
+        overlay, adapter, _, problems = adaptermod.for_entry(entry, adaptermod.hub_root(a.registry_entry))
+        if problems:
+            raise SystemExit("adapter: " + "; ".join(problems))
         if not a.repo and not a.path_given:
             home = entry["repos"][0]
             a.repo, a.root = home["repo"], home.get("path", "")
@@ -93,6 +96,12 @@ def live_board(repo, n):
 
 def cmd_pick(a):
     manifest, catalog = load_catalog(a.path)
+    if manifest.get("picker") and not a.task:
+        # The project's own picker is authoritative (spec §7); never name a card for it.
+        seed = a.seed or __import__("secrets").token_hex(16)
+        cmd = " ".join(t.replace("{seed}", seed) for t in manifest["picker"]["command"])
+        print(f"This project uses its own picker. From the repo root, run:\n  {cmd}")
+        return 0
     b = None
     if a.live:
         try:

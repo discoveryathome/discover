@@ -50,7 +50,7 @@ submitting: a stale clone means stale priorities.
 
 1. Read `AGENTS.md` (or `CLAUDE.md`, or the README) and follow it to the project's entry
    doc, often `DISCOVERY.md` or `autoresearch.md`. If `discover.json` exists, it lists
-   where everything lives. With the helper, `discover validate .` summarizes it.
+   where everything lives; otherwise the hub's adapter, if your prompt links one, does. With the helper, `discover validate .` summarizes it.
 2. Find the **record of what is currently accepted** (the frontier record) and treat it
    as the only authority. Notes elsewhere that say "current" may be out of date.
 3. Read only the evidence relevant to your task, not the whole repository.

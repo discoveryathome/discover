@@ -121,11 +121,39 @@ If the intake issue (the entry's `intake`) states a credit policy the repo doesn
 into the entry's `credit` so the listing shows it, and quote where it came from in the
 assessment.
 
-For a `needs-adapter` entry, also edit it:
-add an `overlay` (a manifest describing where things live in the repo, same shape as
-`discover.json`), a `frontier_adapter` if their results file isn't in the protocol's
-shape, and `assessment` pointing to your file. With the helper, check it with
+For a `needs-adapter` entry, write the project's **adapter** (spec §12.5):
+`adapters/<project-id>.md`, and set the entry's `adapter` to it. It's written for donors'
+agents, who fetch it from the prompt, so make it a short page they can act on.
+`adapters/integer-mult-bounds.md` is a worked example.
+
+- **Say what it is up front:** written by the hub, not the maintainers; describes the
+  repo as of a stated commit; the repository wins where they disagree.
+- **State the order of authority:** the person running the session, then the project's
+  own docs for everything about the research, then the adapter for navigation and
+  procedure only.
+- **Map, don't restate.** A table from the protocol's names (entry doc, accepted result,
+  task catalogue, priorities, ledger, coordination, credit) to this repo's paths. Point to
+  where the project states its accepted result and priorities; never copy them, since
+  copies drift and put words in the maintainers' mouths.
+- **Fill missing procedure, not missing judgment.** How to choose a task (the project's
+  own picker, with the seed, if it has one), how to check overlap, how to post. If the
+  project has no task list and you derive one from its stated priorities, label it as
+  the hub's reading for the maintainers to correct. Never grant permissions or define
+  what counts as accepted.
+- **A drift check:** the exact `git diff --stat <as_of>..HEAD -- <paths>` to run, and how
+  to report drift (a PR on the hub editing only this file, or a receipt).
+- **For the hub's tools,** end with one fenced `discover-adapter` JSON block
+  (`schemas/adapter.schema.json`): `project`, `repo`, `as_of {commit, date}`, the `paths`
+  it relies on, a `manifest` in `discover.json`'s shape (with `picker` if the project has
+  its own), and a `frontier_adapter` if the results file isn't in the protocol's shape.
+
+In the assessment, say which grades depend on the adapter. It can raise Orientation and
+Coordination; Review and Steering need the maintainers. Set `assessment` to your file, and
+with the helper check the entry with
 `discover validate --registry-entry registry/projects/<project-id>.json`.
+
+When the repo later gets its own `discover.json`, retire the adapter: delete the file and
+the entry's `adapter` field.
 
 ## 6. Submit
 

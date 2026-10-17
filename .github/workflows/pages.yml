@@ -5,7 +5,7 @@ name: Explore page
 on:
   push:
     branches: [main]
-    paths: ["site/**", "registry/**", "hub.json", "playbooks/**", "plugins/discover/cli/**", "spec/schemas/**", ".github/workflows/pages.yml"]
+    paths: ["site/**", "registry/**", "adapters/**", "hub.json", "playbooks/**", "plugins/discover/cli/**", "spec/schemas/**", ".github/workflows/pages.yml"]
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
@@ -33,6 +33,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           DISCOVER_HUB: ${{ github.repository }}   # a copied hub points at itself
         run: python3 plugins/discover/cli/discover.py hub --registry registry/projects --out site/data/projects.json --board
+      - name: Publish adapters
+        run: rm -rf site/adapters && cp -R adapters site/adapters
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

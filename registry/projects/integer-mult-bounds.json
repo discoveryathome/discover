@@ -1,89 +1,17 @@
 {
-  "repos": [{ "repo": "CrocSwap/integer-mult-bounds" }],
+  "repos": [
+    {
+      "repo": "CrocSwap/integer-mult-bounds"
+    }
+  ],
   "added_on": "2026-10-15",
   "contact": "colkitt",
-  "consent": { "source": "application", "checked_on": "2026-10-15", "list": true, "push": [] },
-  "featured": true,
-  "overlay": {
-    "schema": "discover/v0",
-    "title": "Integer Multiplication Bounds",
-    "summary": "Improve conditional exponent savings for fast integer multiplication through verified constructions, audits and scoped obstructions.",
-    "domains": [
-      "mathematics",
-      "algorithms"
-    ],
-    "license": "Apache-2.0",
-    "maintainers": [
-      {
-        "name": "Douglas R. Colkitt"
-      }
-    ],
-    "canonical_repo": "https://github.com/CrocSwap/integer-mult-bounds",
-    "entry": {
-      "agents": "AGENTS.md",
-      "project": "autoresearch.md",
-      "contributing": "CONTRIBUTING.md",
-      "brief": "docs/research/bottleneck-brief.md",
-      "glossary": "docs/research/research-glossary.md"
-    },
-    "frontier": "certificates/selected-result.json",
-    "catalog": "docs/research/agent-task-catalog.json",
-    "priority_log": "docs/research/research-priority-log.md",
-    "ledger": "docs/research/pr-ledger.md",
-    "packages": "research/*/",
-    "coordination": {
-      "transport": "github-discussions",
-      "threads": {
-        "start": 1163,
-        "handoffs": 1166,
-        "proposals": 1167,
-        "feedback": 1200
-      },
-      "claim_ttl_minutes": 120
-    },
-    "overlap": {
-      "sources": [
-        "open-prs",
-        "pr-files",
-        "discussions",
-        "packages",
-        "ledger"
-      ],
-      "cache_ttl_seconds": 300
-    },
-    "session": {
-      "default_minutes": 60,
-      "orient_fraction": 0.2,
-      "verify_fraction": 0.25
-    },
-    "permissions": {
-      "post_messages": true,
-      "open_prs": true,
-      "maintainer_only": [
-        "merge",
-        "close-others-prs",
-        "change-frontier"
-      ]
-    },
-    "verification_profile": "exact-certificate"
+  "consent": {
+    "source": "application",
+    "checked_on": "2026-10-15",
+    "list": true,
+    "push": []
   },
-  "frontier_adapter": {
-    "statement": "status",
-    "status": "status",
-    "scope": "scope",
-    "review": "review",
-    "reproduce": "reproduce",
-    "previous_record": "previous_record",
-    "metric": {
-      "name": "κ (exponent saving)",
-      "value": "kappa",
-      "decimal": "decimal",
-      "direction": "higher-is-better"
-    },
-    "evidence_level": [
-      "author-checked",
-      "independently-checked",
-      "maintainer-reviewed"
-    ]
-  }
+  "featured": true,
+  "adapter": "adapters/integer-mult-bounds.md"
 }

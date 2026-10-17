@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://discoveryathome.org/schema/v0/adapter.schema.json",
+  "title": "Adapter block (the fenced discover-adapter JSON in adapters/<project-id>.md)",
+  "type": "object",
+  "required": ["schema", "project", "repo", "as_of"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "discover-adapter/v0" },
+    "project": { "type": "string", "pattern": "^[a-z0-9-]+$", "description": "The project ID: the registry entry's file name." },
+    "repo": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+    "as_of": {
+      "type": "object", "required": ["commit", "date"],
+      "description": "The commit the adapter describes. Donors compare the paths it names against this commit to spot drift.",
+      "properties": {
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+        "date": { "type": "string", "format": "date" }
+      }
+    },
+    "paths": { "type": "array", "items": { "type": "string" }, "description": "Repo paths the adapter relies on, checked for changes since as_of.commit." },
+    "manifest": { "type": "object", "description": "Where things live, in discover.json's shape. Used only while the repo has no discover.json." },
+    "frontier_adapter": { "type": "object", "description": "Maps the repo's own results record onto frontier fields, as in the registry entry (deprecated there)." }
+  }
+}

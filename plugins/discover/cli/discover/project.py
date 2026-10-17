@@ -83,10 +83,10 @@ class Source:
 
 
 def load_manifest(source, overlay=None):
-    """Return (manifest, origin). A registry overlay is used only if the repo has none."""
+    """Return (manifest, origin). The hub's adapter is used only if the repo has none."""
     manifest = source.read_json("discover.json")
     if manifest is not None:
         return manifest, "discover.json"
     if overlay is not None:
-        return overlay, "registry overlay"
+        return overlay, "adapter"
     return None, None

@@ -258,6 +258,46 @@ class SourceTests(unittest.TestCase):
             self.assertIsNone(Source(local=d).read("discover.json"))
 
 
+class AdapterTests(unittest.TestCase):
+    def test_hub_adapters_parse_and_entries_point_at_them(self):
+        from discover import adapter
+        for path in sorted((ROOT / "adapters").glob("*.md")):
+            block, problems = adapter.parse(path.read_text(encoding="utf-8"))
+            self.assertEqual(problems, [], path.name)
+            self.assertEqual(block["project"], path.stem)
+            entry = json.loads((ROOT / "registry" / "projects" / f"{path.stem}.json").read_text())
+            self.assertEqual(entry["adapter"], f"adapters/{path.stem}.md")
+            self.assertNotIn("overlay", entry)
+            overlay, _, _, problems = adapter.for_entry(entry, ROOT)
+            self.assertEqual((problems, overlay["canonical_repo"]), ([], f"https://github.com/{block['repo']}"))
+
+    def test_parse_rejects_missing_or_doubled_block(self):
+        from discover import adapter
+        self.assertIsNone(adapter.parse("# no block")[0])
+        one = '```discover-adapter\n{"schema": "discover-adapter/v0", "project": "p", "repo": "o/r", "as_of": {"commit": "abcdef1", "date": "2026-01-01"}}\n```\n'
+        self.assertEqual(adapter.parse(one)[1], [])
+        self.assertIsNone(adapter.parse(one + one)[0])
+
+    def test_prompts_link_the_adapter(self):
+        from discover import prompt
+        url = "https://h/adapters/p.md"
+        self.assertIn(url, prompt.donation_prompt("o/r", seed="ab" * 16, site="https://h/", adapter_url=url))
+        self.assertIn(url, prompt.action_prompt("verify", "o/r", site="https://h/", adapter_url=url))
+        self.assertNotIn("adapter", prompt.donation_prompt("o/r", seed="ab" * 16, site="https://h/"))
+
+    def test_pick_defers_to_the_projects_own_picker(self):
+        import io, contextlib
+        with tempfile.TemporaryDirectory() as d:
+            init.scaffold(d, "T", "S", ["math"], "M", "o/r")
+            m = json.loads((Path(d) / "discover.json").read_text())
+            m["picker"] = {"command": ["python3", "pick.py", "--seed", "{seed}"]}
+            (Path(d) / "discover.json").write_text(json.dumps(m))
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                self.assertEqual(main(["pick", d, "--seed", "c" * 32]), 0)
+            self.assertIn("python3 pick.py --seed " + "c" * 32, buf.getvalue())
+
+
 class HubTests(unittest.TestCase):
     def test_summary_from_local_project(self):
         with tempfile.TemporaryDirectory() as d:
@@ -281,7 +321,7 @@ class HubTests(unittest.TestCase):
         self.assertEqual(hub.listing_state(applied, rec([{"hub": "*", "list": False}])), "opted-out")
         # A specific line beats the wildcard; an overlay written by the hub proves nothing.
         self.assertEqual(hub.listing_state(nominated, rec([{"hub": "*", "list": False}, {"hub": "Hub/Repo"}])), "listed")
-        overlay = {"manifest_origin": "registry overlay", "manifest": {"hubs": [{"hub": "Hub/Repo", "list": True}]}}
+        overlay = {"manifest_origin": "adapter", "manifest": {"hubs": [{"hub": "Hub/Repo", "list": True}]}}
         self.assertEqual(hub.listing_state(nominated, hub.consent_record(none, overlay, "Hub/Repo")), "nominated")
 
     def test_onboard_prompt(self):

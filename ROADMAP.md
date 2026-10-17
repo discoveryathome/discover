@@ -15,13 +15,16 @@ an application). The project stays listed at Stage 1 for item 1.
 ### 1. The donation loop, end to end
 
 Onboarding is tested; what happens after listing isn't, under the prompt-first tooling.
-On a listed project (`applied-butterfly-mult`), run and check:
+On two listed projects, one with its own protocol files (`applied-butterfly-mult`) and
+one listed through an adapter (`integer-mult-bounds`), run and check:
 
 - `contribute` sessions: the seeded draw spreads donors, open handoffs are preferred,
   claims and handoffs post correctly, the receipt is honest
 - `verify` sessions and their `verifications/` records
 - the maintainer's side: triaging donated PRs, recording dispositions in the ledger
 - a `direct` session producing a priority revision from that evidence
+- on the adapter project: agents find their way through the adapter, use the project's
+  own picker, and report drift when the adapter is wrong
 
 Done when a batch of sessions runs without supervision and the maintainer can review
 the output in one sitting.
@@ -36,9 +39,10 @@ adapters and keeping them current:
   and flag adapters that no longer validate. Each flag opens a hub-work issue.
 - A **re-assess** mode in the assess playbook: start from the previous record, say what
   changed, and rerun probes only where needed (spec §3.4).
-- Adapter writing as a routine: the assess playbook already does it (first done for
-  `applied-butterfly-mult`); add the nomination form's missing draft-branch field and an
-  assessment record schema (spec §13, question 10).
+- Adapters (spec §12.5) as a routine: written by the assess playbook, kept current by
+  donors' drift reports and the scheduled run, retired when a repo adopts its own files.
+  `integer-mult-bounds` has the first one. Also the nomination form's missing
+  draft-branch field and an assessment record schema (spec §13, question 10).
 
 Done when a listed project can change for a month and its listing stays accurate with
 only hub-work sessions.

@@ -15,6 +15,7 @@ test: sync
 
 hub: sync
 	$(CLI) hub --registry registry/projects --out site/data/projects.json
+	rm -rf site/adapters && cp -R adapters site/adapters
 
 serve: hub
 	python3 -m http.server -d site 8000

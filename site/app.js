@@ -64,16 +64,18 @@ async function drawTask(seed, tracks) {
   const method = card.methods[Number((await drawInt(seed, `method:${card.id}`)) % BigInt(card.methods.length))];
   return { track: track.id, card: card.id, method };
 }
-function donationPrompt(repo, minutes, focus, perms, seed, drawn) {
+const adapterLine = (url) => (url ? fill(state.data.prompts.adapter, { adapter_url: url }) : "");
+function donationPrompt(repo, minutes, focus, perms, seed, drawn, adapterUrl) {
   const p = state.data.prompts;
   return fill(p.template, {
     site: p.site, repo_url: `https://github.com/${repo}`, minutes, focus: p.focus[focus],
     permissions: p.permissions[perms], seed, drawn: drawn ? fill(p.drawn, { ...drawn, method: drawn.method.replace(/[.\s]+$/, "") }) : "",
+    adapter: adapterLine(adapterUrl),
   });
 }
-function actionPrompt(action, repo, minutes = 60, perms = "local") {
+function actionPrompt(action, repo, minutes = 60, perms = "local", adapterUrl = null) {
   const p = state.data.prompts;
-  return fill(p.actions[action], { site: p.site, repo_url: `https://github.com/${repo}`, minutes, permissions: p.permissions[perms] });
+  return fill(p.actions[action], { site: p.site, repo_url: `https://github.com/${repo}`, minutes, permissions: p.permissions[perms], adapter: adapterLine(adapterUrl) });
 }
 function skillCommand(repo, minutes, focus, perms, seed) {
   return fill(state.data.prompts.skill_command, { repo, minutes, focus, permissions: perms, seed });
@@ -127,12 +129,14 @@ function wireLauncher(root, p) {
   let drawn = null;
   const refresh = () => {
     const [m, f, perms] = [val("minutes"), val("focus"), val("perms")];
-    const d = f === "project" ? drawn : null; // other focuses draw from a matching track themselves
-    out("prompt", donationPrompt(p.repo, m, f, perms, seed, d));
+    // Other focuses draw from a matching track themselves; a project's own picker draws for itself.
+    const d = f === "project" && !p.picker ? drawn : null;
+    out("prompt", donationPrompt(p.repo, m, f, perms, seed, d, p.adapter_url));
     out("cmd", skillCommand(p.repo, m, f, perms, seed));
-    out("drawn", d ? `Drawn for you: ${d.card} (${d.track}). Each visit draws again, so donors spread across the work.` : "");
-    out("verify", actionPrompt("verify", p.repo, m, perms));
-    out("collaborate", actionPrompt("collaborate", p.repo));
+    out("drawn", d ? `Drawn for you: ${d.card} (${d.track}). Each visit draws again, so donors spread across the work.`
+      : f === "project" && p.picker ? "This project draws tasks with its own picker. Your agent passes it the seed in the prompt, and each visit gets a new seed." : "");
+    out("verify", actionPrompt("verify", p.repo, m, perms, p.adapter_url));
+    out("collaborate", actionPrompt("collaborate", p.repo, 60, "local", p.adapter_url));
     const mode = val("mode");
     root.querySelectorAll("[data-mode]").forEach((el) => { el.style.display = el.dataset.mode === mode ? "grid" : "none"; });
   };
@@ -215,8 +219,8 @@ function viewProject(slug) {
       ? `<ul class="clean">${p.board.open_handoffs.map((h) => `<li>${link(h.url, h.question)}<div class="hint">${esc(h.track || "any track")}${h.est_minutes ? ` · ~${esc(h.est_minutes)} min` : ""}</div></li>`).join("")}</ul>`
       : '<p class="hint">None posted in machine-readable form right now.</p>'}
       <p class="hint">${plural(p.board.live_claims, "live claim")} · ${p.board.recent_done} done in the last week</p></section>` : "";
-  const warn = p.manifest_origin === "registry overlay" && p.listing !== "nominated"
-    ? `<div class="callout warn">This project hasn't added <code>discover.json</code> yet. The listing uses a manifest kept in the hub registry, and agents follow the repo's own AGENTS.md conventions.</div>` : "";
+  const warn = p.manifest_origin === "adapter" && p.listing !== "nominated"
+    ? `<div class="callout">This project keeps its own conventions. The hub's ${p.adapter_url ? link(p.adapter_url, "adapter") : "adapter"} maps them for donated agents, and the prompts link to it.</div>` : "";
   return `
   <div class="page-head">
     <div class="crumbs"><a href="#/">Explore</a> <span class="muted">/</span> <span class="muted">${esc(p.repo)}</span></div>

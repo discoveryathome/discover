@@ -106,6 +106,13 @@
     "process_changed_on": {
       "type": "string", "format": "date",
       "description": "Last change to how the project coordinates or reviews; activity measurements count from here."
+    },
+    "picker": {
+      "type": "object", "required": ["command"],
+      "description": "The project's own task picker, used instead of the protocol's draw (§7). Tools then pass the seed to it and never name a card themselves.",
+      "properties": {
+        "command": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Argv, run from the repo root; \"{seed}\" is replaced by the seed." }
+      }
     }
   }
 }

@@ -17,7 +17,7 @@ PERMISSIONS = {
 TEMPLATE = (
     "Fetch {site}v0/contribute.md (for example with curl) and follow it to contribute to {repo_url}. "
     "Budget: about {minutes} minutes. {focus} {permissions} "
-    "Seed: {seed}{drawn}. "
+    "Seed: {seed}{drawn}.{adapter} "
     "If you can't fetch the playbook: read the repository's AGENTS.md and follow it; don't choose a task "
     "\"at random\" yourself, use the seed; keep the last quarter of the time for verification; and report "
     "the exact scope, evidence, what was not checked, and predecessor credit. "
@@ -27,10 +27,13 @@ TEMPLATE = (
 # Methods are sentences, so the drawn method is quoted, without its final period.
 DRAWN = " (from it the hub drew track {track}, card {card}, method \u201c{method}\u201d)"
 
+# Projects listed through an adapter (spec §12.5): the hub's map of the repo's own conventions.
+ADAPTER = " The hub's adapter for this project maps its conventions: {adapter_url}. Read it after the playbook."
+
 # Other actions, one line each.
 ACTIONS = {
-    "verify": "Fetch {site}v0/verify.md (for example with curl) and follow it to independently verify a result in {repo_url}. Budget: about {minutes} minutes. {permissions}",
-    "collaborate": "Fetch {site}v0/collaborate.md (for example with curl) and follow it: I want to work with you on {repo_url}. Brief me on its current state first. Ask before any public action.",
+    "verify": "Fetch {site}v0/verify.md (for example with curl) and follow it to independently verify a result in {repo_url}. Budget: about {minutes} minutes. {permissions}{adapter}",
+    "collaborate": "Fetch {site}v0/collaborate.md (for example with curl) and follow it: I want to work with you on {repo_url}. Brief me on its current state first. Ask before any public action.{adapter}",
     "setup": "Fetch {site}v0/setup.md (for example with curl) and follow it to help me make my repository agent-ready for Discovery@Home. Ask before pushing, opening PRs or changing settings.",
     "apply": "Fetch {site}v0/apply.md (for example with curl) and follow it to apply to list my project {repo_url} on the Discovery@Home hub. Ask before posting anything.",
     "direct": "Fetch {site}v0/direct.md (for example with curl) and follow it to review priorities for my project {repo_url}. Propose one revision; ask before merging or posting.",
@@ -53,17 +56,20 @@ GOALS = {
 SKILL_COMMAND = "/discover:contribute {repo} --minutes {minutes} --focus {focus} --permissions {permissions} --seed {seed}"
 
 
-def donation_prompt(repo, minutes=60, focus="project", permissions="post", seed=None, site=None, drawn=None):
+def donation_prompt(repo, minutes=60, focus="project", permissions="post", seed=None, site=None, drawn=None,
+                    adapter_url=None):
     from . import SITE
     return TEMPLATE.format(site=site or SITE, repo_url=f"https://github.com/{repo}", minutes=minutes,
                            focus=FOCUS[focus], permissions=PERMISSIONS[permissions],
-                           seed=seed or secrets.token_hex(16), drawn=DRAWN.format(**{**drawn, "method": drawn["method"].rstrip(". ")}) if drawn else "")
+                           seed=seed or secrets.token_hex(16), drawn=DRAWN.format(**{**drawn, "method": drawn["method"].rstrip(". ")}) if drawn else "",
+                           adapter=ADAPTER.format(adapter_url=adapter_url) if adapter_url else "")
 
 
-def action_prompt(action, repo, minutes=60, permissions="local", site=None):
+def action_prompt(action, repo, minutes=60, permissions="local", site=None, adapter_url=None):
     from . import SITE
     return ACTIONS[action].format(site=site or SITE, repo_url=f"https://github.com/{repo}",
-                                  minutes=minutes, permissions=PERMISSIONS[permissions])
+                                  minutes=minutes, permissions=PERMISSIONS[permissions],
+                                  adapter=ADAPTER.format(adapter_url=adapter_url) if adapter_url else "")
 
 
 def onboard_prompt(role, goal, repo, context=None, site=None):
@@ -83,5 +89,5 @@ def templates(site=None):
     """Everything the explore page needs to build the same prompts client-side."""
     from . import SITE
     return {"site": site or SITE, "template": TEMPLATE, "drawn": DRAWN, "focus": FOCUS,
-            "permissions": PERMISSIONS, "actions": ACTIONS, "skill_command": SKILL_COMMAND,
+            "permissions": PERMISSIONS, "actions": ACTIONS, "skill_command": SKILL_COMMAND, "adapter": ADAPTER,
             "onboard": ONBOARD, "onboard_context": ONBOARD_CONTEXT, "goals": GOALS}

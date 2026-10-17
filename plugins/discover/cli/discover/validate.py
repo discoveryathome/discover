@@ -17,7 +17,7 @@ def normalize_catalog(catalog):
 
 
 def normalize_frontier(raw, adapter=None):
-    """Map a pre-v0 frontier record into v0 shape using a registry adapter.
+    """Map a pre-v0 frontier record into v0 shape using the hub's adapter.
 
     The adapter names which raw fields hold the v0 values, e.g.
     {"statement": "status", "metric": {"name": "kappa", "value": "kappa", "decimal": "decimal"}}.
@@ -37,7 +37,7 @@ def normalize_frontier(raw, adapter=None):
             out[key] = src  # declared by the adapter, not read from the record
         elif isinstance(src, str) and src in raw:
             out[key] = raw[src]
-    return out, ["frontier record is pre-v0; mapped through the registry adapter"]
+    return out, ["frontier record is pre-v0; mapped through the hub's adapter"]
 
 
 def catalog_problems(catalog):
@@ -81,10 +81,10 @@ def validate(source, overlay=None, adapter=None, catalogued=False):
     manifest, origin = load_manifest(source, overlay)
     r["manifest_origin"] = origin
     if manifest is None:
-        r["problems"].append("discover.json not found (and no registry overlay)")
+        r["problems"].append("discover.json not found (and no hub adapter)")
         return r
     if origin != "discover.json":
-        r["warnings"].append("using registry overlay: the repo has no discover.json yet")
+        r["warnings"].append("using the hub's adapter: the repo has no discover.json")
     r["manifest"] = manifest
     req = r["problems"]
     errs = schema.check("manifest.schema.json", manifest)
@@ -147,7 +147,7 @@ def format_report(r):
     elif r.get("manifest_origin") is None:
         head = "no discover.json yet. That's fine for listing: the hub maps the repo with an adapter"
     else:
-        head = "not conformant: the problems below need fixing, in the repo or the registry adapter"
+        head = "not conformant: the problems below need fixing, in the repo or the hub's adapter"
     lines = [f"{r['source']}: {head}"]
     if r.get("manifest_origin") is not None:
         lines += [f"  problem: {p}" for p in r["problems"]]

@@ -3,3 +3,4 @@ __pycache__/
 .DS_Store
 # Built by `make hub` locally and by the Pages workflow in CI.
 site/data/
+site/adapters/
