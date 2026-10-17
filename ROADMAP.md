@@ -4,10 +4,11 @@ What the hub's maintainers plan to build next, in order. Donated hub work is all
 separately, by the tracks in [`discover/catalog.json`](discover/catalog.json); when a
 roadmap item opens work that donors can pick up, it gets cards there.
 
-Status as of 2026-10-17. Onboarding is built and smoke-tested on
-`CrocSwap/applied-butterfly-mult`: both roles, every goal, intake (including duplicates),
-nomination, and the hub assessment with as-is and projected grades. The upgrade from
-catalogued to listed is being tested now.
+Status as of 2026-10-17. Onboarding is built and smoke-tested end to end on
+`CrocSwap/applied-butterfly-mult`: both roles, every goal, intake (including duplicates
+and consent on a nominated entry), the hub assessment with as-is and projected grades,
+and the upgrade from catalogued to listed by both paths (the repo's consent record, and
+an application). The project stays listed at Stage 1 for item 1.
 
 ## Now
 
@@ -99,6 +100,10 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
 
 ## Rubric gaps found in testing
 
+- **Stage 1 with little review capacity.** `applied-butterfly-mult` reached Stage 1 on a
+  declared 1–3 reviews a week, and Stage 1 lets swarms post and open PRs. A Review
+  downgrade pauses the launcher only after a backlog shows. The hub should scale launcher
+  traffic to declared capacity from the start.
 - A missing `LICENSE` blocks outside contributions whatever the grades. It should
   probably be a Stage 0 requirement.
 - "Help needs specific hardware" (a non-M2 machine, a GPU) can't be expressed.

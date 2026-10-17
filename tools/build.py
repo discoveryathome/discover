@@ -63,11 +63,13 @@ def release_cli():
     """Return (filename, sha256) of the current CLI, writing a new file only if the code changed."""
     from_src = cli_members()
     latest = CLI_OUT / "latest.json"
+    previous = None
     if latest.exists():
         info = json.loads(latest.read_text(encoding="utf-8"))
         current = CLI_OUT / info["file"]
         if current.exists() and read_members(current) == from_src:
             return info["file"], info["sha256"]
+        previous = info["file"]
     data = pack(from_src)
     sha = hashlib.sha256(data).hexdigest()
     name = f"discover-{sha[:12]}.pyz"
@@ -76,6 +78,10 @@ def release_cli():
     version = re.search(r'__version__ = "([^"]+)"', (CLI_SRC / "__init__.py").read_text()).group(1)
     latest.write_text(json.dumps({"file": name, "sha256": sha, "version": version}, indent=2) + "\n",
                       encoding="utf-8")
+    # Keep the new file and the one before it, for sessions that started before this release.
+    for old in CLI_OUT.glob("discover-*.pyz"):
+        if old.name not in (name, previous):
+            old.unlink()
     return name, sha
 
 
