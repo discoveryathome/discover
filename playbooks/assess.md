@@ -37,6 +37,17 @@ properties) before starting; they change more often than this playbook.
 - **Grade the present, not the history** (§3.1): recent windows only, too little
   activity means *unknown*, and never penalize a project for having a long, messy past.
 - Every grade cites evidence a person can check: paths, links, numbers, transcripts.
+- **Running the project's code is opt-in.** Reading is always fine. Run code only in a
+  disposable clone, and only after telling the person the exact command and asking:
+  1. The project's **declared** check (the frontier's `reproduce`, or the command its
+     docs name for verifying results) and its declared tests.
+  2. If nothing is declared, you may propose **one** candidate you've read in full and
+     judged safe and self-contained. Say it's undeclared; a check the project doesn't
+     name can't count toward a strong Verification grade, only show it's within reach.
+
+  Never go looking for other scripts to run. For someone else's project, say plainly
+  that running it executes a stranger's code on this machine. If the person declines,
+  or nothing qualifies, grade by inspection and write what you'd have run.
 
 {{TOOLS}}
 

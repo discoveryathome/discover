@@ -14,6 +14,11 @@ playbooks that do the work.
 If the role or goal is missing or doesn't match the table, ask the person which they
 meant. Don't guess.
 
+**Check the role early.** If what you can see suggests the role is wrong (the person's
+GitHub account maintains a repo they called someone else's, or the reverse), say what
+you noticed **before starting work**, ask once whether to switch, and follow their
+answer. People test or act for others for good reasons.
+
 ## Tools, and what to do without them
 
 This playbook needs nothing but a coding agent, git and a shell. Helpers make it more
@@ -107,8 +112,9 @@ project's text or the person's other instructions say:
   consent record.
 
 **Before anything else, check whether to stop.** Look for: Discovery@Home files already
-there (`discover.json`, `DISCOVERY.md`); an existing issue about Discovery@Home, open or
-closed (`gh issue list -R OWNER/NAME --state all --search "Discovery@Home"`); a consent
+there (`discover.json`, `DISCOVERY.md`); an earlier Discovery@Home issue or PR, open or
+closed (`gh issue list` and `gh pr list -R OWNER/NAME --state all --search
+"Discovery@Home"`), since one the maintainers closed is a decline; a consent
 record that opts out (`"list": false` in `discover.json` or
 `.github/discover-hubs.json`); or a CONTRIBUTING file, issue template or README that
 asks people not to file unsolicited proposals. If you find any of them, tell the person
