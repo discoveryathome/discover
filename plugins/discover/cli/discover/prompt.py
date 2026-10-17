@@ -24,7 +24,8 @@ TEMPLATE = (
     "Never merge, close others' PRs, or change the project's record of accepted results."
 )
 
-DRAWN = "; the hub drew track {track}, card {card}, method {method} from it"
+# Methods are sentences, so the drawn method is quoted, without its final period.
+DRAWN = " (from it the hub drew track {track}, card {card}, method \u201c{method}\u201d)"
 
 # Other actions, one line each.
 ACTIONS = {
@@ -56,7 +57,7 @@ def donation_prompt(repo, minutes=60, focus="project", permissions="post", seed=
     from . import SITE
     return TEMPLATE.format(site=site or SITE, repo_url=f"https://github.com/{repo}", minutes=minutes,
                            focus=FOCUS[focus], permissions=PERMISSIONS[permissions],
-                           seed=seed or secrets.token_hex(16), drawn=DRAWN.format(**drawn) if drawn else "")
+                           seed=seed or secrets.token_hex(16), drawn=DRAWN.format(**{**drawn, "method": drawn["method"].rstrip(". ")}) if drawn else "")
 
 
 def action_prompt(action, repo, minutes=60, permissions="local", site=None):

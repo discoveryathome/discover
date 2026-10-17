@@ -68,7 +68,7 @@ function donationPrompt(repo, minutes, focus, perms, seed, drawn) {
   const p = state.data.prompts;
   return fill(p.template, {
     site: p.site, repo_url: `https://github.com/${repo}`, minutes, focus: p.focus[focus],
-    permissions: p.permissions[perms], seed, drawn: drawn ? fill(p.drawn, drawn) : "",
+    permissions: p.permissions[perms], seed, drawn: drawn ? fill(p.drawn, { ...drawn, method: drawn.method.replace(/[.\s]+$/, "") }) : "",
   });
 }
 function actionPrompt(action, repo, minutes = 60, perms = "local") {
