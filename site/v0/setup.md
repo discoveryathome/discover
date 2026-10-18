@@ -31,9 +31,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-1066d21a91e5.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-c8705f50a96b.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 1066d21a91e5f9e0220e2862b1692726002ed388514c6342bfa9b0398a571de3
+# must print c8705f50a96ba24f48678466cabf91f96a1aa53867c981e95d91dbae57bdb4ba
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -147,6 +147,9 @@ can't work out. Then confirm or ask:
    it reaches a person.
 7. **Credit:** how contributors will be credited (co-authorship, acknowledgements, a
    contributors file, citation). Donors see this before they choose a project.
+8. **License:** if the repository has no `LICENSE` file, the maintainer chooses one; a
+   listing needs it (spec §3.3). Common choices: MIT or Apache-2.0 for code, CC BY 4.0
+   for papers and data. Never choose for them; it's their legal decision.
 
 ## 2. Create or map the files
 
@@ -188,6 +191,8 @@ Then fill in, with the maintainer:
 - **Priority log:** revision 1, the reasons for the initial weights, and when to review
   next.
 - **`credit`** in `discover.json`: the policy in plain words.
+- **`LICENSE`**, if missing: the standard text of the license the maintainer chose, and
+  its SPDX identifier as `license` in `discover.json`.
 
 **Only the maintainer accepts a result.** Draft the frontier statement and scope, then
 show the maintainer the exact final text and ask them to confirm it. Record

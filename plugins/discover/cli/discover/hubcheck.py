@@ -108,6 +108,10 @@ def check(registry_dir, hub_repo, gh=gh_api, today=None):
             if listing == "opted-out":
                 add(slug, "opted-out", "error", "The project's consent record opts out of this hub",
                     "Remove the registry entry. The site already hides it.")
+            if listing == "listed" and entry.get("stage") in (0, 1, 2) and not report.get("license"):
+                add(slug, "no-license", "warning", "Listed with a launcher but the repo has no LICENSE file",
+                    f"Stage {entry['stage']} requires a license (spec §3.3). Ask the maintainer to add one; "
+                    f"otherwise the listing drops to catalogued 14 days after this notice.")
             head = gh(f"repos/{repo}/commits/HEAD")["sha"]
         except Exception as e:  # network, rate limits, a deleted repo: report, keep going
             add(slug, "check-failed", "warning", "The check couldn't read the project", f"{type(e).__name__}: {e}")

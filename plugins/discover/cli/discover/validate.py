@@ -5,7 +5,7 @@ assessment of the five properties (spec §3), never from this check.
 """
 
 from . import schema
-from .project import load_manifest
+from .project import Source, load_manifest
 
 
 def normalize_catalog(catalog):
@@ -81,6 +81,23 @@ def catalogued(entry):
     return "nomination" in entry and not (entry.get("consent") or {}).get("list")
 
 
+LICENSE_FILES = ("LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE", "LICENCE.md", "COPYING", "COPYING.md",
+                 "LICENSE-MIT", "LICENSE-APACHE", "UNLICENSE")
+
+
+def license_file(source):
+    """The repository's license file, or None. A project in a subdirectory may rely on the
+    repository root's. Presence only: whether its terms are open is the assessor's call."""
+    places = [source]
+    if source.root:
+        places.append(Source(local=source.local, repo=source.repo, ref=source.ref))
+    for place in places:
+        for name in LICENSE_FILES:
+            if place.exists(name):
+                return f"{place.root}/{name}" if place.root else name
+    return None
+
+
 def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=None):
     """Return a report: `conformant`, `problems` (required files), `conventions` (name -> True,
     or a note on what's missing), warnings, and the loaded objects.
@@ -150,6 +167,10 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
         conv["packages"] = f"none yet under {pk} (fine for a new project)"
     else:
         conv["packages"] = True
+
+    r["license"] = license_file(source)
+    if not r["license"]:
+        r["warnings"].append("no LICENSE file: a listing with a contribution launcher needs one (spec §3.3)")
 
     r["conformant"] = not req
     return r

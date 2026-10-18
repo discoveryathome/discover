@@ -199,10 +199,13 @@ Coordination, not Orientation.
 
 ## 4. Compute the stage
 
-Apply §3.3 mechanically: consent, a disclosed credit policy, and the minimum grades.
-Never adjust a grade to reach a stage. A **nominated** project has no consent, so as is
-its stage is `assessed`, whatever its grades. Its projected stage assumes the maintainer
-adopts the proposal, consents and states a credit policy.
+Apply §3.3 mechanically: consent, a disclosed credit policy, a license, and the minimum
+grades. The license is a `LICENSE`, `LICENCE` or `COPYING` file at the repository root
+whose terms let others use the work and contribute; read it, because a file that says
+"all rights reserved" doesn't count. Never adjust a grade to reach a stage. A
+**nominated** project has no consent, so as is its stage is `assessed`, whatever its
+grades. Its projected stage assumes the maintainer adopts the proposal, consents, states
+a credit policy and adds a license, if it lacks one.
 
 ## 5. Write the assessment
 

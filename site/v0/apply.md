@@ -20,9 +20,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-1066d21a91e5.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-c8705f50a96b.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 1066d21a91e5f9e0220e2862b1692726002ed388514c6342bfa9b0398a571de3
+# must print c8705f50a96ba24f48678466cabf91f96a1aa53867c981e95d91dbae57bdb4ba
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -127,7 +127,8 @@ match the adapter.
   (https://discoveryathome.github.io/discover/v0/setup.md) first. It isn't required.
 - For an application, ask for the **credit policy** (how contributors will be credited)
   if the repo doesn't state one. A listing needs it before donors get a contribution
-  launcher.
+  launcher. The same goes for a **`LICENSE`** file: if the repo has none, say so, and
+  suggest the setup playbook to add one the maintainer chooses.
 - For a nomination, check the project hasn't opted out (`"list": false` in its
   `discover.json` or `.github/discover-hubs.json`). If it has, stop.
 

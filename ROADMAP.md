@@ -26,6 +26,9 @@ hub operations are built and running as a dry run.
   session folders, and disk use. Coordination worked whenever there was a signal to see:
   a later donor took up an earlier one's handoff and did distinct work.
 - **Hub operations** (item 2 below, mostly): `discover hub-check` and a weekly workflow.
+- **A license is a Stage 0 requirement** (spec §3.3), found in testing: without one a
+  donor's contribution has no clear terms. `validate` warns, the assess and setup
+  playbooks check and ask for it, and the hub check flags listings without one.
 
 ## Now
 
@@ -114,8 +117,6 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
   declared 1–3 reviews a week, and Stage 1 lets swarms post and open PRs. A Review
   downgrade pauses the launcher only after a backlog shows. The hub should scale launcher
   traffic to declared capacity from the start.
-- A missing `LICENSE` blocks outside contributions whatever the grades. It should
-  probably be a Stage 0 requirement.
 - "Help needs specific hardware" (a non-M2 machine, a GPU) can't be expressed.
 - The probes agreed across five runs on one repo (spec §13, question 7). More repos and
   the donor-tier model are still needed.
@@ -123,5 +124,5 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
 ## Launch housekeeping
 
 - The schema `$id`s use `discoveryathome.org`, which isn't registered yet
-- A license for the hub repository
+- A license for the hub repository (now required for its own Stage 0 listing)
 - A contributor guide for hub work beyond `DISCOVERY.md`

@@ -77,6 +77,19 @@ class InitValidateTests(unittest.TestCase):
             self.assertFalse(catalogued(listed))
             self.assertFalse(validate(Source(local=d), overlay, None, catalogued(listed))["conformant"])
 
+    def test_license_is_found_or_warned(self):
+        with tempfile.TemporaryDirectory() as d:
+            init.scaffold(d, "T", "S", ["math"], "M", "o/r")
+            report = validate(Source(local=d))
+            self.assertIsNone(report["license"])
+            self.assertTrue(report["conformant"])
+            self.assertTrue(any("no LICENSE" in w for w in report["warnings"]))
+            (Path(d) / "LICENSE-APACHE").write_text("Apache License")
+            self.assertEqual(validate(Source(local=d))["license"], "LICENSE-APACHE")
+            (Path(d) / "sub").mkdir()
+            init.scaffold(Path(d) / "sub", "T", "S", ["math"], "M", "o/r")
+            self.assertEqual(validate(Source(local=d, root="sub"))["license"], "LICENSE-APACHE")
+
     def test_bad_weights_are_reported(self):
         with tempfile.TemporaryDirectory() as d:
             init.scaffold(d, "T", "S", ["math"], "M", "o/r")
@@ -401,11 +414,12 @@ class HubCheckTests(unittest.TestCase):
             hubcheck.Source.from_entry = classmethod(lambda cls, e: cls(local=proj))
             try:
                 found = hubcheck.check(hub / "registry" / "projects", "h/h", gh, date(2026, 1, 10))
+                (proj / "LICENSE").write_text("MIT License")
                 fresh = hubcheck.check(hub / "registry" / "projects", "h/h", gh, date(2026, 1, 3))
             finally:
                 hubcheck.Source.from_entry = real
             kinds = {f["kind"] for f in found}
-            self.assertEqual(kinds, {"registry-mismatch", "assessment-stale"}, found)
+            self.assertEqual(kinds, {"registry-mismatch", "assessment-stale", "no-license"}, found)
             self.assertIn("DISCOVERY.md", [f for f in found if f["kind"] == "assessment-stale"][0]["detail"])
             # Within a week, changes on an active project are only noted.
             self.assertEqual({f["kind"] for f in fresh}, {"registry-mismatch", "assessment-changes"})

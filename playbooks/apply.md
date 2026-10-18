@@ -27,7 +27,8 @@ becomes a full listing only if they add a consent record to their repo.
   ({{SITE}}v0/setup.md) first. It isn't required.
 - For an application, ask for the **credit policy** (how contributors will be credited)
   if the repo doesn't state one. A listing needs it before donors get a contribution
-  launcher.
+  launcher. The same goes for a **`LICENSE`** file: if the repo has none, say so, and
+  suggest the setup playbook to add one the maintainer chooses.
 - For a nomination, check the project hasn't opted out (`"list": false` in its
   `discover.json` or `.github/discover-hubs.json`). If it has, stop.
 
