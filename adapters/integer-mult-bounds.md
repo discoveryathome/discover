@@ -113,7 +113,8 @@ Never change the project's repository to match this file.
     },
     "maintainers": [
       {
-        "name": "Douglas R. Colkitt"
+        "name": "Douglas R. Colkitt",
+        "github": "Mister-Meeseeks"
       }
     ],
     "canonical_repo": "https://github.com/CrocSwap/integer-mult-bounds",

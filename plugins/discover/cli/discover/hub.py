@@ -213,7 +213,8 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
         if with_board and listing == "listed":
             try:
                 prs, total = reviewmod.fetch_open_prs(entry["repos"][0]["repo"])
-                measured = reviewmod.awaiting(prs, total=total)
+                own = [x["github"] for x in (report.get("manifest") or {}).get("maintainers", []) if x.get("github")]
+                measured = reviewmod.awaiting(prs, total=total, own=own)
             except Exception as e:
                 print(f"{slug}: review queue unavailable ({e})", file=log)
         summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir), measured)

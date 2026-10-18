@@ -8,7 +8,8 @@ from datetime import datetime, timezone
 
 from .board import gh_graphql, parse_time
 
-# Authors GitHub reports with these associations are the project's own people.
+# Authors GitHub reports with these associations are the project's own people. GitHub hides
+# private org membership from tokens outside the org, so the manifest's maintainers count too.
 MAINTAINER_ASSOC = {"OWNER", "MEMBER", "COLLABORATOR"}
 
 OPEN_PRS = """
@@ -45,14 +46,17 @@ def _bot(author):
     return not author or author.get("__typename") == "Bot" or (author.get("login") or "").endswith("[bot]")
 
 
-def awaiting(prs, at=None, total=None):
+def awaiting(prs, at=None, total=None, own=()):
     """Contributions waiting for a first response: open, non-draft PRs from outside the
-    project with no review or comment from anyone but their author."""
+    project with no review or comment from anyone but their author. `own` is the
+    maintainers' GitHub logins."""
     at = at or datetime.now(timezone.utc)
+    own = {o.lower() for o in own}
     waiting = []
     for pr in prs:
         author = pr.get("author") or {}
-        if pr.get("isDraft") or _bot(author) or pr.get("authorAssociation") in MAINTAINER_ASSOC:
+        if (pr.get("isDraft") or _bot(author) or pr.get("authorAssociation") in MAINTAINER_ASSOC
+                or (author.get("login") or "").lower() in own):
             continue
         others = [n for k in ("reviews", "comments") for n in (pr.get(k) or {}).get("nodes", [])
                   if (n.get("author") or {}).get("login") not in (None, author.get("login"))

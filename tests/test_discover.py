@@ -446,6 +446,8 @@ class ReviewTests(unittest.TestCase):
         m = review.awaiting(prs, at=datetime(2026, 10, 18, tzinfo=timezone.utc))
         self.assertEqual(m["awaiting"], 3)
         self.assertEqual(m["oldest_days"], 3.0)
+        # Private org membership shows as CONTRIBUTOR to outside tokens; the manifest's maintainers still count.
+        self.assertEqual(review.awaiting([self.pr(10, assoc="CONTRIBUTOR", login="Maint")], own=["maint"])["awaiting"], 0)
 
     def test_status_never_limits_by_default(self):
         from discover import review
