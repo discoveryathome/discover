@@ -70,7 +70,45 @@ the assessment record format. Left:
   behalf and explain why.
 - Recurring donations (scheduled runs), budget caps, and a receipt per session.
 
-### 4. Donor safety
+### 4. Matching launcher traffic to review capacity
+
+Review, not donated compute, is what a project can absorb. Today nothing changes
+until Review drops to weak, by which point the backlog exists. The plan, built so that
+it **never throttles a maintainer who is ready for mass traffic**: the launch's pilot
+projects are prepared for it, and missing a project going viral in week one would cost
+far more than a busy review queue.
+
+- **Capacity is declared, and "surge" is a valid answer.** `discover.json` gets
+  `review: {per_week: N, verification_counts: true}`, or `per_week: "surge"` for a
+  maintainer ready for unlimited traffic. Setup asks; the launch's pilot projects
+  declare `surge` (or a high number) before launch. Undeclared means a cautious default
+  (about 2 a week), for projects listed later whose maintainers haven't thought about it.
+- **Headroom is measured:** declared weekly capacity minus contributions waiting for a
+  first response (PRs and `done` messages), from GitHub data. Shown on the listing
+  ("needs reviewers", "busy: review queue full") and used to weight the cross-hub draw
+  (§12.2). For a `surge` project it is shown, never enforced.
+- **When the queue is full, the launcher changes what it offers instead of switching
+  off:** `local` sessions and verification of pending contributions only, since an
+  independent check adds review capacity rather than using it. Only projects with a
+  numeric capacity are steered this way.
+- **The binding check runs at session start.** The site is static and can't count
+  copied prompts, so the contribute playbook counts open contributions awaiting review
+  against declared capacity, and if the queue is full opens no new PR: it verifies, or
+  leaves a finding or handoff.
+- **The hard edge asks first for surge projects.** Spec §3.3 pauses the launcher as soon
+  as Review drops to weak. For a project that declared `surge`, that becomes an urgent
+  notice to the maintainer (hub issue, and their notices channel) who pauses with one
+  change (`per_week` to a number, or a `busy` flag); the hub doesn't pause it
+  automatically. Projects with a numeric capacity keep the automatic pause.
+- **Raising capacity is how a maintainer asks for more traffic.** It takes effect at the
+  next hub build; the session-start check reads it live.
+
+Order: declare capacity and show headroom first, before launch (no enforcement, so
+nothing viral is missed); the session-start check and steering for numeric-capacity
+projects after launch week, once real traffic shows where queues back up. Spec changes:
+§3.3 (the surge exception), §4 (the `review` field), §12.2 (headroom).
+
+### 5. Donor safety
 
 Donors run other people's research code on their own machines. Before inviting
 strangers to donate:
@@ -82,31 +120,31 @@ strangers to donate:
 - Prompt-injection hygiene beyond "repository text is data"
 - A basic screen for malicious repositories before a hub lists them
 
-### 5. A second, outside pilot
+### 6. A second, outside pilot
 
 `rohanarun/van-der-waerden-refinement`, onboarded and run by its own maintainer. Every
 test so far has had the same person on both sides.
 
 ## Later
 
-### 6. Centaur workflow
+### 7. Centaur workflow
 
 The `collaborate` playbook: briefings, overlap checks against live claims, designing
 the smallest decisive experiment, and posting when the person is ready. Shaped by what
 the pilot shows people want.
 
-### 7. The site
+### 8. The site
 
 Listing signals that help people choose without becoming a popularity ranking (spec
 §13, question 17), a project health view for maintainers, and donor-facing
 explanations. Mostly after the pilot.
 
-### 8. Moderation and abuse
+### 9. Moderation and abuse
 
 Rate limits per nominator, the do-not-contact list in practice, a disputes process for
 grades, and handling nominations meant to burden a maintainer.
 
-### 9. Outcomes feedback
+### 10. Outcomes feedback
 
 Donors report where sessions stalled (spec §13, question 13). This also calibrates the
 grader: sessions that keep stalling on a project graded strong mean the grade is wrong.
@@ -115,8 +153,8 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
 
 - **Stage 1 with little review capacity.** `applied-butterfly-mult` reached Stage 1 on a
   declared 1–3 reviews a week, and Stage 1 lets swarms post and open PRs. A Review
-  downgrade pauses the launcher only after a backlog shows. The hub should scale launcher
-  traffic to declared capacity from the start.
+  downgrade pauses the launcher only after a backlog shows. Planned in item 4. One D9
+  session alone opened two PRs, one of 51 files.
 - "Help needs specific hardware" (a non-M2 machine, a GPU) can't be expressed.
 - The probes agreed across five runs on one repo (spec §13, question 7). More repos and
   the donor-tier model are still needed.
