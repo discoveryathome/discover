@@ -378,6 +378,11 @@ def cmd_permissions(a):
     if a.write:
         added = presets.merge_into(a.write, a.preset, a.work_dir, a.allow_domain)
         print(f"{a.write}: {len(added)} rule(s) added for {a.preset}" + "".join(f"\n  {r}" for r in added))
+        if presets.PRESETS[a.preset]["sandbox"]:
+            f = Path(a.write).resolve()
+            print(f"\nStart sessions in the folder you'll work in. Unattended: claude -p --settings {f} \"...\"\n"
+                  f"From a clone of the project you keep for contributing (skips the repo's own settings "
+                  f"and hooks):\n  claude --setting-sources user --settings {f}")
         return 0
     print(f"# {presets.PRESETS[a.preset]['about']}")
     print(json.dumps(presets.settings(a.preset, a.work_dir, a.allow_domain), indent=2))

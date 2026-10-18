@@ -31,7 +31,11 @@ _WRITES = sorted(set(_MAINTAIN + [("gh", "repo", "create"), ("gh", "repo", "fork
 # it can still ask gh for its token. The playbooks' safety section says what that means.
 DONOR_DOMAINS = ["github.com", "api.github.com", "*.githubusercontent.com", "codeload.github.com",
                  "discoveryathome.github.io", "pypi.org", "files.pythonhosted.org", "registry.npmjs.org",
-                 "crates.io", "static.crates.io", "index.crates.io", "proxy.golang.org", "sum.golang.org"]
+                 "crates.io", "static.crates.io", "index.crates.io", "proxy.golang.org", "sum.golang.org",
+                 # Literature, for scripts that fetch papers or metadata. The agent's own web
+                 # search and fetch tools run outside the sandbox and aren't limited by this.
+                 "arxiv.org", "export.arxiv.org", "doi.org", "api.crossref.org", "api.openalex.org",
+                 "api.semanticscholar.org", "zenodo.org", "oeis.org"]
 # Credential folders and files in the home folder (written without "~/" here, so the repo
 # screen doesn't flag this list as code reading them).
 _SECRET_DIRS = [".ssh", ".aws", ".gnupg", ".kube", ".docker", ".azure", ".config/gcloud"]
@@ -106,9 +110,10 @@ def settings(name, work_dir=None, domains=()):
     out = {"permissions": {k: [r for c in p[k] for r in claude_rules(c, k != "allow")]
                            for k in ("allow", "ask", "deny") if p[k]}}
     if p["sandbox"]:
-        # Sessions write their own files and set up clones without being asked.
+        # Sessions write their own files, set up clones and search the literature without
+        # being asked.
         out["permissions"].setdefault("allow", []).extend(
-            ["Edit(./**)"] + ([f"Edit({work_dir}/**)"] if work_dir else []) + [claude_rule(c) for c in _GIT_SETUP])
+            ["Edit(./**)", "WebSearch", "WebFetch"] + ([f"Edit({work_dir}/**)"] if work_dir else []) + [claude_rule(c) for c in _GIT_SETUP])
         out["permissions"].setdefault("deny", []).extend(
             [f"Read(~/{c}/**)" for c in _SECRET_DIRS] + [f"Read(~/{c})" for c in _SECRET_FILES])
         out["sandbox"] = {

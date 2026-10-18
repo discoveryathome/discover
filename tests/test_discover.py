@@ -665,6 +665,8 @@ class PresetTests(unittest.TestCase):
             self.assertIn("data.example.org", sb["network"]["allowedDomains"])
             self.assertNotIn("allowWrite", sb["filesystem"])  # the start folder is writable already
             self.assertIn("Edit(./**)", st["permissions"]["allow"])
+            self.assertIn("WebSearch", st["permissions"]["allow"])
+            self.assertIn("arxiv.org", sb["network"]["allowedDomains"])
             self.assertIn("Read(~/" + ".ssh/**)", st["permissions"]["deny"])
             self.assertIn("Read(~/" + ".netrc)", st["permissions"]["deny"])
         self.assertEqual(presets.settings("donor", "/data/w")["sandbox"]["filesystem"]["allowWrite"], ["/data/w"])

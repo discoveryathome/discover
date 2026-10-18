@@ -38,6 +38,18 @@ Work in a fresh clone, never in a checkout the person is using. Everything this 
 creates lives in one folder: the clone in `repo/`, and your notes, scripts, logs,
 `HANDOFF.md` and any extra worktrees beside it.
 
+**Started inside a clone the person keeps for contributing?** That works too, if it's a
+clone of this project (its `origin` is the project) and the person uses it for
+donated sessions. Then: `git fetch`, check the tree is clean (`git status`; if not,
+ask before touching anything), and branch from the fetched default branch
+(`git switch -c session/<UTC time> origin/HEAD`), never committing to their branches.
+Keep notes in `.discover-session/<UTC time>/` and add `.discover-session/` to
+`.git/info/exclude` so nothing of yours gets committed. Screen after every fetch
+(`discover screen .`): new commits can add files an agent loads. Tell the person once
+that agents started in a project's folder load that project's own settings and hooks,
+and that `claude --setting-sources user --settings <preset file>` (preset kept outside
+the repo) is the safe way to start one there.
+
 ```sh
 S="$W/OWNER-NAME-$(date -u +%Y%m%dT%H%M)" && mkdir -p "$S" && cd "$S"    # $W: the workspace
 git clone --filter=blob:none https://github.com/OWNER/NAME repo

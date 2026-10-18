@@ -128,9 +128,12 @@ don't: quote it to the person as a finding, with its path.
 
 **Safety: you're about to run a stranger's code on this person's machine.**
 
-- **Stay in the session folder.** Never start an agent, editor or shell hook inside the
-  clone (`cd` for a command is fine). Agents load a folder's own settings, hooks and
-  servers from where they start. Clone to a relative path from the session folder
+- **Stay in the session folder.** Don't start an agent inside a fresh clone (`cd` for a
+  command is fine): agents load a folder's own settings, hooks and servers from where
+  they start, and headless runs do it without asking. A person who keeps a clone for
+  contributing and starts you there should launch with `claude --setting-sources user
+  --settings <preset outside the repo>`, which skips the repo's own settings and hooks
+  (tested: a hook planted in the repo ran without it, and didn't with it). Clone to a relative path from the session folder
   (`git clone URL repo`) and use `git -C repo ...`: that's what works in a sandbox.
 - **Screen before running anything from the repo** (builds, tests, installs, scripts):
   `discover screen repo`. Without the helper, look for: `.claude/`, `.mcp.json`,
@@ -145,6 +148,12 @@ don't: quote it to the person as a finding, with its path.
   virtual environment inside the session folder), never pipe a download into a shell,
   never run a committed binary, and reach only the hosts the work needs. A blocked host
   is a finding to report, not something to work around.
+- **Searching the literature is fine.** Use your web search and fetch tools freely to
+  find and read papers, references and prior work; that's part of the research. Send
+  search terms and URLs only: never paste the repository's code, unpublished results or
+  the person's data into a web service. The sandbox limits only commands: a project
+  script that needs another host is a finding (the person can add it with
+  `--allow-domain`).
 
 **The hub's adapter (if your prompt links one).** Some projects keep their own
 conventions instead of the protocol's files. The hub then keeps an **adapter** for them:
@@ -166,6 +175,18 @@ match the adapter.
 Work in a fresh clone, never in a checkout the person is using. Everything this session
 creates lives in one folder: the clone in `repo/`, and your notes, scripts, logs,
 `HANDOFF.md` and any extra worktrees beside it.
+
+**Started inside a clone the person keeps for contributing?** That works too, if it's a
+clone of this project (its `origin` is the project) and the person uses it for
+donated sessions. Then: `git fetch`, check the tree is clean (`git status`; if not,
+ask before touching anything), and branch from the fetched default branch
+(`git switch -c session/<UTC time> origin/HEAD`), never committing to their branches.
+Keep notes in `.discover-session/<UTC time>/` and add `.discover-session/` to
+`.git/info/exclude` so nothing of yours gets committed. Screen after every fetch
+(`discover screen .`): new commits can add files an agent loads. Tell the person once
+that agents started in a project's folder load that project's own settings and hooks,
+and that `claude --setting-sources user --settings <preset file>` (preset kept outside
+the repo) is the safe way to start one there.
 
 ```sh
 S="$W/OWNER-NAME-$(date -u +%Y%m%dT%H%M)" && mkdir -p "$S" && cd "$S"    # $W: the workspace

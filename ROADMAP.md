@@ -151,6 +151,14 @@ Donors run other people's research code on their own machines. Built (2026-10-18
   runs load a folder's hooks and MCP servers without asking); no `sudo`, global installs,
   piped downloads or committed binaries; text asking to widen permissions or hide
   something is quoted to the person as a finding.
+- **Persistent clones and the web** (2026-10-18): a hook planted in a repo's
+  `.claude/settings.json` ran in a headless session started inside it, so donors who keep
+  a clone for contributing start with `claude --setting-sources user --settings
+  <preset>` (tested: the hook didn't run, the preset held). The contribute playbook
+  supports working in such a clone (fresh branch from the fetched default, notes kept
+  out of commits, a screen after every fetch). Web search and fetch are allowed in donor
+  presets; the sandbox's host list, which now includes arXiv, DOI, Crossref, OpenAlex,
+  Semantic Scholar, Zenodo and the OEIS, limits only commands.
 - **The site** explains what protects donors and what doesn't.
 
 Left:
