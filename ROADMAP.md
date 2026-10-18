@@ -135,7 +135,8 @@ Donors run other people's research code on their own machines. Built (2026-10-18
   asks before posting) turn on Claude Code's sandbox: writes only inside the folder the
   agent starts in (any folder; `--work-dir` adds one),
   credential folders unreadable, network limited to GitHub, the site and package
-  registries (`--allow-domain` for more), failing closed. Tested headless with
+  registries (`--allow-domain` for more); where no sandbox exists (native Windows, Linux
+  without bubblewrap) sessions run unsandboxed and the preset command warns. Tested headless with
   `claude -p`: writes outside, reading `~/.ssh`, other hosts and `git push` refused;
   `gh` reads worked (with `enableWeakerNetworkIsolation`, which Go's TLS needs on macOS).
   A test session found that `git -C path push` slipped past the prefix deny rule (it

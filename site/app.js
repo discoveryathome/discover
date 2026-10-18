@@ -410,7 +410,17 @@ function viewContribute() {
     <p class="hint">A session runs a stranger's research code on your machine. Here's what protects you, and what doesn't.</p>
     <ol class="qlist">
       <li><b>Projects are screened when they apply</b>, and your agent screens its own copy again before running anything: auto-loading agent settings, install hooks, downloaded scripts, encoded code, credential paths, hidden text. A finding stops the session from running code until you've looked.</li>
-      <li><b>The donor presets turn on your agent's sandbox</b> (Claude Code on macOS, Linux and WSL2). Commands can write only inside the folder you started your agent in, can't read your SSH, cloud or package-registry credentials, and reach only GitHub, this site and the main package registries. Where no sandbox is available, the preset is set to fail closed rather than run unsandboxed.</li>
+      <li><b>The donor presets turn on your agent's sandbox</b> (Claude Code on macOS, Linux and WSL2). Commands can write only inside the folder you started your agent in, can't read your SSH, cloud or package-registry credentials, and reach only GitHub, this site and the main package registries. Native Windows has no sandbox, and Linux needs bubblewrap and socat: without one, sessions still run, unsandboxed, and the preset command warns you and says how to fix it.
+        <details style="margin-top:6px"><summary>Installing a sandbox</summary>
+          <p class="hint"><b>macOS:</b> built in, nothing to install.</p>
+          <p class="hint"><b>Linux:</b> install bubblewrap and socat, then restart your agent. In Claude Code, <code>/sandbox</code> shows whether it's on.</p>
+          <div class="codebox">sudo apt install bubblewrap socat     # Debian, Ubuntu
+sudo dnf install bubblewrap socat     # Fedora
+sudo pacman -S bubblewrap socat       # Arch</div>
+          <p class="hint"><b>Windows:</b> run your agent in WSL2. In PowerShell as administrator run <code>wsl --install</code> and restart; then in the Ubuntu terminal:</p>
+          <div class="codebox">sudo apt update &amp;&amp; sudo apt install bubblewrap socat git python3</div>
+          <p class="hint">Install <a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noopener">Claude Code inside Ubuntu</a>, make a work folder there (<code>mkdir -p ~/discover-work</code>, in the Linux filesystem, not under <code>/mnt/c</code>), run the preset command in it, and start <code>claude</code> from it.</p>
+        </details></li>
       <li><b>Sessions start in their own folder</b>, not inside the project's clone, so a repo's own agent settings and hooks never load. Keep a clone of the project for contributing? Run the preset command once inside it (<code>--write .claude/settings.local.json</code>), then just start <code>claude</code> there as usual: the preset outranks the repo's own agent settings, turns its hooks off and its MCP servers off. Rerun it after a pull that adds new ones.</li>
       <li><b>Your agent can search the web</b> for papers and prior work. The sandbox's host list limits only the commands it runs, such as the project's code.</li>
       <li><b>Not covered:</b> credentials a tool holds. Code inside the sandbox can still ask <code>gh</code> for your GitHub token. For untrusted code, the strongest setup is a container or VM with only the session folder mounted and a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> that can only read public repositories, or no token at all for local-only sessions. Codex's sandbox confines writes, not reads or network.</li>

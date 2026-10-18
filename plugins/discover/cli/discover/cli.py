@@ -379,6 +379,13 @@ def cmd_permissions(a):
         added = presets.merge_into(a.write, a.preset, a.work_dir, a.allow_domain)
         print(f"{a.write}: {len(added)} rule(s) added for {a.preset}" + "".join(f"\n  {r}" for r in added))
         if presets.PRESETS[a.preset]["sandbox"]:
+            ok, advice = presets.sandbox_status()
+            if not ok:
+                print(f"\nWARNING: sessions here will NOT be sandboxed. {advice}\n"
+                      f"Until then, the preset's other limits still apply (no GitHub writes beyond what it "
+                      f"allows, credential files unreadable by the agent's file tools, repo hooks off), but "
+                      f"the project's code runs with your normal permissions: prefer local reading, and "
+                      f"don't run code from projects you don't trust.")
             f = Path(a.write).resolve()
             if f.parent.name == ".claude":
                 folder = f.parent.parent

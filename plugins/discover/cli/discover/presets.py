@@ -117,7 +117,10 @@ def settings(name, work_dir=None, domains=()):
         out["permissions"].setdefault("deny", []).extend(
             [f"Read(~/{c}/**)" for c in _SECRET_DIRS] + [f"Read(~/{c})" for c in _SECRET_FILES])
         out["sandbox"] = {
-            "enabled": True, "failIfUnavailable": True,  # never run a donor's session unsandboxed by surprise
+            # Where no sandbox exists (native Windows, Linux without bubblewrap), Claude Code runs
+            # commands unsandboxed rather than refusing them; `discover permissions` warns when
+            # it writes the preset on such a machine (sandbox_status).
+            "enabled": True,
             "autoAllowBashIfSandboxed": True, "allowUnsandboxedCommands": False,
             "enableWeakerNetworkIsolation": True,
             "network": {"allowedDomains": DONOR_DOMAINS + [d for d in domains if d not in DONOR_DOMAINS]},
@@ -132,6 +135,37 @@ def settings(name, work_dir=None, domains=()):
         if name == "donor-local":
             out["env"] = dict(_NO_PUSH_ENV)
     return out
+
+
+LINUX_INSTALL = ("  Debian/Ubuntu: sudo apt install bubblewrap socat\n"
+                 "  Fedora:        sudo dnf install bubblewrap socat\n"
+                 "  Arch:          sudo pacman -S bubblewrap socat")
+WSL_INSTALL = ("  1. In PowerShell as administrator: wsl --install (installs Ubuntu; restart when asked)\n"
+               "  2. In the Ubuntu terminal: sudo apt update && sudo apt install bubblewrap socat git python3\n"
+               "  3. Install Claude Code inside Ubuntu (https://code.claude.com/docs/en/setup) and sign in\n"
+               "  4. Make a work folder there (mkdir -p ~/discover-work), rerun this command in it, and start\n"
+               "     claude from it. Keep work in the Linux filesystem (~), not under /mnt/c.")
+
+
+def sandbox_status():
+    """(available, advice) for Claude Code's sandbox on this machine: macOS Seatbelt, or
+    bubblewrap and socat on Linux and WSL2. Native Windows has none."""
+    import platform
+    import shutil
+    system = platform.system()
+    if system == "Darwin":
+        return True, ""
+    if system == "Linux":
+        missing = [t for t in ("bwrap", "socat") if not shutil.which(t)]
+        if not missing:
+            return True, ""
+        return False, (f"{' and '.join(missing)} not found, so Claude Code's sandbox can't run here. "
+                       f"To install them:\n{LINUX_INSTALL}\nThen restart your agent; in Claude Code, "
+                       f"/sandbox shows whether it's on.")
+    if system == "Windows":
+        return False, ("Claude Code has no sandbox on native Windows. To get one, run your agent in "
+                       f"WSL2:\n{WSL_INSTALL}")
+    return False, f"Claude Code's sandbox doesn't support {system}."
 
 
 def _merge(have, new, added, path=""):

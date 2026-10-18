@@ -660,7 +660,8 @@ class PresetTests(unittest.TestCase):
         for name in ("donor-local", "donor-post", "donor"):
             st = presets.settings(name, domains=["data.example.org"])
             sb = st["sandbox"]
-            self.assertTrue(sb["enabled"] and sb["failIfUnavailable"] and not sb["allowUnsandboxedCommands"])
+            self.assertTrue(sb["enabled"] and not sb["allowUnsandboxedCommands"])
+            self.assertNotIn("failIfUnavailable", sb)  # no sandbox: run with a warning, don't refuse
             self.assertIn("api.github.com", sb["network"]["allowedDomains"])
             self.assertIn("data.example.org", sb["network"]["allowedDomains"])
             self.assertNotIn("allowWrite", sb["filesystem"])  # the start folder is writable already
@@ -678,6 +679,20 @@ class PresetTests(unittest.TestCase):
             self.assertTrue(presets.merge_into(f, "donor-local"))
             self.assertEqual(presets.merge_into(f, "donor-local"), [])
             self.assertIn("mine.org", json.loads(f.read_text())["sandbox"]["network"]["allowedDomains"])
+
+    def test_sandbox_status_per_platform(self):
+        from unittest import mock
+        from discover import presets
+        with mock.patch("platform.system", return_value="Windows"):
+            ok, advice = presets.sandbox_status()
+            self.assertFalse(ok)
+            self.assertIn("WSL2", advice)
+        with mock.patch("platform.system", return_value="Linux"), mock.patch("shutil.which", return_value=None):
+            ok, advice = presets.sandbox_status()
+            self.assertFalse(ok)
+            self.assertIn("bubblewrap", advice)
+        with mock.patch("platform.system", return_value="Darwin"):
+            self.assertEqual(presets.sandbox_status(), (True, ""))
 
     def test_preset_in_a_clone_turns_off_its_hooks_and_servers(self):
         from discover import presets
