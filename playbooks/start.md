@@ -23,7 +23,7 @@ The protocol is at {{SPEC_URL}}; file formats at {{SCHEMAS_URL}}.
 
 - **github** (the default): build locally, then, with the person's yes, create the
   repository on GitHub and push.
-- **local**: build in `~/discover-work/start-<slug>/` and stop there. Nothing is created
+- **local**: build in `$W/start-<slug>/` in the workspace and stop there. Nothing is created
   on GitHub and nothing is posted. For trying it out, or for a look before publishing.
 
 Ask before creating repositories, pushing, posting, applying to a hub, or changing any

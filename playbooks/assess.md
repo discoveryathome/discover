@@ -16,7 +16,7 @@ entry doc, its record of accepted results, its task list, and its coordination.
 - **Hub** (the default): the hub's own assessment, written to the hub repo. Everything
   below applies.
 - **Self-check** (the `evaluate` goal in onboard): the same probes and grades, for the
-  person who asked. Write the report to `~/discover-work/assess-OWNER-NAME/report.md` and
+  person who asked. Write the report to `$W/assess-OWNER-NAME/report.md` and
   show it. Skip §5's hub files and §6: write nothing to the hub or the project.
 - **Projected**: grade a drafted setup that hasn't been adopted, as the project would be
   if its maintainer accepted it. Run the probes against the draft (a local copy, or the
@@ -61,7 +61,7 @@ properties) before starting; they change more often than this playbook.
 
 ## 1. Set up
 
-Work in `~/discover-work/assess-OWNER-NAME/`: clone the project into `repo/` there, put
+Work in `$W/assess-OWNER-NAME/` (`$W` is the workspace, above): clone the project into `repo/` there, put
 any disposable copies, logs and the report beside it, and record the commit you're
 assessing. Clone the hub, `{{HUB_REPO}}`, to write the result. If there's a registry PR,
 check out its branch.

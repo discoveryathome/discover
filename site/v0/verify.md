@@ -19,23 +19,28 @@ for writing up.
 This playbook needs nothing but a coding agent, git and a shell. Helpers make it more
 reliable when they're available; none is required.
 
+**Workspace (`$W`).** Everything a run creates (the helper, clones, scratch copies,
+builds, logs, drafts) goes in one folder per task inside the **workspace**, never loose,
+so the person can see and delete it in one place. The workspace is the folder you were
+started in, unless that's the person's home folder or inside a git checkout (their own
+project); then it's `~/discover-work`. Under a sandbox (the donor presets) you can write
+only inside the folder you were started in, so use that and say so. Below, `$W` means
+the workspace.
+
 **The `discover` helper (optional).** If you can run `python3` (3.9 or later), download
-the helper once, outside the project repo, and check its hash before running it:
+the helper once into the workspace, outside any project repo, and check its hash before
+running it:
 
 ```sh
-mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-a9bf80600b76.pyz
+mkdir -p "$W" && cd "$W"
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-014bc3d126d5.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print a9bf80600b76655b7fc1f368b12a1f9653c84615eb1eb049ac8c811431b702a8
+# must print 014bc3d126d540687445cddb81407af014371c891aa681869917dbc76a97d111
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
-means `python3 ~/discover-work/discover.pyz`. It's a single file using only Python's
+means `python3 "$W/discover.pyz"`. It's a single file using only Python's
 standard library: nothing to install.
-
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
 
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,
@@ -159,7 +164,7 @@ match the adapter.
 
 ## 1. Workspace and orientation
 
-Make one folder for the session, `~/discover-work/OWNER-NAME-verify-<UTC time>/`, clone into
+Make one folder for the session, `$W/OWNER-NAME-verify-<UTC time>/` in the workspace, clone into
 `repo/` inside it on a fresh branch, and record the base commit. Keep your notes,
 scripts, logs and any extra worktrees in that folder too. Screen the clone before
 replaying anything (`discover screen repo`, see Safety above): a replay runs the

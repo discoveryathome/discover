@@ -20,7 +20,7 @@ From the prompt, take the **budget** in minutes (default 240), the **permissions
 widen them. If the person names a project, this isn't a draw: follow the contribute
 playbook (https://discoveryathome.github.io/discover/v0/contribute.md) for that project instead.
 
-Make one folder for the whole donation, `D=~/discover-work/donation-<UTC time>/`, and
+Make one folder for the whole donation, `D=$W/donation-<UTC time>/` in the workspace (see below), and
 note the start time (`date -u`).
 
 ## Tools, and what to do without them
@@ -32,10 +32,6 @@ reliable when they're available; none is required.
 `python3 ${CLAUDE_PLUGIN_ROOT}/cli/discover.py` (if that variable wasn't substituted, it's
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
-
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
 
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,

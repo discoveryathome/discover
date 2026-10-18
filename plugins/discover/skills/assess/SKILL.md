@@ -17,7 +17,7 @@ entry doc, its record of accepted results, its task list, and its coordination.
 - **Hub** (the default): the hub's own assessment, written to the hub repo. Everything
   below applies.
 - **Self-check** (the `evaluate` goal in onboard): the same probes and grades, for the
-  person who asked. Write the report to `~/discover-work/assess-OWNER-NAME/report.md` and
+  person who asked. Write the report to `$W/assess-OWNER-NAME/report.md` and
   show it. Skip §5's hub files and §6: write nothing to the hub or the project.
 - **Projected**: grade a drafted setup that hasn't been adopted, as the project would be
   if its maintainer accepted it. Run the probes against the draft (a local copy, or the
@@ -67,10 +67,6 @@ reliable when they're available; none is required.
 `python3 ${CLAUDE_PLUGIN_ROOT}/cli/discover.py` (if that variable wasn't substituted, it's
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
-
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
 
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,
@@ -194,7 +190,7 @@ match the adapter.
 
 ## 1. Set up
 
-Work in `~/discover-work/assess-OWNER-NAME/`: clone the project into `repo/` there, put
+Work in `$W/assess-OWNER-NAME/` (`$W` is the workspace, above): clone the project into `repo/` there, put
 any disposable copies, logs and the report beside it, and record the commit you're
 assessing. Clone the hub, `discoveryathome/discover`, to write the result. If there's a registry PR,
 check out its branch.

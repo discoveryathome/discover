@@ -359,7 +359,7 @@ def cmd_adapter_check(a):
 def cmd_permissions(a):
     from . import presets
     if a.agent == "codex":
-        work = Path.home() / "discover-work"
+        work = a.work_dir
         if not a.write:
             print(f"# {presets.PRESETS[a.preset]['about']}\n# .codex/rules/discover.rules\n")
             print(presets.codex_rules(a.preset))
@@ -376,11 +376,11 @@ def cmd_permissions(a):
               f"{Path(a.write) / '.codex/rules/discover.rules'} -- gh pr merge 1")
         return 0
     if a.write:
-        added = presets.merge_into(a.write, a.preset, domains=a.allow_domain)
+        added = presets.merge_into(a.write, a.preset, a.work_dir, a.allow_domain)
         print(f"{a.write}: {len(added)} rule(s) added for {a.preset}" + "".join(f"\n  {r}" for r in added))
         return 0
     print(f"# {presets.PRESETS[a.preset]['about']}")
-    print(json.dumps(presets.settings(a.preset, domains=a.allow_domain), indent=2))
+    print(json.dumps(presets.settings(a.preset, a.work_dir, a.allow_domain), indent=2))
     return 0
 
 
@@ -570,6 +570,8 @@ def main(argv=None):
     pm.add_argument("preset", choices=["donor-local", "donor-post", "donor", "maintainer"])
     pm.add_argument("--allow-domain", action="append", default=[], metavar="HOST",
                     help="donor presets: another host sandboxed commands may reach (repeatable)")
+    pm.add_argument("--work-dir", metavar="PATH",
+                    help="another folder sandboxed commands may write, besides the one the agent starts in")
     pm.add_argument("--agent", choices=["claude", "codex"], default="claude")
     pm.add_argument("--write", metavar="PATH",
                     help="claude: merge into a settings file, e.g. .claude/settings.local.json (keeps existing "

@@ -20,7 +20,7 @@ decisive experiment, run it, and help package what's worth keeping.
   approve it but doesn't clearly name it, confirm in one line before starting: a
   misread approval for an hour of compute is expensive.
 - Never merge, close others' work, or edit the project's record of accepted results.
-- Work in an isolated clone and branch (`repo/` inside one session folder, `~/discover-work/OWNER-NAME-<UTC time>/`, on a fresh branch
+- Work in an isolated clone and branch (`repo/` inside one session folder, `$W/OWNER-NAME-<UTC time>/` in the workspace, on a fresh branch
   from the fetched default branch). If the person is in their own checkout, ask before
   creating branches or changing files there.
 - Keep a running **task card** (below) and show it when the direction changes.

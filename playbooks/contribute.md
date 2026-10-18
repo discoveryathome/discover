@@ -39,7 +39,7 @@ creates lives in one folder: the clone in `repo/`, and your notes, scripts, logs
 `HANDOFF.md` and any extra worktrees beside it.
 
 ```sh
-S=~/discover-work/OWNER-NAME-$(date -u +%Y%m%dT%H%M) && mkdir -p "$S" && cd "$S"
+S="$W/OWNER-NAME-$(date -u +%Y%m%dT%H%M)" && mkdir -p "$S" && cd "$S"    # $W: the workspace
 git clone --filter=blob:none https://github.com/OWNER/NAME repo
 git -C repo switch -c session/$(date -u +%Y%m%dT%H%M)
 git -C repo rev-parse HEAD    # record the base commit

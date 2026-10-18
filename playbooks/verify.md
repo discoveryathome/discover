@@ -23,7 +23,7 @@ for writing up.
 
 ## 1. Workspace and orientation
 
-Make one folder for the session, `~/discover-work/OWNER-NAME-verify-<UTC time>/`, clone into
+Make one folder for the session, `$W/OWNER-NAME-verify-<UTC time>/` in the workspace, clone into
 `repo/` inside it on a fresh branch, and record the base commit. Keep your notes,
 scripts, logs and any extra worktrees in that folder too. Screen the clone before
 replaying anything (`discover screen repo`, see Safety above): a replay runs the

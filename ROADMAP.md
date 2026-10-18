@@ -132,7 +132,8 @@ Donors run other people's research code on their own machines. Built (2026-10-18
   checkout) clean; applied-butterfly-mult has no high findings but commits Mach-O
   executables under `results/`.
 - **Sandboxed donor presets:** `donor-local`, `donor-post` and a new `donor` (attended,
-  asks before posting) turn on Claude Code's sandbox: writes only to `~/discover-work`,
+  asks before posting) turn on Claude Code's sandbox: writes only inside the folder the
+  agent starts in (any folder; `--work-dir` adds one),
   credential folders unreadable, network limited to GitHub, the site and package
   registries (`--allow-domain` for more), failing closed. Tested headless with
   `claude -p`: writes outside, reading `~/.ssh`, other hosts and `git push` refused;

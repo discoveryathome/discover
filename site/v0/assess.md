@@ -11,7 +11,7 @@ entry doc, its record of accepted results, its task list, and its coordination.
 - **Hub** (the default): the hub's own assessment, written to the hub repo. Everything
   below applies.
 - **Self-check** (the `evaluate` goal in onboard): the same probes and grades, for the
-  person who asked. Write the report to `~/discover-work/assess-OWNER-NAME/report.md` and
+  person who asked. Write the report to `$W/assess-OWNER-NAME/report.md` and
   show it. Skip §5's hub files and §6: write nothing to the hub or the project.
 - **Projected**: grade a drafted setup that hasn't been adopted, as the project would be
   if its maintainer accepted it. Run the probes against the draft (a local copy, or the
@@ -57,23 +57,28 @@ properties) before starting; they change more often than this playbook.
 This playbook needs nothing but a coding agent, git and a shell. Helpers make it more
 reliable when they're available; none is required.
 
+**Workspace (`$W`).** Everything a run creates (the helper, clones, scratch copies,
+builds, logs, drafts) goes in one folder per task inside the **workspace**, never loose,
+so the person can see and delete it in one place. The workspace is the folder you were
+started in, unless that's the person's home folder or inside a git checkout (their own
+project); then it's `~/discover-work`. Under a sandbox (the donor presets) you can write
+only inside the folder you were started in, so use that and say so. Below, `$W` means
+the workspace.
+
 **The `discover` helper (optional).** If you can run `python3` (3.9 or later), download
-the helper once, outside the project repo, and check its hash before running it:
+the helper once into the workspace, outside any project repo, and check its hash before
+running it:
 
 ```sh
-mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-a9bf80600b76.pyz
+mkdir -p "$W" && cd "$W"
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-014bc3d126d5.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print a9bf80600b76655b7fc1f368b12a1f9653c84615eb1eb049ac8c811431b702a8
+# must print 014bc3d126d540687445cddb81407af014371c891aa681869917dbc76a97d111
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
-means `python3 ~/discover-work/discover.pyz`. It's a single file using only Python's
+means `python3 "$W/discover.pyz"`. It's a single file using only Python's
 standard library: nothing to install.
-
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
 
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,
@@ -197,7 +202,7 @@ match the adapter.
 
 ## 1. Set up
 
-Work in `~/discover-work/assess-OWNER-NAME/`: clone the project into `repo/` there, put
+Work in `$W/assess-OWNER-NAME/` (`$W` is the workspace, above): clone the project into `repo/` there, put
 any disposable copies, logs and the report beside it, and record the commit you're
 assessing. Clone the hub, `discoveryathome/discover`, to write the result. If there's a registry PR,
 check out its branch.

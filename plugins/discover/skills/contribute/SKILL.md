@@ -41,10 +41,6 @@ reliable when they're available; none is required.
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
 
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
-
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,
 check free space (`df -h ~`). Prefer a shallow clone (`git clone --depth 1`) unless you
@@ -172,7 +168,7 @@ creates lives in one folder: the clone in `repo/`, and your notes, scripts, logs
 `HANDOFF.md` and any extra worktrees beside it.
 
 ```sh
-S=~/discover-work/OWNER-NAME-$(date -u +%Y%m%dT%H%M) && mkdir -p "$S" && cd "$S"
+S="$W/OWNER-NAME-$(date -u +%Y%m%dT%H%M)" && mkdir -p "$S" && cd "$S"    # $W: the workspace
 git clone --filter=blob:none https://github.com/OWNER/NAME repo
 git -C repo switch -c session/$(date -u +%Y%m%dT%H%M)
 git -C repo rev-parse HEAD    # record the base commit

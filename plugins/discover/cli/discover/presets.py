@@ -99,15 +99,16 @@ _NO_PUSH_ENV = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "url.https://push-d
                 "GIT_CONFIG_VALUE_0": "https://github.com/"}
 
 
-def settings(name, work_dir="~/discover-work", domains=()):
-    """Claude Code settings for a preset."""
+def settings(name, work_dir=None, domains=()):
+    """Claude Code settings for a preset. Sandboxed commands may write the folder the agent
+    starts in (Claude Code's default); `work_dir` adds one more writable folder."""
     p = PRESETS[name]
     out = {"permissions": {k: [r for c in p[k] for r in claude_rules(c, k != "allow")]
                            for k in ("allow", "ask", "deny") if p[k]}}
     if p["sandbox"]:
         # Sessions write their own files and set up clones without being asked.
         out["permissions"].setdefault("allow", []).extend(
-            [f"Edit({work_dir}/**)"] + [claude_rule(c) for c in _GIT_SETUP])
+            ["Edit(./**)"] + ([f"Edit({work_dir}/**)"] if work_dir else []) + [claude_rule(c) for c in _GIT_SETUP])
         out["permissions"].setdefault("deny", []).extend(
             [f"Read(~/{c}/**)" for c in _SECRET_DIRS] + [f"Read(~/{c})" for c in _SECRET_FILES])
         out["sandbox"] = {
@@ -115,7 +116,7 @@ def settings(name, work_dir="~/discover-work", domains=()):
             "autoAllowBashIfSandboxed": True, "allowUnsandboxedCommands": False,
             "enableWeakerNetworkIsolation": True,
             "network": {"allowedDomains": DONOR_DOMAINS + [d for d in domains if d not in DONOR_DOMAINS]},
-            "filesystem": {"allowWrite": [str(work_dir)], "denyRead": list(CREDENTIALS)},
+            "filesystem": {**({"allowWrite": [str(work_dir)]} if work_dir else {}), "denyRead": list(CREDENTIALS)},
             "excludedCommands": [f"{' '.join(c)} *" for c in _GIT_SETUP],
         }
         if name == "donor-local":
@@ -139,7 +140,7 @@ def _merge(have, new, added, path=""):
             added.append(f"{path}{k}: {json.dumps(v)}")
 
 
-def merge_into(path, name, work_dir="~/discover-work", domains=()):
+def merge_into(path, name, work_dir=None, domains=()):
     """Add a preset's rules (and sandbox settings) to a Claude Code settings file, keeping
     everything already there."""
     path = Path(path)
@@ -179,20 +180,20 @@ def codex_rules(name):
     return "\n".join(out)
 
 
-def codex_config(name, work_dir):
+def codex_config(name, work_dir=None):
     """The config layer: approvals for a present person or an unattended run, and a
     workspace-write sandbox that can reach the network (to clone and read) and write the
-    session folder."""
+    folder Codex starts in, plus `work_dir` if given."""
     approval = "never" if PRESETS[name]["unattended"] else "on-request"
     return (f"# Discovery@Home preset {name}, written by `discover permissions`.\n"
             f"approval_policy = \"{approval}\"\n"
             f"sandbox_mode = \"workspace-write\"\n\n"
             f"[sandbox_workspace_write]\n"
             f"network_access = true\n"
-            f"writable_roots = [{json.dumps(str(work_dir))}]\n")
+            + (f"writable_roots = [{json.dumps(str(work_dir))}]\n" if work_dir else ""))
 
 
-def write_codex(folder, name, work_dir):
+def write_codex(folder, name, work_dir=None):
     """Write <folder>/.codex/rules/discover.rules (ours, replaced each time) and
     <folder>/.codex/config.toml if there is none. Returns (written, config_skipped)."""
     folder = Path(folder)

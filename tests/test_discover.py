@@ -663,9 +663,11 @@ class PresetTests(unittest.TestCase):
             self.assertTrue(sb["enabled"] and sb["failIfUnavailable"] and not sb["allowUnsandboxedCommands"])
             self.assertIn("api.github.com", sb["network"]["allowedDomains"])
             self.assertIn("data.example.org", sb["network"]["allowedDomains"])
-            self.assertEqual(sb["filesystem"]["allowWrite"], ["~/discover-work"])
+            self.assertNotIn("allowWrite", sb["filesystem"])  # the start folder is writable already
+            self.assertIn("Edit(./**)", st["permissions"]["allow"])
             self.assertIn("Read(~/" + ".ssh/**)", st["permissions"]["deny"])
             self.assertIn("Read(~/" + ".netrc)", st["permissions"]["deny"])
+        self.assertEqual(presets.settings("donor", "/data/w")["sandbox"]["filesystem"]["allowWrite"], ["/data/w"])
         self.assertNotIn("sandbox", presets.settings("maintainer"))
         self.assertIn("Bash(gh pr create *)", presets.settings("donor")["permissions"]["ask"])
         with tempfile.TemporaryDirectory() as d:

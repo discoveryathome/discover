@@ -16,7 +16,7 @@ never seen the project. Write it for them: short, specific, and honest about its
 ## Modes
 
 - **local** (for testing, or a first look): read-only toward the project and the hub.
-  Write the adapter to `~/discover-work/adapt-OWNER-NAME/adapter.md` and report. Nothing is
+  Write the adapter to `$W/adapt-OWNER-NAME/adapter.md` and report. Nothing is
   posted, pushed or opened anywhere.
 - **hub** (the default, from the assess playbook at intake): write
   `adapters/<project-id>.md` in a clone of the hub, `{{HUB_REPO}}`, on the registry PR's
@@ -45,7 +45,7 @@ never seen the project. Write it for them: short, specific, and honest about its
 
 ## 1. Set up
 
-Clone the repo into `~/discover-work/adapt-OWNER-NAME/repo`. If you were given a commit,
+From `$W/adapt-OWNER-NAME/` (`$W` is the workspace, above), clone the repo into `repo`. If you were given a commit,
 check it out; otherwise use the default branch's head. Record the full commit hash and
 its date: that's the adapter's `as_of`. The project ID is the repo name in lowercase
 with anything other than letters, digits and hyphens turned into hyphens, unless the

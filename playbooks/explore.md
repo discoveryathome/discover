@@ -19,7 +19,7 @@ From the prompt, take the **budget** in minutes (default 240), the **permissions
 widen them. If the person names a project, this isn't a draw: follow the contribute
 playbook ({{SITE}}v0/contribute.md) for that project instead.
 
-Make one folder for the whole donation, `D=~/discover-work/donation-<UTC time>/`, and
+Make one folder for the whole donation, `D=$W/donation-<UTC time>/` in the workspace (see below), and
 note the start time (`date -u`).
 
 {{TOOLS}}

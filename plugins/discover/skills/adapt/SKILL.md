@@ -17,7 +17,7 @@ never seen the project. Write it for them: short, specific, and honest about its
 ## Modes
 
 - **local** (for testing, or a first look): read-only toward the project and the hub.
-  Write the adapter to `~/discover-work/adapt-OWNER-NAME/adapter.md` and report. Nothing is
+  Write the adapter to `$W/adapt-OWNER-NAME/adapter.md` and report. Nothing is
   posted, pushed or opened anywhere.
 - **hub** (the default, from the assess playbook at intake): write
   `adapters/<project-id>.md` in a clone of the hub, `discoveryathome/discover`, on the registry PR's
@@ -51,10 +51,6 @@ reliable when they're available; none is required.
 `python3 ${CLAUDE_PLUGIN_ROOT}/cli/discover.py` (if that variable wasn't substituted, it's
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
-
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
 
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,
@@ -178,7 +174,7 @@ match the adapter.
 
 ## 1. Set up
 
-Clone the repo into `~/discover-work/adapt-OWNER-NAME/repo`. If you were given a commit,
+From `$W/adapt-OWNER-NAME/` (`$W` is the workspace, above), clone the repo into `repo`. If you were given a commit,
 check it out; otherwise use the default branch's head. Record the full commit hash and
 its date: that's the adapter's `as_of`. The project ID is the repo name in lowercase
 with anything other than letters, digits and hyphens turned into hyphens, unless the

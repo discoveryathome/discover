@@ -21,7 +21,7 @@ decisive experiment, run it, and help package what's worth keeping.
   approve it but doesn't clearly name it, confirm in one line before starting: a
   misread approval for an hour of compute is expensive.
 - Never merge, close others' work, or edit the project's record of accepted results.
-- Work in an isolated clone and branch (`repo/` inside one session folder, `~/discover-work/OWNER-NAME-<UTC time>/`, on a fresh branch
+- Work in an isolated clone and branch (`repo/` inside one session folder, `$W/OWNER-NAME-<UTC time>/` in the workspace, on a fresh branch
   from the fetched default branch). If the person is in their own checkout, ask before
   creating branches or changing files there.
 - Keep a running **task card** (below) and show it when the direction changes.
@@ -35,10 +35,6 @@ reliable when they're available; none is required.
 `python3 ${CLAUDE_PLUGIN_ROOT}/cli/discover.py` (if that variable wasn't substituted, it's
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
-
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
 
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,

@@ -24,7 +24,7 @@ The protocol is at https://github.com/discoveryathome/discover/blob/main/spec/v0
 
 - **github** (the default): build locally, then, with the person's yes, create the
   repository on GitHub and push.
-- **local**: build in `~/discover-work/start-<slug>/` and stop there. Nothing is created
+- **local**: build in `$W/start-<slug>/` in the workspace and stop there. Nothing is created
   on GitHub and nothing is posted. For trying it out, or for a look before publishing.
 
 Ask before creating repositories, pushing, posting, applying to a hub, or changing any
@@ -39,10 +39,6 @@ reliable when they're available; none is required.
 `python3 ${CLAUDE_PLUGIN_ROOT}/cli/discover.py` (if that variable wasn't substituted, it's
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
-
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
 
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,

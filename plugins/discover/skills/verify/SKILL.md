@@ -30,10 +30,6 @@ reliable when they're available; none is required.
 at `../../cli/discover.py` relative to this file). Below, `discover` means that command.
 Don't download it.
 
-**Workspace.** Keep everything a run creates (clones, scratch copies, builds, logs,
-drafts) inside one folder under `~/discover-work/` named for the project and the task,
-never loose at the top level, so the person can see and delete it in one place.
-
 **Disk and machine.** Research repos and builds can be large: one listed project's
 checkout is several GB, and a library build can add more. Before cloning or building,
 check free space (`df -h ~`). Prefer a shallow clone (`git clone --depth 1`) unless you
@@ -156,7 +152,7 @@ match the adapter.
 
 ## 1. Workspace and orientation
 
-Make one folder for the session, `~/discover-work/OWNER-NAME-verify-<UTC time>/`, clone into
+Make one folder for the session, `$W/OWNER-NAME-verify-<UTC time>/` in the workspace, clone into
 `repo/` inside it on a fresh branch, and record the base commit. Keep your notes,
 scripts, logs and any extra worktrees in that folder too. Screen the clone before
 replaying anything (`discover screen repo`, see Safety above): a replay runs the
