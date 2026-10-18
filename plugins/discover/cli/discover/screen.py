@@ -151,7 +151,8 @@ def screen(root):
         p = root / rel
         if p.exists():
             t = _text(p) or ""
-            risky = any(k in t for k in ('"hooks"', '"allow"', "command", "folderOpen", "bypass", "sandbox"))
+            risky = any(k in t for k in ('"hooks"', '"allow"', "command", "folderOpen", "bypass", "sandbox",
+                                         "allowedDomains", '"env"', "apiKeyHelper", "McpServers", "mcpServers"))
             add("high" if risky or rel in (".envrc", ".mcp.json") else "warn", "agent-config", rel, None,
                 "", why + ". Don't start an agent or editor inside the clone; run it from the session folder.")
     if (root / ".codex").is_dir() and not (root / ".codex/config.toml").exists():

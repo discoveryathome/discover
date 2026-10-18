@@ -153,8 +153,12 @@ Donors run other people's research code on their own machines. Built (2026-10-18
   something is quoted to the person as a finding.
 - **Persistent clones and the web** (2026-10-18): a hook planted in a repo's
   `.claude/settings.json` ran in a headless session started inside it, so donors who keep
-  a clone for contributing start with `claude --setting-sources user --settings
-  <preset>` (tested: the hook didn't run, the preset held). The contribute playbook
+  a clone for contributing write the donor preset into that clone's
+  `.claude/settings.local.json` once and then just run `claude`: it outranks the repo's
+  settings, sets `disableAllHooks`, and names the repo's MCP servers as disabled (tested
+  against a hostile settings file; a repo can still add to merged lists such as allowed
+  hosts, which the screen flags). Left: new MCP servers arriving with a pull start until
+  the preset is rerun, and there's no name-independent switch for them. The contribute playbook
   supports working in such a clone (fresh branch from the fetched default, notes kept
   out of commits, a screen after every fetch). Web search and fetch are allowed in donor
   presets; the sandbox's host list, which now includes arXiv, DOI, Crossref, OpenAlex,

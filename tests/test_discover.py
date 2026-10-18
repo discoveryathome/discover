@@ -679,6 +679,21 @@ class PresetTests(unittest.TestCase):
             self.assertEqual(presets.merge_into(f, "donor-local"), [])
             self.assertIn("mine.org", json.loads(f.read_text())["sandbox"]["network"]["allowedDomains"])
 
+    def test_preset_in_a_clone_turns_off_its_hooks_and_servers(self):
+        from discover import presets
+        self.assertTrue(presets.settings("donor")["disableAllHooks"])
+        self.assertNotIn("disableAllHooks", presets.settings("maintainer"))
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / ".mcp.json").write_text(json.dumps({"mcpServers": {"b": {}, "a": {}}}))
+            (Path(d) / ".claude").mkdir()
+            (Path(d) / ".claude" / "settings.json").write_text(json.dumps({"hooks": {}, "sandbox": {}}))
+            f = Path(d) / ".claude" / "settings.local.json"
+            presets.merge_into(f, "donor-post")
+            s = json.loads(f.read_text())
+            self.assertEqual(s["disabledMcpjsonServers"], ["a", "b"])
+            self.assertFalse(s["enableAllProjectMcpServers"])
+            self.assertEqual(presets.repo_agent_config(d)[1], ["hooks", "sandbox"])
+
     def test_codex_rules_and_config(self):
         import shutil
         from discover import presets

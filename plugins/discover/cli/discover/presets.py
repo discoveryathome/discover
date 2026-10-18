@@ -124,6 +124,11 @@ def settings(name, work_dir=None, domains=()):
             "filesystem": {**({"allowWrite": [str(work_dir)]} if work_dir else {}), "denyRead": list(CREDENTIALS)},
             "excludedCommands": [f"{' '.join(c)} *" for c in _GIT_SETUP],
         }
+        # A repo's own .claude/settings.json hooks run unsandboxed, and in a clone the person
+        # has trusted, without asking. Settings in .claude/settings.local.json outrank the
+        # repo's, so this turns them off (tested: SessionStart and PreToolUse hooks didn't
+        # run). It turns off the person's own hooks too, in this folder only.
+        out["disableAllHooks"] = True
         if name == "donor-local":
             out["env"] = dict(_NO_PUSH_ENV)
     return out
@@ -145,13 +150,38 @@ def _merge(have, new, added, path=""):
             added.append(f"{path}{k}: {json.dumps(v)}")
 
 
+def repo_agent_config(folder):
+    """What a repo at `folder` ships that Claude Code would load there: (MCP server names
+    from .mcp.json, keys of .claude/settings.json that widen or run things)."""
+    folder = Path(folder)
+    servers, keys = [], []
+    try:
+        servers = sorted((json.loads((folder / ".mcp.json").read_text(encoding="utf-8")).get("mcpServers") or {}))
+    except (OSError, ValueError, AttributeError):
+        pass
+    try:
+        proj = json.loads((folder / ".claude" / "settings.json").read_text(encoding="utf-8"))
+        keys = [k for k in ("hooks", "permissions", "sandbox", "env", "enableAllProjectMcpServers",
+                            "enabledMcpjsonServers", "apiKeyHelper") if k in proj]
+    except (OSError, ValueError, AttributeError):
+        pass
+    return servers, keys
+
+
 def merge_into(path, name, work_dir=None, domains=()):
     """Add a preset's rules (and sandbox settings) to a Claude Code settings file, keeping
-    everything already there."""
+    everything already there. Written into a clone (<repo>/.claude/settings.local.json),
+    it also turns off the MCP servers the repo's .mcp.json names: there's no setting that
+    turns off a folder's servers without naming them (tested)."""
     path = Path(path)
     current = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     added = []
-    _merge(current, settings(name, work_dir, domains), added)
+    extra = {}
+    if PRESETS[name]["sandbox"] and path.parent.name == ".claude":
+        servers, _ = repo_agent_config(path.parent.parent)
+        if servers:
+            extra = {"enableAllProjectMcpServers": False, "disabledMcpjsonServers": servers}
+    _merge(current, {**settings(name, work_dir, domains), **extra}, added)
     perms = current.setdefault("permissions", {})
     for key in [k for k, v in perms.items() if v == []]:
         del perms[key]

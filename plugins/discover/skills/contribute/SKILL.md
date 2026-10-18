@@ -130,10 +130,10 @@ don't: quote it to the person as a finding, with its path.
 
 - **Stay in the session folder.** Don't start an agent inside a fresh clone (`cd` for a
   command is fine): agents load a folder's own settings, hooks and servers from where
-  they start, and headless runs do it without asking. A person who keeps a clone for
-  contributing and starts you there should launch with `claude --setting-sources user
-  --settings <preset outside the repo>`, which skips the repo's own settings and hooks
-  (tested: a hook planted in the repo ran without it, and didn't with it). Clone to a relative path from the session folder
+  they start, and in a trusted folder or a headless run they do it without asking. A
+  person who keeps a clone for contributing can start you there once the donor preset is
+  in that clone's `.claude/settings.local.json`: it outranks the repo's settings, turns
+  the repo's hooks off and its MCP servers off by name (tested). Clone to a relative path from the session folder
   (`git clone URL repo`) and use `git -C repo ...`: that's what works in a sandbox.
 - **Screen before running anything from the repo** (builds, tests, installs, scripts):
   `discover screen repo`. Without the helper, look for: `.claude/`, `.mcp.json`,
@@ -183,10 +183,11 @@ ask before touching anything), and branch from the fetched default branch
 (`git switch -c session/<UTC time> origin/HEAD`), never committing to their branches.
 Keep notes in `.discover-session/<UTC time>/` and add `.discover-session/` to
 `.git/info/exclude` so nothing of yours gets committed. Screen after every fetch
-(`discover screen .`): new commits can add files an agent loads. Tell the person once
-that agents started in a project's folder load that project's own settings and hooks,
-and that `claude --setting-sources user --settings <preset file>` (preset kept outside
-the repo) is the safe way to start one there.
+(`discover screen .`): new commits can add files an agent loads. If the clone has no
+donor preset in `.claude/settings.local.json`, tell the person once that agents started
+in a project's folder run that project's own hooks and MCP servers, and that one command
+in the clone fixes it for good (`discover permissions donor --write
+.claude/settings.local.json`); after that they just start `claude` there as usual.
 
 ```sh
 S="$W/OWNER-NAME-$(date -u +%Y%m%dT%H%M)" && mkdir -p "$S" && cd "$S"    # $W: the workspace

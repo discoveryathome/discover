@@ -380,9 +380,24 @@ def cmd_permissions(a):
         print(f"{a.write}: {len(added)} rule(s) added for {a.preset}" + "".join(f"\n  {r}" for r in added))
         if presets.PRESETS[a.preset]["sandbox"]:
             f = Path(a.write).resolve()
-            print(f"\nStart sessions in the folder you'll work in. Unattended: claude -p --settings {f} \"...\"\n"
-                  f"From a clone of the project you keep for contributing (skips the repo's own settings "
-                  f"and hooks):\n  claude --setting-sources user --settings {f}")
+            if f.parent.name == ".claude":
+                folder = f.parent.parent
+                print(f"\nDone. Start your agent in {folder} as usual (just `claude`); the preset applies there, "
+                      f"and the repo's own hooks are off.")
+                servers, keys = presets.repo_agent_config(folder)
+                if keys:
+                    print(f"Note: this repo ships .claude/settings.json with {', '.join(keys)}. Hooks are off, and "
+                          f"your denies and sandbox switch win, but lists such as allowed hosts are merged with "
+                          f"yours. Read it, or start with `claude --setting-sources user --settings {f}`, "
+                          f"which ignores it.")
+                if servers:
+                    print(f"Turned off this repo's MCP servers ({', '.join(servers)}). New ones that arrive with "
+                          f"a pull would start; rerun this command after pulling, or screen with "
+                          f"`discover screen .`.")
+            else:
+                print(f"\nPass it when you start your agent: claude --settings {f} (unattended: claude -p "
+                      f"--settings {f} \"...\"). Or write it to .claude/settings.local.json in the folder you "
+                      f"start in, and just run `claude` there.")
         return 0
     print(f"# {presets.PRESETS[a.preset]['about']}")
     print(json.dumps(presets.settings(a.preset, a.work_dir, a.allow_domain), indent=2))
