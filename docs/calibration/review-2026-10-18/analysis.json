@@ -1,0 +1,1675 @@
+{
+ "end": "2026-10-18T16:00:00Z",
+ "repos": {
+  "CrocSwap/applied-butterfly-mult": {
+   "all": {
+    "n": 10,
+    "grade": "unknown"
+   },
+   "all_denominator_eligible": {
+    "n": 10,
+    "grade": "unknown"
+   },
+   "all_no_minimum": {
+    "n": 10,
+    "denominator": 10,
+    "median_days": 0.036,
+    "share_over_7d": 0.0,
+    "await_start": 0,
+    "await_end": 2,
+    "grade": "adequate"
+   },
+   "all_rolling": {
+    "2026-10-18": {
+     "n": 10,
+     "grade": "unknown"
+    },
+    "2026-10-17": {
+     "n": 1,
+     "grade": "unknown"
+    },
+    "2026-10-16": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-15": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-14": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-13": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-12": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-11": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-10": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-09": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-08": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-07": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-06": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-05": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-04": {
+     "n": 0,
+     "grade": "unknown"
+    }
+   },
+   "outside": {
+    "n": 0,
+    "grade": "unknown"
+   },
+   "outside_denominator_eligible": {
+    "n": 0,
+    "grade": "unknown"
+   },
+   "outside_no_minimum": {
+    "n": 0,
+    "grade": "unknown"
+   },
+   "outside_rolling": {
+    "2026-10-18": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-17": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-16": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-15": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-14": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-13": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-12": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-11": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-10": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-09": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-08": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-07": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-06": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-05": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-04": {
+     "n": 0,
+     "grade": "unknown"
+    }
+   },
+   "outside_backlog_daily": {
+    "2026-10-18": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-17": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-16": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-15": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-14": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-13": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-12": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-11": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-10": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-09": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-08": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-07": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-06": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-05": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-04": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    }
+   },
+   "maintainer_authored_in_window": 10,
+   "maintainer_authored_median_days": 0.036,
+   "proposed": {
+    "n": 0,
+    "grade": "unknown"
+   },
+   "proposed_rolling": {
+    "2026-10-18": "unknown",
+    "2026-10-17": "unknown",
+    "2026-10-16": "unknown",
+    "2026-10-15": "unknown",
+    "2026-10-14": "unknown",
+    "2026-10-13": "unknown",
+    "2026-10-12": "unknown",
+    "2026-10-11": "unknown",
+    "2026-10-10": "unknown",
+    "2026-10-09": "unknown",
+    "2026-10-08": "unknown",
+    "2026-10-07": "unknown",
+    "2026-10-06": "unknown",
+    "2026-10-05": "unknown",
+    "2026-10-04": "unknown"
+   }
+  },
+  "CrocSwap/integer-mult-bounds": {
+   "all": {
+    "n": 3363,
+    "denominator": 3363,
+    "median_days": 0.449,
+    "share_over_7d": 0.014,
+    "await_start": 0,
+    "await_end": 347,
+    "grade": "adequate"
+   },
+   "all_denominator_eligible": {
+    "n": 3363,
+    "denominator": 454,
+    "median_days": 0.449,
+    "share_over_7d": 0.1035,
+    "await_start": 0,
+    "await_end": 347,
+    "grade": "adequate"
+   },
+   "all_no_minimum": {
+    "n": 3363,
+    "denominator": 3363,
+    "median_days": 0.449,
+    "share_over_7d": 0.014,
+    "await_start": 0,
+    "await_end": 347,
+    "grade": "adequate"
+   },
+   "all_rolling": {
+    "2026-10-18": {
+     "n": 3363,
+     "denominator": 3363,
+     "median_days": 0.449,
+     "share_over_7d": 0.014,
+     "await_start": 0,
+     "await_end": 347,
+     "grade": "adequate"
+    },
+    "2026-10-17": {
+     "n": 2863,
+     "denominator": 2863,
+     "median_days": 0.487,
+     "share_over_7d": 0.0073,
+     "await_start": 0,
+     "await_end": 254,
+     "grade": "adequate"
+    },
+    "2026-10-16": {
+     "n": 2665,
+     "denominator": 2665,
+     "median_days": 0.491,
+     "share_over_7d": 0.0056,
+     "await_start": 0,
+     "await_end": 176,
+     "grade": "adequate"
+    },
+    "2026-10-15": {
+     "n": 2340,
+     "denominator": 2340,
+     "median_days": 0.917,
+     "share_over_7d": 0.0009,
+     "await_start": 0,
+     "await_end": 628,
+     "grade": "adequate"
+    },
+    "2026-10-14": {
+     "n": 1817,
+     "denominator": 1817,
+     "median_days": 0.583,
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 323,
+     "grade": "adequate"
+    },
+    "2026-10-13": {
+     "n": 984,
+     "denominator": 984,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 696,
+     "grade": "weak"
+    },
+    "2026-10-12": {
+     "n": 598,
+     "denominator": 598,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 450,
+     "grade": "weak"
+    },
+    "2026-10-11": {
+     "n": 454,
+     "denominator": 454,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 381,
+     "grade": "weak"
+    },
+    "2026-10-10": {
+     "n": 315,
+     "denominator": 315,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 245,
+     "grade": "weak"
+    },
+    "2026-10-09": {
+     "n": 206,
+     "denominator": 206,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 148,
+     "grade": "weak"
+    },
+    "2026-10-08": {
+     "n": 49,
+     "denominator": 49,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 40,
+     "grade": "weak"
+    },
+    "2026-10-07": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-06": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-05": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-04": {
+     "n": 0,
+     "grade": "unknown"
+    }
+   },
+   "all_subsample": {
+    "full_grade_backlog_fixed": "strong",
+    "5": 0.897,
+    "10": 0.873,
+    "20": 0.97,
+    "40": 0.998
+   },
+   "outside": {
+    "n": 3351,
+    "denominator": 3351,
+    "median_days": 0.449,
+    "share_over_7d": 0.014,
+    "await_start": 0,
+    "await_end": 346,
+    "grade": "adequate"
+   },
+   "outside_denominator_eligible": {
+    "n": 3351,
+    "denominator": 453,
+    "median_days": 0.449,
+    "share_over_7d": 0.1038,
+    "await_start": 0,
+    "await_end": 346,
+    "grade": "adequate"
+   },
+   "outside_no_minimum": {
+    "n": 3351,
+    "denominator": 3351,
+    "median_days": 0.449,
+    "share_over_7d": 0.014,
+    "await_start": 0,
+    "await_end": 346,
+    "grade": "adequate"
+   },
+   "outside_rolling": {
+    "2026-10-18": {
+     "n": 3351,
+     "denominator": 3351,
+     "median_days": 0.449,
+     "share_over_7d": 0.014,
+     "await_start": 0,
+     "await_end": 346,
+     "grade": "adequate"
+    },
+    "2026-10-17": {
+     "n": 2851,
+     "denominator": 2851,
+     "median_days": 0.487,
+     "share_over_7d": 0.0074,
+     "await_start": 0,
+     "await_end": 253,
+     "grade": "adequate"
+    },
+    "2026-10-16": {
+     "n": 2653,
+     "denominator": 2653,
+     "median_days": 0.491,
+     "share_over_7d": 0.0057,
+     "await_start": 0,
+     "await_end": 175,
+     "grade": "adequate"
+    },
+    "2026-10-15": {
+     "n": 2328,
+     "denominator": 2328,
+     "median_days": 0.921,
+     "share_over_7d": 0.0009,
+     "await_start": 0,
+     "await_end": 627,
+     "grade": "adequate"
+    },
+    "2026-10-14": {
+     "n": 1805,
+     "denominator": 1805,
+     "median_days": 0.583,
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 322,
+     "grade": "adequate"
+    },
+    "2026-10-13": {
+     "n": 979,
+     "denominator": 979,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 692,
+     "grade": "weak"
+    },
+    "2026-10-12": {
+     "n": 597,
+     "denominator": 597,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 450,
+     "grade": "weak"
+    },
+    "2026-10-11": {
+     "n": 453,
+     "denominator": 453,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 381,
+     "grade": "weak"
+    },
+    "2026-10-10": {
+     "n": 314,
+     "denominator": 314,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 245,
+     "grade": "weak"
+    },
+    "2026-10-09": {
+     "n": 205,
+     "denominator": 205,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 148,
+     "grade": "weak"
+    },
+    "2026-10-08": {
+     "n": 49,
+     "denominator": 49,
+     "median_days": "inf",
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 40,
+     "grade": "weak"
+    },
+    "2026-10-07": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-06": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-05": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-04": {
+     "n": 0,
+     "grade": "unknown"
+    }
+   },
+   "outside_subsample": {
+    "full_grade_backlog_fixed": "strong",
+    "5": 0.891,
+    "10": 0.868,
+    "20": 0.963,
+    "40": 0.996
+   },
+   "outside_backlog_daily": {
+    "2026-10-18": {
+     "awaiting": 346,
+     "awaiting_over_1d": 185,
+     "awaiting_over_7d": 47
+    },
+    "2026-10-17": {
+     "awaiting": 253,
+     "awaiting_over_1d": 173,
+     "awaiting_over_7d": 21
+    },
+    "2026-10-16": {
+     "awaiting": 175,
+     "awaiting_over_1d": 153,
+     "awaiting_over_7d": 15
+    },
+    "2026-10-15": {
+     "awaiting": 627,
+     "awaiting_over_1d": 134,
+     "awaiting_over_7d": 2
+    },
+    "2026-10-14": {
+     "awaiting": 322,
+     "awaiting_over_1d": 99,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-13": {
+     "awaiting": 692,
+     "awaiting_over_1d": 440,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-12": {
+     "awaiting": 450,
+     "awaiting_over_1d": 369,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-11": {
+     "awaiting": 381,
+     "awaiting_over_1d": 245,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-10": {
+     "awaiting": 245,
+     "awaiting_over_1d": 146,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-09": {
+     "awaiting": 148,
+     "awaiting_over_1d": 34,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-08": {
+     "awaiting": 40,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-07": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-06": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-05": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-04": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    }
+   },
+   "maintainer_authored_in_window": 12,
+   "maintainer_authored_median_days": 0.393,
+   "proposed": {
+    "n": 3351,
+    "eligible": 453,
+    "median_days": 0.449,
+    "share_over_7d_eligible": 0.1038,
+    "backlog_mid": 245,
+    "backlog_end": 185,
+    "growing": false,
+    "grade": "adequate"
+   },
+   "proposed_rolling": {
+    "2026-10-18": "adequate",
+    "2026-10-17": "adequate",
+    "2026-10-16": "adequate",
+    "2026-10-15": "adequate",
+    "2026-10-14": "adequate",
+    "2026-10-13": "weak",
+    "2026-10-12": "weak",
+    "2026-10-11": "weak",
+    "2026-10-10": "weak",
+    "2026-10-09": "weak",
+    "2026-10-08": "weak",
+    "2026-10-07": "unknown",
+    "2026-10-06": "unknown",
+    "2026-10-05": "unknown",
+    "2026-10-04": "unknown"
+   }
+  },
+  "discoveryathome/discover": {
+   "all": {
+    "n": 3,
+    "grade": "unknown"
+   },
+   "all_denominator_eligible": {
+    "n": 3,
+    "grade": "unknown"
+   },
+   "all_no_minimum": {
+    "n": 3,
+    "denominator": 3,
+    "median_days": 0.006,
+    "share_over_7d": 0.0,
+    "await_start": 0,
+    "await_end": 0,
+    "grade": "strong"
+   },
+   "all_rolling": {
+    "2026-10-18": {
+     "n": 3,
+     "grade": "unknown"
+    },
+    "2026-10-17": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-16": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-15": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-14": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-13": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-12": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-11": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-10": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-09": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-08": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-07": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-06": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-05": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-04": {
+     "n": 0,
+     "grade": "unknown"
+    }
+   },
+   "outside": {
+    "n": 0,
+    "grade": "unknown"
+   },
+   "outside_denominator_eligible": {
+    "n": 0,
+    "grade": "unknown"
+   },
+   "outside_no_minimum": {
+    "n": 0,
+    "grade": "unknown"
+   },
+   "outside_rolling": {
+    "2026-10-18": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-17": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-16": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-15": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-14": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-13": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-12": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-11": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-10": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-09": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-08": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-07": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-06": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-05": {
+     "n": 0,
+     "grade": "unknown"
+    },
+    "2026-10-04": {
+     "n": 0,
+     "grade": "unknown"
+    }
+   },
+   "outside_backlog_daily": {
+    "2026-10-18": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-17": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-16": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-15": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-14": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-13": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-12": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-11": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-10": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-09": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-08": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-07": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-06": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-05": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-04": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    }
+   },
+   "maintainer_authored_in_window": 3,
+   "maintainer_authored_median_days": 0.006,
+   "proposed": {
+    "n": 0,
+    "grade": "unknown"
+   },
+   "proposed_rolling": {
+    "2026-10-18": "unknown",
+    "2026-10-17": "unknown",
+    "2026-10-16": "unknown",
+    "2026-10-15": "unknown",
+    "2026-10-14": "unknown",
+    "2026-10-13": "unknown",
+    "2026-10-12": "unknown",
+    "2026-10-11": "unknown",
+    "2026-10-10": "unknown",
+    "2026-10-09": "unknown",
+    "2026-10-08": "unknown",
+    "2026-10-07": "unknown",
+    "2026-10-06": "unknown",
+    "2026-10-05": "unknown",
+    "2026-10-04": "unknown"
+   }
+  },
+  "flintlib/flint": {
+   "all": {
+    "n": 25,
+    "denominator": 25,
+    "median_days": 0.322,
+    "share_over_7d": 0.04,
+    "await_start": 2,
+    "await_end": 3,
+    "grade": "adequate"
+   },
+   "all_denominator_eligible": {
+    "n": 25,
+    "denominator": 8,
+    "median_days": 0.322,
+    "share_over_7d": 0.125,
+    "await_start": 2,
+    "await_end": 3,
+    "grade": "adequate"
+   },
+   "all_no_minimum": {
+    "n": 25,
+    "denominator": 25,
+    "median_days": 0.322,
+    "share_over_7d": 0.04,
+    "await_start": 2,
+    "await_end": 3,
+    "grade": "adequate"
+   },
+   "all_rolling": {
+    "2026-10-18": {
+     "n": 25,
+     "denominator": 25,
+     "median_days": 0.322,
+     "share_over_7d": 0.04,
+     "await_start": 2,
+     "await_end": 3,
+     "grade": "adequate"
+    },
+    "2026-10-17": {
+     "n": 20,
+     "denominator": 20,
+     "median_days": 0.283,
+     "share_over_7d": 0.05,
+     "await_start": 2,
+     "await_end": 2,
+     "grade": "strong"
+    },
+    "2026-10-16": {
+     "n": 19,
+     "grade": "unknown"
+    },
+    "2026-10-15": {
+     "n": 16,
+     "grade": "unknown"
+    },
+    "2026-10-14": {
+     "n": 14,
+     "grade": "unknown"
+    },
+    "2026-10-13": {
+     "n": 15,
+     "grade": "unknown"
+    },
+    "2026-10-12": {
+     "n": 17,
+     "grade": "unknown"
+    },
+    "2026-10-11": {
+     "n": 19,
+     "grade": "unknown"
+    },
+    "2026-10-10": {
+     "n": 21,
+     "denominator": 21,
+     "median_days": 0.577,
+     "share_over_7d": 0.0,
+     "await_start": 1,
+     "await_end": 1,
+     "grade": "strong"
+    },
+    "2026-10-09": {
+     "n": 23,
+     "denominator": 23,
+     "median_days": 0.577,
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 2,
+     "grade": "adequate"
+    },
+    "2026-10-08": {
+     "n": 21,
+     "denominator": 21,
+     "median_days": 0.577,
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 1,
+     "grade": "adequate"
+    },
+    "2026-10-07": {
+     "n": 19,
+     "grade": "unknown"
+    },
+    "2026-10-06": {
+     "n": 20,
+     "denominator": 20,
+     "median_days": 0.589,
+     "share_over_7d": 0.0,
+     "await_start": 0,
+     "await_end": 2,
+     "grade": "adequate"
+    },
+    "2026-10-05": {
+     "n": 18,
+     "grade": "unknown"
+    },
+    "2026-10-04": {
+     "n": 19,
+     "grade": "unknown"
+    }
+   },
+   "outside": {
+    "n": 6,
+    "grade": "unknown"
+   },
+   "outside_denominator_eligible": {
+    "n": 6,
+    "grade": "unknown"
+   },
+   "outside_no_minimum": {
+    "n": 6,
+    "denominator": 6,
+    "median_days": 0.755,
+    "share_over_7d": 0.0,
+    "await_start": 0,
+    "await_end": 2,
+    "grade": "adequate"
+   },
+   "outside_rolling": {
+    "2026-10-18": {
+     "n": 6,
+     "grade": "unknown"
+    },
+    "2026-10-17": {
+     "n": 3,
+     "grade": "unknown"
+    },
+    "2026-10-16": {
+     "n": 3,
+     "grade": "unknown"
+    },
+    "2026-10-15": {
+     "n": 3,
+     "grade": "unknown"
+    },
+    "2026-10-14": {
+     "n": 2,
+     "grade": "unknown"
+    },
+    "2026-10-13": {
+     "n": 1,
+     "grade": "unknown"
+    },
+    "2026-10-12": {
+     "n": 1,
+     "grade": "unknown"
+    },
+    "2026-10-11": {
+     "n": 2,
+     "grade": "unknown"
+    },
+    "2026-10-10": {
+     "n": 2,
+     "grade": "unknown"
+    },
+    "2026-10-09": {
+     "n": 2,
+     "grade": "unknown"
+    },
+    "2026-10-08": {
+     "n": 2,
+     "grade": "unknown"
+    },
+    "2026-10-07": {
+     "n": 2,
+     "grade": "unknown"
+    },
+    "2026-10-06": {
+     "n": 1,
+     "grade": "unknown"
+    },
+    "2026-10-05": {
+     "n": 1,
+     "grade": "unknown"
+    },
+    "2026-10-04": {
+     "n": 1,
+     "grade": "unknown"
+    }
+   },
+   "outside_backlog_daily": {
+    "2026-10-18": {
+     "awaiting": 2,
+     "awaiting_over_1d": 1,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-17": {
+     "awaiting": 1,
+     "awaiting_over_1d": 1,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-16": {
+     "awaiting": 1,
+     "awaiting_over_1d": 1,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-15": {
+     "awaiting": 1,
+     "awaiting_over_1d": 1,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-14": {
+     "awaiting": 1,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-13": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-12": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-11": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-10": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-09": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-08": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-07": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-06": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-05": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    },
+    "2026-10-04": {
+     "awaiting": 0,
+     "awaiting_over_1d": 0,
+     "awaiting_over_7d": 0
+    }
+   },
+   "maintainer_authored_in_window": 19,
+   "maintainer_authored_median_days": 0.244,
+   "proposed": {
+    "n": 6,
+    "grade": "unknown"
+   },
+   "proposed_rolling": {
+    "2026-10-18": "unknown",
+    "2026-10-17": "unknown",
+    "2026-10-16": "unknown",
+    "2026-10-15": "unknown",
+    "2026-10-14": "unknown",
+    "2026-10-13": "unknown",
+    "2026-10-12": "unknown",
+    "2026-10-11": "unknown",
+    "2026-10-10": "unknown",
+    "2026-10-09": "unknown",
+    "2026-10-08": "unknown",
+    "2026-10-07": "unknown",
+    "2026-10-06": "unknown",
+    "2026-10-05": "unknown",
+    "2026-10-04": "unknown"
+   }
+  },
+  "sympy/sympy": {
+   "all": {
+    "n": 67,
+    "denominator": 67,
+    "median_days": 1.238,
+    "share_over_7d": 0.1791,
+    "await_start": 21,
+    "await_end": 43,
+    "grade": "adequate"
+   },
+   "all_denominator_eligible": {
+    "n": 67,
+    "denominator": 36,
+    "median_days": 1.238,
+    "share_over_7d": 0.3333,
+    "await_start": 21,
+    "await_end": 43,
+    "grade": "weak"
+   },
+   "all_no_minimum": {
+    "n": 67,
+    "denominator": 67,
+    "median_days": 1.238,
+    "share_over_7d": 0.1791,
+    "await_start": 21,
+    "await_end": 43,
+    "grade": "adequate"
+   },
+   "all_rolling": {
+    "2026-10-18": {
+     "n": 67,
+     "denominator": 67,
+     "median_days": 1.238,
+     "share_over_7d": 0.1791,
+     "await_start": 21,
+     "await_end": 43,
+     "grade": "adequate"
+    },
+    "2026-10-17": {
+     "n": 72,
+     "denominator": 72,
+     "median_days": 0.976,
+     "share_over_7d": 0.1111,
+     "await_start": 19,
+     "await_end": 41,
+     "grade": "adequate"
+    },
+    "2026-10-16": {
+     "n": 74,
+     "denominator": 74,
+     "median_days": 0.916,
+     "share_over_7d": 0.1081,
+     "await_start": 19,
+     "await_end": 40,
+     "grade": "adequate"
+    },
+    "2026-10-15": {
+     "n": 69,
+     "denominator": 69,
+     "median_days": 0.507,
+     "share_over_7d": 0.1159,
+     "await_start": 19,
+     "await_end": 34,
+     "grade": "adequate"
+    },
+    "2026-10-14": {
+     "n": 70,
+     "denominator": 70,
+     "median_days": 0.575,
+     "share_over_7d": 0.1143,
+     "await_start": 17,
+     "await_end": 35,
+     "grade": "adequate"
+    },
+    "2026-10-13": {
+     "n": 79,
+     "denominator": 79,
+     "median_days": 0.516,
+     "share_over_7d": 0.1266,
+     "await_start": 22,
+     "await_end": 33,
+     "grade": "adequate"
+    },
+    "2026-10-12": {
+     "n": 78,
+     "denominator": 78,
+     "median_days": 0.52,
+     "share_over_7d": 0.1154,
+     "await_start": 19,
+     "await_end": 30,
+     "grade": "adequate"
+    },
+    "2026-10-11": {
+     "n": 78,
+     "denominator": 78,
+     "median_days": 0.539,
+     "share_over_7d": 0.1026,
+     "await_start": 15,
+     "await_end": 27,
+     "grade": "adequate"
+    },
+    "2026-10-10": {
+     "n": 73,
+     "denominator": 73,
+     "median_days": 0.532,
+     "share_over_7d": 0.0959,
+     "await_start": 15,
+     "await_end": 24,
+     "grade": "adequate"
+    },
+    "2026-10-09": {
+     "n": 75,
+     "denominator": 75,
+     "median_days": 0.557,
+     "share_over_7d": 0.12,
+     "await_start": 11,
+     "await_end": 25,
+     "grade": "adequate"
+    },
+    "2026-10-08": {
+     "n": 77,
+     "denominator": 77,
+     "median_days": 1.151,
+     "share_over_7d": 0.1429,
+     "await_start": 11,
+     "await_end": 27,
+     "grade": "adequate"
+    },
+    "2026-10-07": {
+     "n": 75,
+     "denominator": 75,
+     "median_days": 0.97,
+     "share_over_7d": 0.1333,
+     "await_start": 9,
+     "await_end": 27,
+     "grade": "adequate"
+    },
+    "2026-10-06": {
+     "n": 75,
+     "denominator": 75,
+     "median_days": 1.151,
+     "share_over_7d": 0.12,
+     "await_start": 9,
+     "await_end": 26,
+     "grade": "adequate"
+    },
+    "2026-10-05": {
+     "n": 75,
+     "denominator": 75,
+     "median_days": 0.901,
+     "share_over_7d": 0.1333,
+     "await_start": 5,
+     "await_end": 20,
+     "grade": "adequate"
+    },
+    "2026-10-04": {
+     "n": 78,
+     "denominator": 78,
+     "median_days": 1.31,
+     "share_over_7d": 0.1282,
+     "await_start": 1,
+     "await_end": 21,
+     "grade": "adequate"
+    }
+   },
+   "all_subsample": {
+    "full_grade_backlog_fixed": "adequate",
+    "5": 0.287,
+    "10": 0.398,
+    "20": 0.591,
+    "40": 0.855
+   },
+   "outside": {
+    "n": 58,
+    "denominator": 58,
+    "median_days": 1.281,
+    "share_over_7d": 0.1897,
+    "await_start": 19,
+    "await_end": 39,
+    "grade": "adequate"
+   },
+   "outside_denominator_eligible": {
+    "n": 58,
+    "denominator": 31,
+    "median_days": 1.281,
+    "share_over_7d": 0.3548,
+    "await_start": 19,
+    "await_end": 39,
+    "grade": "weak"
+   },
+   "outside_no_minimum": {
+    "n": 58,
+    "denominator": 58,
+    "median_days": 1.281,
+    "share_over_7d": 0.1897,
+    "await_start": 19,
+    "await_end": 39,
+    "grade": "adequate"
+   },
+   "outside_rolling": {
+    "2026-10-18": {
+     "n": 58,
+     "denominator": 58,
+     "median_days": 1.281,
+     "share_over_7d": 0.1897,
+     "await_start": 19,
+     "await_end": 39,
+     "grade": "adequate"
+    },
+    "2026-10-17": {
+     "n": 63,
+     "denominator": 63,
+     "median_days": 0.977,
+     "share_over_7d": 0.127,
+     "await_start": 15,
+     "await_end": 37,
+     "grade": "adequate"
+    },
+    "2026-10-16": {
+     "n": 64,
+     "denominator": 64,
+     "median_days": 1.063,
+     "share_over_7d": 0.125,
+     "await_start": 14,
+     "await_end": 36,
+     "grade": "adequate"
+    },
+    "2026-10-15": {
+     "n": 60,
+     "denominator": 60,
+     "median_days": 0.55,
+     "share_over_7d": 0.1333,
+     "await_start": 14,
+     "await_end": 32,
+     "grade": "adequate"
+    },
+    "2026-10-14": {
+     "n": 61,
+     "denominator": 61,
+     "median_days": 0.858,
+     "share_over_7d": 0.1311,
+     "await_start": 13,
+     "await_end": 34,
+     "grade": "adequate"
+    },
+    "2026-10-13": {
+     "n": 70,
+     "denominator": 70,
+     "median_days": 0.517,
+     "share_over_7d": 0.1429,
+     "await_start": 17,
+     "await_end": 32,
+     "grade": "adequate"
+    },
+    "2026-10-12": {
+     "n": 70,
+     "denominator": 70,
+     "median_days": 0.52,
+     "share_over_7d": 0.1286,
+     "await_start": 14,
+     "await_end": 29,
+     "grade": "adequate"
+    },
+    "2026-10-11": {
+     "n": 68,
+     "denominator": 68,
+     "median_days": 0.531,
+     "share_over_7d": 0.1176,
+     "await_start": 11,
+     "await_end": 26,
+     "grade": "adequate"
+    },
+    "2026-10-10": {
+     "n": 64,
+     "denominator": 64,
+     "median_days": 0.531,
+     "share_over_7d": 0.1094,
+     "await_start": 10,
+     "await_end": 23,
+     "grade": "adequate"
+    },
+    "2026-10-09": {
+     "n": 65,
+     "denominator": 65,
+     "median_days": 0.545,
+     "share_over_7d": 0.1231,
+     "await_start": 7,
+     "await_end": 24,
+     "grade": "adequate"
+    },
+    "2026-10-08": {
+     "n": 67,
+     "denominator": 67,
+     "median_days": 0.901,
+     "share_over_7d": 0.1493,
+     "await_start": 8,
+     "await_end": 24,
+     "grade": "adequate"
+    },
+    "2026-10-07": {
+     "n": 66,
+     "denominator": 66,
+     "median_days": 0.76,
+     "share_over_7d": 0.1364,
+     "await_start": 7,
+     "await_end": 25,
+     "grade": "adequate"
+    },
+    "2026-10-06": {
+     "n": 66,
+     "denominator": 66,
+     "median_days": 0.936,
+     "share_over_7d": 0.1212,
+     "await_start": 7,
+     "await_end": 24,
+     "grade": "adequate"
+    },
+    "2026-10-05": {
+     "n": 64,
+     "denominator": 64,
+     "median_days": 0.582,
+     "share_over_7d": 0.1094,
+     "await_start": 5,
+     "await_end": 18,
+     "grade": "adequate"
+    },
+    "2026-10-04": {
+     "n": 68,
+     "denominator": 68,
+     "median_days": 0.84,
+     "share_over_7d": 0.1029,
+     "await_start": 1,
+     "await_end": 19,
+     "grade": "adequate"
+    }
+   },
+   "outside_subsample": {
+    "full_grade_backlog_fixed": "adequate",
+    "5": 0.298,
+    "10": 0.387,
+    "20": 0.622,
+    "40": 0.891
+   },
+   "outside_backlog_daily": {
+    "2026-10-18": {
+     "awaiting": 39,
+     "awaiting_over_1d": 37,
+     "awaiting_over_7d": 25
+    },
+    "2026-10-17": {
+     "awaiting": 37,
+     "awaiting_over_1d": 34,
+     "awaiting_over_7d": 20
+    },
+    "2026-10-16": {
+     "awaiting": 36,
+     "awaiting_over_1d": 31,
+     "awaiting_over_7d": 20
+    },
+    "2026-10-15": {
+     "awaiting": 32,
+     "awaiting_over_1d": 32,
+     "awaiting_over_7d": 21
+    },
+    "2026-10-14": {
+     "awaiting": 34,
+     "awaiting_over_1d": 31,
+     "awaiting_over_7d": 20
+    },
+    "2026-10-13": {
+     "awaiting": 32,
+     "awaiting_over_1d": 29,
+     "awaiting_over_7d": 20
+    },
+    "2026-10-12": {
+     "awaiting": 29,
+     "awaiting_over_1d": 26,
+     "awaiting_over_7d": 17
+    },
+    "2026-10-11": {
+     "awaiting": 26,
+     "awaiting_over_1d": 21,
+     "awaiting_over_7d": 15
+    },
+    "2026-10-10": {
+     "awaiting": 23,
+     "awaiting_over_1d": 22,
+     "awaiting_over_7d": 13
+    },
+    "2026-10-09": {
+     "awaiting": 24,
+     "awaiting_over_1d": 22,
+     "awaiting_over_7d": 13
+    },
+    "2026-10-08": {
+     "awaiting": 24,
+     "awaiting_over_1d": 21,
+     "awaiting_over_7d": 13
+    },
+    "2026-10-07": {
+     "awaiting": 25,
+     "awaiting_over_1d": 23,
+     "awaiting_over_7d": 12
+    },
+    "2026-10-06": {
+     "awaiting": 24,
+     "awaiting_over_1d": 18,
+     "awaiting_over_7d": 10
+    },
+    "2026-10-05": {
+     "awaiting": 18,
+     "awaiting_over_1d": 16,
+     "awaiting_over_7d": 8
+    },
+    "2026-10-04": {
+     "awaiting": 19,
+     "awaiting_over_1d": 14,
+     "awaiting_over_7d": 7
+    }
+   },
+   "maintainer_authored_in_window": 9,
+   "maintainer_authored_median_days": 0.694,
+   "proposed": {
+    "n": 58,
+    "eligible": 31,
+    "median_days": 1.281,
+    "share_over_7d_eligible": 0.3548,
+    "backlog_mid": 21,
+    "backlog_end": 37,
+    "growing": true,
+    "grade": "weak"
+   },
+   "proposed_rolling": {
+    "2026-10-18": "weak",
+    "2026-10-17": "adequate",
+    "2026-10-16": "adequate",
+    "2026-10-15": "adequate",
+    "2026-10-14": "weak",
+    "2026-10-13": "adequate",
+    "2026-10-12": "adequate",
+    "2026-10-11": "adequate",
+    "2026-10-10": "adequate",
+    "2026-10-09": "adequate",
+    "2026-10-08": "adequate",
+    "2026-10-07": "adequate",
+    "2026-10-06": "adequate",
+    "2026-10-05": "adequate",
+    "2026-10-04": "adequate"
+   }
+  }
+ }
+}
