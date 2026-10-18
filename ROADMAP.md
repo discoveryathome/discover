@@ -39,9 +39,11 @@ person had just approved. `discover permissions <maintainer|donor-post|donor-loc
 --write .claude/settings.local.json` now writes a preset: for maintainers, each public
 write becomes an explicit prompt the automatic checker can't refuse; unattended donors
 allowed to post get narrow allow rules; local-only donors get writes denied. The
-playbooks tell agents to hand over exact commands, never work around a refusal. Left:
-confirm it in a real maintainer session, presets for other agents (Codex), and the
-upstream report.
+playbooks tell agents to hand over exact commands, never work around a refusal. D9 (a
+maintainer collaborate session) opened PRs and posted with nothing refused. Codex:
+`--agent codex` writes execpolicy rules and a config layer, tested headless under each
+preset (local refused the push, post pushed, maintainer refused cleanly because `exec`
+can't ask). Left: an interactive Codex maintainer session, and the upstream report.
 
 ### 2. Hub operations: finish
 

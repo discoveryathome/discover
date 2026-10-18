@@ -1,5 +1,6 @@
 import filecmp
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -460,12 +461,11 @@ class PresetTests(unittest.TestCase):
     def test_presets_merge_without_clobbering_and_are_idempotent(self):
         from discover import presets
         self.assertNotIn("allow", presets.settings("donor-local")["permissions"])
-        local_deny = presets.PRESETS["donor-local"]["deny"]
+        local = presets.settings("donor-local")["permissions"]
         for write in ("Bash(git push *)", "Bash(gh pr create *)", "Bash(gh pr merge *)"):
-            self.assertIn(write, local_deny)
-            self.assertNotIn(write, presets.PRESETS["donor-local"]["allow"])
-        self.assertIn("Bash(gh pr merge *)", presets.PRESETS["donor-post"]["deny"])
-        self.assertEqual(presets.PRESETS["maintainer"]["allow"], [])  # maintainers are asked, not bypassed
+            self.assertIn(write, local["deny"])
+        self.assertIn("Bash(gh pr merge *)", presets.settings("donor-post")["permissions"]["deny"])
+        self.assertNotIn("allow", presets.settings("maintainer")["permissions"])  # asked, not bypassed
         with tempfile.TemporaryDirectory() as d:
             f = Path(d) / ".claude" / "settings.local.json"
             f.parent.mkdir()
@@ -476,6 +476,34 @@ class PresetTests(unittest.TestCase):
             self.assertEqual(s["model"], "x")
             self.assertIn("Read", s["permissions"]["allow"])
             self.assertIn("Bash(gh pr merge *)", s["permissions"]["ask"])
+
+    def test_codex_rules_and_config(self):
+        import shutil
+        from discover import presets
+        with tempfile.TemporaryDirectory() as d:
+            written, skipped = presets.write_codex(d, "donor-post", "/w")
+            self.assertIsNone(skipped)
+            config = (Path(d) / ".codex" / "config.toml").read_text()
+            self.assertIn('approval_policy = "never"', config)
+            self.assertIn('writable_roots = ["/w"]', config)
+            (Path(d) / ".codex" / "config.toml").write_text("model = \"x\"\n")
+            _, skipped = presets.write_codex(d, "maintainer", "/w")
+            self.assertTrue(skipped)  # an existing config is never overwritten
+            self.assertEqual((Path(d) / ".codex" / "config.toml").read_text(), "model = \"x\"\n")
+            rules = Path(d) / ".codex" / "rules" / "discover.rules"
+            self.assertIn('decision = "prompt"', rules.read_text())
+            if not shutil.which("codex"):
+                return
+            expect = {"maintainer": {("gh", "pr", "merge", "1"): "prompt", ("gh", "pr", "view", "1"): None},
+                      "donor-post": {("git", "push", "origin", "b"): "allow", ("gh", "pr", "merge", "1"): "forbidden"},
+                      "donor-local": {("gh", "pr", "create"): "forbidden"}}
+            for name, cases in expect.items():
+                rules.write_text(presets.codex_rules(name))
+                for cmd, decision in cases.items():
+                    out = subprocess.run(["codex", "execpolicy", "check", "--rules", str(rules), "--", *cmd],
+                                         capture_output=True, text=True)
+                    self.assertEqual(out.returncode, 0, out.stderr)
+                    self.assertEqual(json.loads(out.stdout).get("decision"), decision, (name, cmd))
 
 
 class HubTests(unittest.TestCase):

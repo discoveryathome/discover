@@ -309,6 +309,23 @@ def cmd_adapter_check(a):
 
 def cmd_permissions(a):
     from . import presets
+    if a.agent == "codex":
+        work = Path.home() / "discover-work"
+        if not a.write:
+            print(f"# {presets.PRESETS[a.preset]['about']}\n# .codex/rules/discover.rules\n")
+            print(presets.codex_rules(a.preset))
+            print("# .codex/config.toml\n")
+            print(presets.codex_config(a.preset, work))
+            return 0
+        written, skipped = presets.write_codex(a.write, a.preset, work)
+        print("wrote " + ", ".join(written))
+        if skipped:
+            print(f"{skipped} exists, so it was left alone. The preset expects these settings in it:\n")
+            print(presets.codex_config(a.preset, work))
+        print(f"Codex reads a project's .codex/ only once you trust that folder (run codex there once and "
+              f"accept). Check a command: codex execpolicy check --rules "
+              f"{Path(a.write) / '.codex/rules/discover.rules'} -- gh pr merge 1")
+        return 0
     if a.write:
         added = presets.merge_into(a.write, a.preset)
         print(f"{a.write}: {len(added)} rule(s) added for {a.preset}" + "".join(f"\n  {r}" for r in added))
@@ -484,8 +501,11 @@ def main(argv=None):
 
     pm = sub.add_parser("permissions", help="print or write a coding-agent permission preset for a role")
     pm.add_argument("preset", choices=["donor-local", "donor-post", "maintainer"])
-    pm.add_argument("--write", metavar="SETTINGS",
-                    help="merge into a settings file, e.g. .claude/settings.local.json (keeps existing rules)")
+    pm.add_argument("--agent", choices=["claude", "codex"], default="claude")
+    pm.add_argument("--write", metavar="PATH",
+                    help="claude: merge into a settings file, e.g. .claude/settings.local.json (keeps existing "
+                         "rules); codex: the folder you run sessions from (writes .codex/rules/discover.rules, "
+                         "and .codex/config.toml if there is none)")
     pm.set_defaults(func=cmd_permissions)
 
     hc = sub.add_parser("hub-check", help="the hub's scheduled check: consent, adapter drift, stale assessments")

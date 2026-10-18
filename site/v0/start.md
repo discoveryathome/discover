@@ -34,9 +34,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-c8705f50a96b.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-da7f75826e59.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print c8705f50a96ba24f48678466cabf91f96a1aa53867c981e95d91dbae57bdb4ba
+# must print da7f75826e593b0fb66a59217e861e8dbb3c3fa7845254d18f34916ac7c14552
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -96,7 +96,11 @@ exact command to run, and tell them a preset can stop this next time:
 write an explicit prompt instead (`donor-post` pre-approves posting for unattended
 sessions; `donor-local` denies writes). Write `gh` commands with the subcommand first
 (`gh pr merge 17 -R OWNER/NAME`, not `gh -R OWNER/NAME pr merge 17`), so rules match them.
-For unattended runs (`claude -p`), pass the preset file with `--settings`.
+For unattended runs (`claude -p`), pass the preset file with `--settings`. **Codex:**
+`discover permissions <preset> --agent codex --write <session folder>` writes
+`.codex/rules/discover.rules` (and `.codex/config.toml` if there is none); Codex uses them
+only once the person trusts that folder, by starting `codex` there once and accepting.
+Headless `codex exec` can't ask, so use the maintainer preset in interactive sessions only.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
 yourself.** Language models pick the same few options, so hundreds of agents end up on

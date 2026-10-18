@@ -1,4 +1,4 @@
-"""Permission presets for coding agents (Claude Code settings), per role.
+"""Permission presets for coding agents (Claude Code settings, Codex rules), per role.
 
 For a maintainer, every public write becomes an explicit prompt (an `ask` rule), which an
 automatic checker such as Claude Code's auto mode can't refuse after the person says yes.
@@ -14,59 +14,118 @@ any repo the account can write to. Use them in the folder you run sessions from.
 import json
 from pathlib import Path
 
-# Commands each playbook may ask to run publicly, in the space form Claude Code's docs use.
-# They match only when the subcommand comes first: `gh pr merge 17 -R o/r`, not `gh -R o/r pr merge 17`.
-_POST = ["Bash(git push *)", "Bash(gh pr create *)", "Bash(gh api graphql *)",
-         "Bash(gh issue comment *)", "Bash(gh pr comment *)"]
-_MAINTAIN = _POST + ["Bash(gh pr merge *)", "Bash(gh pr close *)", "Bash(gh pr edit *)",
-                     "Bash(gh issue create *)", "Bash(gh issue close *)", "Bash(gh issue edit *)",
-                     "Bash(gh repo edit *)", "Bash(gh label create *)"]
-_WRITES = sorted(set(_MAINTAIN + ["Bash(gh repo create *)", "Bash(gh repo fork *)", "Bash(gh release create *)"]))
+# Commands each playbook may ask to run publicly, as argument prefixes. They match only
+# when the subcommand comes first: `gh pr merge 17 -R o/r`, not `gh -R o/r pr merge 17`.
+_POST = [("git", "push"), ("gh", "pr", "create"), ("gh", "api", "graphql"),
+         ("gh", "issue", "comment"), ("gh", "pr", "comment")]
+_MAINTAIN = _POST + [("gh", "pr", "merge"), ("gh", "pr", "close"), ("gh", "pr", "edit"),
+                     ("gh", "issue", "create"), ("gh", "issue", "close"), ("gh", "issue", "edit"),
+                     ("gh", "repo", "edit"), ("gh", "label", "create")]
+_WRITES = sorted(set(_MAINTAIN + [("gh", "repo", "create"), ("gh", "repo", "fork"), ("gh", "release", "create")]))
 
 PRESETS = {
-    # Unattended and allowed nothing public: deny writes (text match only; the real boundary
-    # is running without GitHub write credentials).
+    # Unattended and allowed nothing public: deny writes (a text match only; the real
+    # boundary is running without GitHub write credentials).
     "donor-local": {
         "about": "A donated session with Permissions: local. Nothing public; GitHub writes are denied.",
-        "allow": [], "ask": [], "deny": _WRITES,
+        "allow": [], "ask": [], "deny": _WRITES, "unattended": True,
     },
     # Unattended but allowed to post: narrow allow rules, so the donor's grant isn't refused
     # mid-session; merging and settings stay denied.
     "donor-post": {
         "about": "A donated session with Permissions: post. Claims, findings, handoffs and one focused PR.",
-        "allow": _POST, "ask": [],
-        "deny": ["Bash(gh pr merge *)", "Bash(gh pr close *)", "Bash(gh repo edit *)", "Bash(gh repo create *)"],
+        "allow": _POST, "ask": [], "unattended": True,
+        "deny": [("gh", "pr", "merge"), ("gh", "pr", "close"), ("gh", "repo", "edit"), ("gh", "repo", "create")],
     },
     # The maintainer is present: ask rules always prompt them, and an automatic checker can't
     # refuse what they approve. (An allow rule would also skip protections like not merging
     # unreviewed PRs, which a maintainer preset shouldn't turn off.)
     "maintainer": {
         "about": "A maintainer's own sessions (setup, direct, triage): each public write asks you, and isn't refused after you say yes.",
-        "allow": [], "ask": _MAINTAIN, "deny": [],
+        "allow": [], "ask": _MAINTAIN, "deny": [], "unattended": False,
     },
 }
 
+AGENTS = ("claude", "codex")
+
+
+def claude_rule(cmd):
+    """Claude Code's space form: Bash(gh pr merge *)."""
+    return f"Bash({' '.join(cmd)} *)"
+
 
 def settings(name):
+    """Claude Code settings for a preset."""
     p = PRESETS[name]
-    perms = {k: p[k] for k in ("allow", "ask", "deny") if p[k]}
-    return {"permissions": perms}
+    return {"permissions": {k: [claude_rule(c) for c in p[k]] for k in ("allow", "ask", "deny") if p[k]}}
 
 
 def merge_into(path, name):
-    """Add a preset's rules to a settings file, keeping everything already there."""
+    """Add a preset's rules to a Claude Code settings file, keeping everything already there."""
     path = Path(path)
     current = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     perms = current.setdefault("permissions", {})
     added = []
-    for key in ("allow", "ask", "deny"):
-        rules = perms.setdefault(key, [])
-        for rule in PRESETS[name][key]:
-            if rule not in rules:
-                rules.append(rule)
+    for key, rules in settings(name)["permissions"].items():
+        have = perms.setdefault(key, [])
+        for rule in rules:
+            if rule not in have:
+                have.append(rule)
                 added.append(f"{key}: {rule}")
-        if not rules:
-            del perms[key]
+    for key in [k for k, v in perms.items() if v == []]:
+        del perms[key]
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
     return added
+
+
+# Codex: execpolicy rules (Starlark) and a config layer. `allow` runs the command outside
+# Codex's sandbox without asking, `prompt` asks each time, `forbidden` blocks it.
+_CODEX_DECISION = {"allow": "allow", "ask": "prompt", "deny": "forbidden"}
+_CODEX_WHY = {
+    "allow": "Pre-approved for this donated session (Permissions: post).",
+    "ask": "A public write: the maintainer approves each one.",
+    "deny": "Not allowed in this session; leave it ready for the person to run.",
+}
+
+
+def codex_rules(name):
+    """The preset as a Codex .rules file. Each rule carries a match example, which Codex
+    checks when it loads the file."""
+    p = PRESETS[name]
+    out = [f"# Discovery@Home preset {name}, written by `discover permissions`. {p['about']}",
+           "# Regenerated on each run; put your own rules in another file.", ""]
+    for key in ("deny", "ask", "allow"):
+        for cmd in p[key]:
+            pattern = ", ".join(json.dumps(c) for c in cmd)
+            example = json.dumps(" ".join(cmd) + (" origin main" if cmd == ("git", "push") else " 1"))
+            out += ["prefix_rule(", f"    pattern = [{pattern}],", f"    decision = \"{_CODEX_DECISION[key]}\",",
+                    f"    justification = {json.dumps(_CODEX_WHY[key])},", f"    match = [{example}],", ")", ""]
+    return "\n".join(out)
+
+
+def codex_config(name, work_dir):
+    """The config layer: approvals for a present person or an unattended run, and a
+    workspace-write sandbox that can reach the network (to clone and read) and write the
+    session folder."""
+    approval = "never" if PRESETS[name]["unattended"] else "on-request"
+    return (f"# Discovery@Home preset {name}, written by `discover permissions`.\n"
+            f"approval_policy = \"{approval}\"\n"
+            f"sandbox_mode = \"workspace-write\"\n\n"
+            f"[sandbox_workspace_write]\n"
+            f"network_access = true\n"
+            f"writable_roots = [{json.dumps(str(work_dir))}]\n")
+
+
+def write_codex(folder, name, work_dir):
+    """Write <folder>/.codex/rules/discover.rules (ours, replaced each time) and
+    <folder>/.codex/config.toml if there is none. Returns (written, config_skipped)."""
+    folder = Path(folder)
+    rules = folder / ".codex" / "rules" / "discover.rules"
+    rules.parent.mkdir(parents=True, exist_ok=True)
+    rules.write_text(codex_rules(name), encoding="utf-8")
+    config = folder / ".codex" / "config.toml"
+    if config.exists():
+        return [str(rules)], str(config)
+    config.write_text(codex_config(name, work_dir), encoding="utf-8")
+    return [str(rules), str(config)], None
