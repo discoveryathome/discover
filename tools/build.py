@@ -149,6 +149,8 @@ Everything here is driven by short prompts that point to a playbook. To act for 
 - [Donate time to whichever project a seeded draw picks]({SITE}v0/explore.md): the
   person gives a budget, permissions (post or local) and optional interests.
 - [Contribute a session to a chosen project]({SITE}v0/contribute.md)
+- [Set up a folder for donating, once]({SITE}v0/prepare.md): the helper and a sandboxed
+  permission preset, so later sessions there need no launch flags
 - [Independently verify a result]({SITE}v0/verify.md)
 - [Work through a problem together with the person]({SITE}v0/collaborate.md)
 - [Add a project, as maintainer or contributor]({SITE}v0/onboard.md), or

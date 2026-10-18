@@ -72,6 +72,14 @@ EXPLORE = (
 )
 EXPLORE_INTERESTS = " Interests: {interests}."
 
+# One-time setup of a donor's folder (playbooks/prepare.md): the helper and a sandboxed preset.
+PREPARE = (
+    "Fetch {site}v0/prepare.md (for example with curl) and follow it to set up the folder you're "
+    "running in for Discovery@Home donations, once: download the discover helper and write the "
+    "{preset} permission preset. Ask before writing any settings, and don't start a donation."
+)
+PRESETS = ("donor", "donor-local", "donor-post")
+
 SKILL_COMMAND = "/discover:contribute {repo} --minutes {minutes} --focus {focus} --permissions {permissions} --seed {seed}"
 
 
@@ -111,6 +119,13 @@ def explore_prompt(minutes=240, permissions="local", interests=None, seed=None, 
                           interests=EXPLORE_INTERESTS.format(interests=interests) if interests else "")
 
 
+def prepare_prompt(preset="donor", site=None):
+    from . import SITE
+    if preset not in PRESETS:
+        raise ValueError(f"preset must be one of {PRESETS}")
+    return PREPARE.format(site=site or SITE, preset=preset)
+
+
 def skill_command(repo, minutes=60, focus="project", permissions="post", seed=None):
     return SKILL_COMMAND.format(repo=repo, minutes=minutes, focus=focus, permissions=permissions,
                                 seed=seed or secrets.token_hex(16))
@@ -122,4 +137,5 @@ def templates(site=None):
     return {"site": site or SITE, "template": TEMPLATE, "drawn": DRAWN, "focus": FOCUS,
             "permissions": PERMISSIONS, "actions": ACTIONS, "skill_command": SKILL_COMMAND, "adapter": ADAPTER,
             "onboard": ONBOARD, "onboard_context": ONBOARD_CONTEXT, "goals": GOALS,
-            "start": START, "start_local": START_LOCAL, "explore": EXPLORE, "explore_interests": EXPLORE_INTERESTS}
+            "start": START, "start_local": START_LOCAL, "explore": EXPLORE, "explore_interests": EXPLORE_INTERESTS,
+            "prepare": PREPARE}

@@ -353,6 +353,21 @@ function donateAnywhere() {
   </section>`;
 }
 
+function wirePrepare(root) {
+  const box = root.querySelector("#prepare-setup"); if (!box) return;
+  const p = state.data.prompts;
+  const refresh = () => {
+    const preset = box.querySelector('[data-seg="preset"] [aria-pressed="true"]')?.dataset.v || "donor";
+    box.querySelector('[data-out="prepare"]').textContent = fill(p.prepare, { site: p.site, preset });
+  };
+  box.querySelectorAll("[data-seg]").forEach((g) => g.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    refresh();
+  }));
+  refresh();
+}
+
 function wireDonate(root) {
   const box = root.querySelector("#donate-anywhere"); if (!box) return;
   const val = (n) => box.querySelector(`[data-seg="${n}"] [aria-pressed="true"]`)?.dataset.v;
@@ -392,7 +407,10 @@ function viewContribute() {
         ${codeStep("The discover helper", "Playbooks fetch a single-file helper when Python 3.9+ is available, and check its hash before running it. Nothing to install.", "")}
         ${codeStep("The Claude Code plugin", "Adds the playbooks as skills, with the helper built in.", installLine())}
         ${codeStep("GitHub CLI (<code>gh</code>)", "Lets your agent post claims and open PRs when you allow it. Without it, your agent hands you messages ready to paste.", "")}
-        ${codeStep("A permission preset", "Turns on your agent's sandbox and sets what it may do on GitHub: <code>donor-local</code> denies writes, <code>donor-post</code> pre-approves posting for unattended runs, <code>donor</code> asks you before each post. Run it in the folder you start sessions from (any folder; <code>~/discover-work</code> if you have no preference). For Codex, use <code>--agent codex --write .</code> instead, then trust the folder when Codex asks.", "python3 discover.pyz permissions donor-local --write .claude/settings.local.json")}
+        <li id="prepare-setup"><div><h3>Set up your folder for donating (once)</h3><p class="hint">Start your agent in the folder you'll donate from (or a clone you keep), and paste this. It downloads the helper and writes a permission preset there, asking first. Then restart your agent in that folder and paste donation prompts as usual: sessions are sandboxed and limited on GitHub, with no flags to remember.</p>
+          ${seg("preset", [["donor", "I'll watch"], ["donor-local", "Unattended, local"], ["donor-post", "Unattended, may post"]], "donor")}
+          ${promptBox("prepare")}
+          <details><summary>Or run it yourself</summary><div class="codebox" style="margin-top:8px">python3 discover.pyz permissions donor --write .claude/settings.local.json</div><p class="hint">For Codex: <code>--agent codex --write .</code>, then trust the folder when Codex asks.</p></details></div></li>
       </ol>
     </section>
   </div>
@@ -581,7 +599,7 @@ function render(after) {
     document.title = "Discovery@Home";
     if (!view || view === "") wireExplore(app);
     if (view === "add") wireAdd(app);
-    if (view === "contribute") wireDonate(app);
+    if (view === "contribute") { wireDonate(app); wirePrepare(app); }
   }
   wireCopy(app);
   if (after) after();

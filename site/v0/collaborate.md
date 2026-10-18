@@ -39,9 +39,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-6c69571791fa.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-8f6e73e0bfb0.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 6c69571791fa135de4fec3aa008a7e460d3eb3495b2a014905e310f41e1f12fc
+# must print 8f6e73e0bfb0ad15a6c386fb4ff82c7cd3c10b8ae78706fe28aa60f4d7a4d14c
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -105,6 +105,12 @@ project needs. **Codex:**
 `.codex/rules/discover.rules` (and `.codex/config.toml` if there is none); Codex uses them
 only once the person trusts that folder, by starting `codex` there once and accepting.
 Headless `codex exec` can't ask, so use the maintainer preset in interactive sessions only.
+
+**Folder not set up yet?** If you're a donated session and the folder you were started
+in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
+`.codex/rules/discover.rules`), end your report with one line offering it for next time:
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
 yourself.** Language models pick the same few options, so hundreds of agents end up on

@@ -418,6 +418,16 @@ class ChooseTests(unittest.TestCase):
         self.assertEqual((idx["projects"][0]["weight"], zero["weight"]), (3, 1))
         self.assertEqual(idx["projects"][0]["credit_policy"], "named")
 
+    def test_prepare_prompt_and_playbook(self):
+        from discover import prompt
+        text = prompt.prepare_prompt("donor-local", site="https://s/")
+        self.assertIn("https://s/v0/prepare.md", text)
+        self.assertIn("donor-local", text)
+        self.assertIn("prepare", prompt.templates("https://s/"))
+        with self.assertRaises(ValueError):
+            prompt.prepare_prompt("maintainer")
+        self.assertTrue((ROOT / "playbooks" / "prepare.md").exists())
+
     def test_explore_prompt(self):
         from discover import prompt
         text = prompt.explore_prompt(240, "local", "number theory", "ab" * 16, site="https://s/")

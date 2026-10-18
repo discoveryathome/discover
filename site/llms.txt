@@ -9,6 +9,8 @@ Everything here is driven by short prompts that point to a playbook. To act for 
 - [Donate time to whichever project a seeded draw picks](https://discoveryathome.github.io/discover/v0/explore.md): the
   person gives a budget, permissions (post or local) and optional interests.
 - [Contribute a session to a chosen project](https://discoveryathome.github.io/discover/v0/contribute.md)
+- [Set up a folder for donating, once](https://discoveryathome.github.io/discover/v0/prepare.md): the helper and a sandboxed
+  permission preset, so later sessions there need no launch flags
 - [Independently verify a result](https://discoveryathome.github.io/discover/v0/verify.md)
 - [Work through a problem together with the person](https://discoveryathome.github.io/discover/v0/collaborate.md)
 - [Add a project, as maintainer or contributor](https://discoveryathome.github.io/discover/v0/onboard.md), or

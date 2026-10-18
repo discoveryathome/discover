@@ -212,6 +212,9 @@ def cmd_prompt(a):
     if a.action == "explore":
         print(prompt.explore_prompt(a.minutes, a.permissions, a.interests, a.seed))
         return 0
+    if a.action == "prepare":
+        print(prompt.prepare_prompt(a.preset))
+        return 0
     if not a.repo:
         raise SystemExit("a repository (owner/name) is required for this action")
     repo = parse_repo(a.repo)
@@ -554,7 +557,9 @@ def main(argv=None):
     r.add_argument("--minutes", type=int, default=60)
     r.add_argument("--focus", choices=list(prompt.FOCUS), default="project")
     r.add_argument("--permissions", choices=list(prompt.PERMISSIONS), default="post")
-    r.add_argument("--action", choices=["contribute", "explore", "onboard", "start", *prompt.ACTIONS], default="contribute",
+    r.add_argument("--preset", choices=list(prompt.PRESETS), default="donor", help="with --action prepare")
+    r.add_argument("--action", choices=["contribute", "explore", "onboard", "start", "prepare", *prompt.ACTIONS],
+                   default="contribute",
                    help="which playbook the prompt points to")
     r.add_argument("--role", choices=list(prompt.GOALS), default="maintainer", help="onboard: who is asking")
     r.add_argument("--goal", help="onboard: default setup-and-submit / propose-and-nominate")
