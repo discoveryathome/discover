@@ -6,6 +6,7 @@
     "meta-science",
     "tooling"
   ],
+  "license": "Apache-2.0",
   "maintainers": [
     {
       "name": "Douglas R. Colkitt",

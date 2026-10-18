@@ -124,5 +124,4 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
 ## Launch housekeeping
 
 - The schema `$id`s use `discoveryathome.org`, which isn't registered yet
-- A license for the hub repository (now required for its own Stage 0 listing)
 - A contributor guide for hub work beyond `DISCOVERY.md`
