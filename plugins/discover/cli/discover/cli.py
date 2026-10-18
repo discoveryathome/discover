@@ -116,6 +116,45 @@ def cmd_pick(a):
     return 0
 
 
+def load_agent_index(where):
+    """agents.json from a path or URL (default: the hub's site)."""
+    from . import SITE
+    where = where or f"{SITE}data/agents.json"
+    if re.match(r"https?://", where):
+        import urllib.request
+        with urllib.request.urlopen(where, timeout=30) as r:
+            return json.loads(r.read().decode("utf-8"))
+    return json.loads(Path(where).read_text(encoding="utf-8"))
+
+
+def cmd_choose(a):
+    index = load_agent_index(a.data)
+    interests = [i for i in (a.interests or "").split(",") if i.strip()]
+    r = pick.choose_project(index["projects"], a.seed, interests, a.round)
+    p = r["project"]
+    # A Stage 0 project, or one whose manifest doesn't allow posting, gets a local session.
+    perms = a.permissions if a.permissions == "local" or p["sessions"]["post_messages"] else "local"
+    r["permissions"] = perms
+    if a.action == "verify":
+        r["prompt"] = prompt.action_prompt("verify", p["repo"], a.minutes, perms, adapter_url=p.get("adapter_url"))
+    else:
+        r["prompt"] = prompt.donation_prompt(p["repo"], a.minutes, a.focus, perms, seed=r["round_seed"],
+                                             adapter_url=p.get("adapter_url"))
+
+    def fmt(r):
+        lines = [f"seed {r['seed']}  round {r['round']}", f"chosen: {p['slug']} ({p['repo']}), stage {p['stage']}",
+                 f"  weight {r['weight']} of {r['total_weight']} across {', '.join(r['pool'])}",
+                 f"  {p['title']}: {p['summary']}"]
+        if r["note"]:
+            lines.append(f"  {r['note']}")
+        if perms != a.permissions:
+            lines.append("  This project takes local sessions only for now, so the prompt says Permissions: local.")
+        lines += ["", "Prompt for the session (it draws its task from the round's seed):", r["prompt"]]
+        return "\n".join(lines)
+    emit(r, a.json, fmt)
+    return 0
+
+
 def cmd_board(a):
     repo = parse_repo(a.repo) if a.repo else local_repo(a.path)
     s = live_board(repo, a.discussions)
@@ -162,6 +201,9 @@ def cmd_prompt(a):
         if not text:
             raise SystemExit("--action start needs --problem TEXT or --problem-file PATH")
         print(prompt.start_prompt(text, a.local))
+        return 0
+    if a.action == "explore":
+        print(prompt.explore_prompt(a.minutes, a.permissions, a.interests, a.seed))
         return 0
     if not a.repo:
         raise SystemExit("a repository (owner/name) is required for this action")
@@ -421,6 +463,18 @@ def main(argv=None):
     k.add_argument("--json", action="store_true")
     k.set_defaults(func=cmd_pick)
 
+    ch = sub.add_parser("choose", help="draw a project across the hub for a donation (seeded, reproducible)")
+    ch.add_argument("--seed")
+    ch.add_argument("--interests", help="comma-separated fields, matched against project domains")
+    ch.add_argument("--round", type=int, default=1, help="the round of a long donation (each draws again)")
+    ch.add_argument("--minutes", type=int, default=60)
+    ch.add_argument("--focus", choices=list(prompt.FOCUS), default="project")
+    ch.add_argument("--permissions", choices=list(prompt.PERMISSIONS), default="local")
+    ch.add_argument("--action", choices=["contribute", "verify"], default="contribute")
+    ch.add_argument("--data", help="agents.json path or URL (default: the hub's site)")
+    ch.add_argument("--json", action="store_true")
+    ch.set_defaults(func=cmd_choose)
+
     b = sub.add_parser("board", help="live claims and open handoffs from Discussions")
     b.add_argument("path", nargs="?", default=".")
     b.add_argument("--repo")
@@ -461,7 +515,7 @@ def main(argv=None):
     r.add_argument("--minutes", type=int, default=60)
     r.add_argument("--focus", choices=list(prompt.FOCUS), default="project")
     r.add_argument("--permissions", choices=list(prompt.PERMISSIONS), default="post")
-    r.add_argument("--action", choices=["contribute", "onboard", "start", *prompt.ACTIONS], default="contribute",
+    r.add_argument("--action", choices=["contribute", "explore", "onboard", "start", *prompt.ACTIONS], default="contribute",
                    help="which playbook the prompt points to")
     r.add_argument("--role", choices=list(prompt.GOALS), default="maintainer", help="onboard: who is asking")
     r.add_argument("--goal", help="onboard: default setup-and-submit / propose-and-nominate")
@@ -469,6 +523,7 @@ def main(argv=None):
     r.add_argument("--problem", help="start: the problem, as text")
     r.add_argument("--problem-file", help="start: a file holding the problem")
     r.add_argument("--local", action="store_true", help="start: build on disk only")
+    r.add_argument("--interests", help="explore: fields the donor cares about, in their words")
     r.add_argument("--seed", help="32 hex digits; default: fresh OS randomness")
     r.set_defaults(func=cmd_prompt)
 

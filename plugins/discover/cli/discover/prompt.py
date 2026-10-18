@@ -63,6 +63,15 @@ START = (
 )
 START_LOCAL = " Mode: local (build it on disk only)."
 
+# Donating to wherever it's useful (playbooks/explore.md): the agent draws the project from
+# the hub's agents.json with the seed, then follows contribute.md there.
+EXPLORE = (
+    "Fetch {site}v0/explore.md (for example with curl) and follow it to donate about {minutes} minutes "
+    "of research to a Discovery@Home project drawn from the hub.{interests} {permissions} Seed: {seed}. "
+    "Never merge, close others' PRs, or change a project's record of accepted results."
+)
+EXPLORE_INTERESTS = " Interests: {interests}."
+
 SKILL_COMMAND = "/discover:contribute {repo} --minutes {minutes} --focus {focus} --permissions {permissions} --seed {seed}"
 
 
@@ -95,6 +104,13 @@ def start_prompt(problem, local=False, site=None):
     return START.format(site=site or SITE, problem=problem.strip(), mode=START_LOCAL if local else "")
 
 
+def explore_prompt(minutes=240, permissions="local", interests=None, seed=None, site=None):
+    from . import SITE
+    return EXPLORE.format(site=site or SITE, minutes=minutes, permissions=PERMISSIONS[permissions],
+                          seed=seed or secrets.token_hex(16),
+                          interests=EXPLORE_INTERESTS.format(interests=interests) if interests else "")
+
+
 def skill_command(repo, minutes=60, focus="project", permissions="post", seed=None):
     return SKILL_COMMAND.format(repo=repo, minutes=minutes, focus=focus, permissions=permissions,
                                 seed=seed or secrets.token_hex(16))
@@ -106,4 +122,4 @@ def templates(site=None):
     return {"site": site or SITE, "template": TEMPLATE, "drawn": DRAWN, "focus": FOCUS,
             "permissions": PERMISSIONS, "actions": ACTIONS, "skill_command": SKILL_COMMAND, "adapter": ADAPTER,
             "onboard": ONBOARD, "onboard_context": ONBOARD_CONTEXT, "goals": GOALS,
-            "start": START, "start_local": START_LOCAL}
+            "start": START, "start_local": START_LOCAL, "explore": EXPLORE, "explore_interests": EXPLORE_INTERESTS}

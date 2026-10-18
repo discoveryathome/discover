@@ -373,6 +373,61 @@ class AdapterTests(unittest.TestCase):
             self.assertIn("python3 pick.py --seed " + "c" * 32, buf.getvalue())
 
 
+class ChooseTests(unittest.TestCase):
+    def projects(self):
+        mk = lambda slug, stage, domains: {"slug": slug, "stage": stage, "domains": domains, "weight": {0: 1, 1: 3, 2: 6}[stage]}
+        return [mk("b", 1, ["algorithms"]), mk("a", 0, ["meta-science"]), mk("c", 2, ["number-theory", "algorithms"])]
+
+    def test_draw_is_exact_weighted_and_filtered(self):
+        from discover import pick
+        seed = "0123456789abcdef0123456789abcdef"
+        r = pick.choose_project(self.projects(), seed)
+        # By hand, per spec §12.2: slug order a(1), b(3), c(6); ticket = draw("project") mod 10.
+        ticket = int(pick.digest([seed, "project"]), 16) % 10
+        self.assertEqual(r["project"]["slug"], "a" if ticket < 1 else "b" if ticket < 4 else "c")
+        self.assertEqual(r["total_weight"], 10)
+        self.assertEqual(pick.choose_project(self.projects(), seed)["project"], r["project"])  # reproducible
+        only = pick.choose_project(self.projects(), seed, ["Number-Theory"])
+        self.assertEqual((only["project"]["slug"], only["pool"]), ("c", ["c"]))
+        none = pick.choose_project(self.projects(), seed, ["astronomy"])
+        self.assertEqual(len(none["pool"]), 3)
+        self.assertIn("No project matches", none["note"])
+        r2 = pick.choose_project(self.projects(), seed, round_no=2)
+        self.assertEqual(r2["round_seed"], pick.digest([seed, "round:2"])[:32])
+        counts = {}
+        for i in range(600):
+            s = pick.digest(["t", i])[:32]
+            slug = pick.choose_project(self.projects(), s)["project"]["slug"]
+            counts[slug] = counts.get(slug, 0) + 1
+        self.assertTrue(counts["c"] > counts["b"] > counts["a"], counts)
+
+    def test_agent_index_lists_only_open_projects_and_conforms(self):
+        from discover import hub, schema
+        base = {"repo": "o/r", "url": "https://github.com/o/r", "title": "T", "summary": "S", "domains": ["x"],
+                "listing": "listed", "conformant": True, "permissions": {"post_messages": True, "open_prs": True},
+                "credit": {"policy": "named"}, "tracks": [{"id": "t", "weight": 100, "cards": []}],
+                "board": {"open_handoffs": [{"url": "u", "question": "q", "track": "t"}], "live_claims": 0}}
+        ps = [{**base, "slug": "one", "stage": 1}, {**base, "slug": "zero", "stage": 0},
+              {**base, "slug": "nominated", "stage": 1, "listing": "nominated"},
+              {**base, "slug": "unassessed", "stage": None}, {**base, "slug": "broken", "stage": 1, "conformant": False}]
+        idx = hub.agent_index(ps, "https://s/", "h/h", "now")
+        self.assertEqual([p["slug"] for p in idx["projects"]], ["one", "zero"])
+        self.assertEqual(schema.check("agent-index.schema.json", idx), [])
+        zero = idx["projects"][1]
+        self.assertFalse(zero["sessions"]["post_messages"])  # Stage 0 is local-only
+        self.assertEqual((idx["projects"][0]["weight"], zero["weight"]), (3, 1))
+        self.assertEqual(idx["projects"][0]["credit_policy"], "named")
+
+    def test_explore_prompt(self):
+        from discover import prompt
+        text = prompt.explore_prompt(240, "local", "number theory", "ab" * 16, site="https://s/")
+        self.assertIn("https://s/v0/explore.md", text)
+        self.assertIn("Interests: number theory.", text)
+        self.assertIn("Permissions: local.", text)
+        self.assertNotIn("Interests", prompt.explore_prompt(60, "post", None, "ab" * 16, site="https://s/"))
+        self.assertIn("explore", prompt.templates("https://s/"))
+
+
 class HubCheckTests(unittest.TestCase):
     def test_hub_assessments_parse_and_match_the_registry(self):
         from discover import hubcheck

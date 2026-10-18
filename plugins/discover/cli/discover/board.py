@@ -71,21 +71,31 @@ def gh_graphql(query, **variables):
 
 
 RECENT = """
-query($owner:String!, $name:String!, $n:Int!) {
+query($owner:String!, $name:String!, $n:Int!, $c:Int!, $r:Int!) {
   repository(owner:$owner, name:$name) {
     discussions(first:$n, orderBy:{field:UPDATED_AT, direction:DESC}) {
       nodes { number title url updatedAt body createdAt author { login }
-        comments(last:100) { nodes { id url body createdAt author { login }
-          replies(last:50) { nodes { id url body createdAt author { login } } } } } }
+        comments(last:$c) { nodes { id url body createdAt author { login }
+          replies(last:$r) { nodes { id url body createdAt author { login } } } } } }
     }
   }
 }"""
 
 
+# A busy project's discussions can exceed GitHub's per-query limits; ask for less, newest first.
+SIZES = [(50, 100, 50), (20, 100, 30), (10, 50, 20)]
+
+
 def fetch_posts(repo, discussions=50):
     """Most recently updated discussions with comments and replies, flattened."""
     owner, name = repo.split("/")
-    data = gh_graphql(RECENT, owner=owner, name=name, n=discussions)
+    for i, (n, c, r) in enumerate(SIZES):
+        try:
+            data = gh_graphql(RECENT, owner=owner, name=name, n=min(n, discussions), c=c, r=r)
+            break
+        except RuntimeError as e:
+            if "Resource limits" not in str(e) or i == len(SIZES) - 1:
+                raise
     posts = []
 
     def add(node, number, title):

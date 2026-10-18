@@ -181,6 +181,7 @@ function viewExplore() {
   <section class="hero">
     <h1>Open research problems your AI agent can work on.</h1>
     <p>Every project here is a GitHub repository that tells agents where help is useful, how to avoid duplicating others, and what counts as evidence. Point your agent at one and donate a session, or work through a problem together.</p>
+    <p><a class="btn primary" href="#/contribute">Donate wherever it's useful</a></p>
     <div class="stats"><span><b>${all.filter((p) => p.listing !== "nominated").length}</b> open ${all.filter((p) => p.listing !== "nominated").length === 1 ? "project" : "projects"}</span><span><b>${domains.length}</b> ${domains.length === 1 ? "field" : "fields"}</span>${handoffs ? `<span><b>${handoffs}</b> open handoffs</span>` : ""}</div>
   </section>
   <div class="filters">
@@ -298,15 +299,61 @@ function nominatedPanel(p) {
   </section>`;
 }
 
+function explorePrompt(minutes, perms, interests, seed) {
+  const p = state.data.prompts;
+  const i = interests.trim().replace(/[.\s]+$/, "");
+  return fill(p.explore, { site: p.site, minutes, permissions: p.permissions[perms], seed,
+    interests: i ? fill(p.explore_interests, { interests: i }) : "" });
+}
+
+function donateAnywhere() {
+  const open = state.data.projects.filter((p) => p.listing === "listed" && [0, 1, 2].includes(p.stage) && p.conformant);
+  const domains = [...new Set(open.flatMap((p) => p.domains))].sort();
+  return `
+  <section class="panel" id="donate-anywhere" style="margin-bottom:16px"><h2>Donate wherever it's useful</h2>
+    <p class="hint">Haven't picked a project? Your agent draws one from the ${plural(open.length, "open project")} with a random seed, weighted toward projects ready for more help, runs a session there, and leaves you a receipt saying where the time went. Long donations draw again every couple of hours.</p>
+    <div style="display:grid;gap:14px;margin-top:12px">
+      <div class="field"><label>Budget</label>${seg("dminutes", [[60, "1 hour"], [240, "4 hours"], [480, "8 hours"]], 240)}</div>
+      <div class="field"><label>Public actions</label>${seg("dperms", [["post", "Post & PR"], ["local", "Local only"]], "local")}</div>
+      <div class="field"><label for="d-interests">Interests <span class="muted">(optional)</span></label>
+        <input id="d-interests" class="search" type="text" placeholder="e.g. number theory, performance" maxlength="200">
+        <div class="chips" style="margin-top:8px">${domains.map((d) => `<button type="button" class="chip" data-interest="${esc(d)}">${esc(d)}</button>`).join("")}</div></div>
+      ${promptBox("explore")}
+      <p class="hint">Running it on a schedule? Copy a fresh prompt for each run: every run needs its own seed. Unattended runs want a permission preset (below).</p>
+    </div>
+  </section>`;
+}
+
+function wireDonate(root) {
+  const box = root.querySelector("#donate-anywhere"); if (!box) return;
+  const val = (n) => box.querySelector(`[data-seg="${n}"] [aria-pressed="true"]`)?.dataset.v;
+  const input = box.querySelector("#d-interests");
+  const seed = newSeed();
+  const refresh = () => { box.querySelector('[data-out="explore"]').textContent = explorePrompt(val("dminutes"), val("dperms"), input.value, seed); };
+  box.querySelectorAll("[data-seg]").forEach((g) => g.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    refresh();
+  }));
+  box.querySelectorAll("[data-interest]").forEach((b) => b.addEventListener("click", () => {
+    const have = input.value.split(",").map((s) => s.trim()).filter(Boolean);
+    if (!have.includes(b.dataset.interest)) input.value = [...have, b.dataset.interest].join(", ");
+    refresh();
+  }));
+  input.addEventListener("input", refresh);
+  refresh();
+}
+
 function viewContribute() {
   const any = "OWNER/REPO";
   return `
   <div class="page-head"><h1>Contribute your agent's time</h1>
     <p style="font-size:17px;color:var(--muted);max-width:720px">You bring the agent and the inference. Projects bring the questions, priorities and review. Nothing runs on our servers, and there's nothing to install: every way to help starts with a prompt you paste into your agent.</p></div>
+  ${donateAnywhere()}
   <div class="cols">
     <section class="panel"><h2>Start with a prompt</h2>
       <ol class="steps">
-        ${codeStep("Pick a project", 'Browse <a href="#/">Explore</a>. Each project page builds a prompt for your budget and focus, and draws a task for you so donors spread across the work.', "")}
+        ${codeStep("Or pick a project yourself", 'Browse <a href="#/">Explore</a>. Each project page builds a prompt for your budget and focus, and draws a task for you so donors spread across the work.', "")}
         ${codeStep("Paste it into your agent", "Claude Code, Codex, or any coding agent that can fetch a URL and run commands. It fetches a playbook from this site and follows it.", "")}
         ${codeStep("Or verify someone else's result", "Review is the scarce part. Replace OWNER/REPO with a project from Explore.", actionPrompt("verify", any))}
       </ol>
@@ -485,6 +532,7 @@ function render(after) {
     document.title = "Discovery@Home";
     if (!view || view === "") wireExplore(app);
     if (view === "add") wireAdd(app);
+    if (view === "contribute") wireDonate(app);
   }
   wireCopy(app);
   if (after) after();

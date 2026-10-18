@@ -103,3 +103,46 @@ def format_pick(r):
         lines.append(f"    scope_key: {s['scope_key']}")
     lines.append(r["note"])
     return "\n".join(lines)
+
+
+# --- Choosing a project across the hub (spec §12.2) ---------------------------------
+
+STAGE_WEIGHT = {0: 1, 1: 3, 2: 6}
+
+
+def project_weight(p):
+    """By stage: a later stage can absorb more traffic. Deliberately not by open handoffs,
+    which measure demand, not the review capacity to absorb it; declared review capacity
+    (ROADMAP item 4) is the planned second factor."""
+    return STAGE_WEIGHT[p["stage"]]
+
+
+def round_seed(seed, n):
+    """Round 1 uses the seed itself; later rounds of one long donation derive their own."""
+    return seed if n == 1 else digest([seed, f"round:{n}"])[:32]
+
+
+def choose_project(projects, seed=None, interests=None, round_no=1):
+    """Draw one launchable project, weighted by project_weight, from those matching the
+    donor's interests (or from all, if none match). Projects are taken in slug order and the
+    ticket is draw("project") mod the total weight, over the round's seed."""
+    seed = (seed or secrets.token_hex(16)).lower()
+    if not re.fullmatch(r"[0-9a-f]{32}", seed):
+        raise ValueError("seed must be exactly 32 hexadecimal digits")
+    pool = sorted(projects, key=lambda p: p["slug"])
+    if not pool:
+        raise ValueError("no project is open to donated sessions")
+    wanted = {i.strip().lower() for i in (interests or []) if i.strip()}
+    matched = [p for p in pool if wanted & {d.lower() for d in p.get("domains", [])}] if wanted else pool
+    note = None
+    if wanted and not matched:
+        matched, note = pool, "No project matches those interests, so the draw is over every open project."
+    rseed = round_seed(seed, round_no)
+    weights = [project_weight(p) for p in matched]
+    ticket = int(digest([rseed, "project"]), 16) % sum(weights)
+    for p, w in zip(matched, weights):
+        ticket -= w
+        if ticket < 0:
+            break
+    return {"seed": seed, "round": round_no, "round_seed": rseed, "project": p, "weight": w,
+            "total_weight": sum(weights), "pool": [q["slug"] for q in matched], "note": note}

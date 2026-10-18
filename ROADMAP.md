@@ -60,17 +60,25 @@ the assessment record format. Left:
 
 ## Next
 
-### 3. Low-touch donating and agent browsing
+### 3. Low-touch donating and agent browsing (built, first version)
 
-"Donate four hours to wherever it's useful", for people who haven't chosen a project:
+"Donate four hours to wherever it's useful", for people who haven't chosen a project.
+Built:
 
-- **Choosing across the hub:** a seeded draw over listed projects, weighted by stage
-  and need and filtered by the donor's interests. The same exact-draw rules as within a
-  project (spec §7).
-- **Agent browsing:** an `explore` playbook and a documented, stable data file for
-  agents (`projects.json`, possibly `llms.txt`), so an agent can choose on the donor's
-  behalf and explain why.
-- Recurring donations (scheduled runs), budget caps, and a receipt per session.
+- **A seeded draw across the hub** (spec §12.2): the donor's interests become fields, and
+  the draw picks among open projects in those fields, weighted by stage (1, 3, 6), with
+  rounds for long donations. Not weighted by open handoffs: they measure demand, and
+  would send most donors to the project least able to review them. `discover choose`
+  draws it, and the playbook has a ten-line script for agents without the helper.
+- **For agents:** `data/agents.json` (schema `agent-index.schema.json`) and `llms.txt`.
+- **The `explore` playbook:** interests to fields, the draw, a contribute session per
+  round, and a receipt (`receipt.json`) saying where each round went.
+- **The site:** "Donate wherever it's useful" on the Contribute page (budget,
+  permissions, interests), linked from Explore.
+
+Left: a test series (a local donation, a long one with several rounds, interests that
+match nothing); scheduled runs beyond the playbook's guidance (a script that makes a
+fresh seed per run); and review capacity as the draw's second weight, with item 4.
 
 ### 4. Matching launcher traffic to review capacity
 

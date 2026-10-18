@@ -21,6 +21,8 @@ def load(name):
 
 
 def _is_type(value, name):
+    if isinstance(name, list):  # a union, e.g. ["string", "null"]
+        return any(_is_type(value, n) for n in name)
     if name == "integer":
         return isinstance(value, int) and not isinstance(value, bool)
     if name == "number":

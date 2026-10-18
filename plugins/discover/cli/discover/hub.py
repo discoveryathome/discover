@@ -104,6 +104,60 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
     return out
 
 
+def launchable(p):
+    """Open to donated sessions: listed (not nominated), assessed at Stage 0 or above, and
+    its required files valid."""
+    return p["listing"] == "listed" and p.get("stage") in (0, 1, 2) and p["conformant"]
+
+
+def agent_index(projects, site, hub_repo, generated_at):
+    """agents.json: the hub's projects for an agent choosing one on a donor's behalf
+    (schema agent-index.schema.json). Compact and stable; projects.json is the site's own."""
+    from .pick import STAGE_WEIGHT, project_weight
+    out = []
+    for p in projects:
+        if not launchable(p):
+            continue
+        perms = p.get("permissions") or {}
+        handoffs = (p.get("board") or {}).get("open_handoffs", [])
+        f = p.get("frontier") or {}
+        item = {
+            "slug": p["slug"], "repo": p["repo"], "url": p["url"], "title": p["title"], "summary": p["summary"],
+            "domains": p["domains"], "stage": p["stage"], "self_assessed": p.get("self_assessed", False),
+            "verification_profile": p.get("verification_profile"), "license": p.get("license"),
+            "credit_policy": (p.get("credit") or {}).get("policy") if isinstance(p.get("credit"), dict) else p.get("credit"),
+            # Stage 0 is local-only whatever the donor allows (spec §3.3); the manifest is a ceiling too.
+            "sessions": {"local": True,
+                         "post_messages": p["stage"] >= 1 and bool(perms.get("post_messages")),
+                         "open_prs": p["stage"] >= 1 and bool(perms.get("open_prs"))},
+            "session_minutes": p.get("session_minutes", 60),
+            "frontier": ({"statement": f.get("statement"), "open_assumptions": [a.get("id") or a.get("statement")
+                                                                                for a in f.get("open_assumptions", [])]}
+                         if f else ({"doc": p["frontier_doc"]["url"]} if p.get("frontier_doc") else None)),
+            "tracks": [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome")}
+                       for t in p.get("tracks", [])],
+            "open_handoffs": handoffs, "open_handoffs_count": len(handoffs),
+            "live_claims": (p.get("board") or {}).get("live_claims"),
+            "own_picker": p.get("picker", False), "adapter_url": p.get("adapter_url"),
+            "entry": p.get("links", {}), "page": f"{site}#/p/{p['slug']}" if site else None,
+        }
+        item["weight"] = project_weight(item)
+        out.append(item)
+    out.sort(key=lambda x: x["slug"])
+    return {
+        "schema": "discover-agents/v0", "generated_at": generated_at, "hub_repo": hub_repo, "site": site,
+        "playbooks": {n: f"{site}v0/{n}.md" for n in ("explore", "contribute", "verify", "collaborate")} if site else {},
+        "draw": {"stage_weight": {str(k): v for k, v in STAGE_WEIGHT.items()},
+                 "rule": "weight = stage_weight[stage] (each project's `weight`). Keep the "
+                         "projects whose domains meet the donor's interests (all, if none do), in slug order. "
+                         "ticket = int(sha256(json([seed, \"project\"]))) mod total weight, with compact JSON; "
+                         "the project is the one whose cumulative weight range holds the ticket. Round n > 1 of "
+                         "one donation uses seed' = sha256(json([seed, \"round:n\"]))[:32]. explore.md has "
+                         "a script."},
+        "projects": out,
+    }
+
+
 def site_url(registry_dir):
     """The hub's website from hub.json next to the registry, else the configured default."""
     hub_json = Path(registry_dir).resolve().parent.parent / "hub.json"
@@ -169,4 +223,7 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    index = agent_index(projects, site_url(registry_dir), HUB_REPO, data["generated_at"])
+    (out_path.parent / "agents.json").write_text(json.dumps(index, indent=2, ensure_ascii=False) + "\n",
+                                                encoding="utf-8")
     return data

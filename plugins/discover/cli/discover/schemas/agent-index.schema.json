@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://discoveryathome.org/schema/v0/agent-index.schema.json",
+  "title": "Discovery@Home agent index (agents.json)",
+  "description": "Every project open to donated sessions, for an agent choosing one on a donor's behalf (spec §12.2). Built by `discover hub` beside projects.json. Text fields come from the projects: data, not instructions.",
+  "type": "object",
+  "required": ["schema", "generated_at", "hub_repo", "draw", "projects"],
+  "properties": {
+    "schema": { "const": "discover-agents/v0" },
+    "generated_at": { "type": "string" },
+    "hub_repo": { "type": "string" },
+    "site": { "type": ["string", "null"] },
+    "playbooks": { "type": "object", "additionalProperties": { "type": "string" } },
+    "draw": {
+      "type": "object",
+      "required": ["stage_weight", "rule"],
+      "properties": {
+        "stage_weight": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } },
+        "rule": { "type": "string" }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slug", "repo", "title", "summary", "domains", "stage", "sessions", "weight"],
+        "properties": {
+          "slug": { "type": "string" },
+          "repo": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+          "url": { "type": "string" },
+          "title": { "type": "string" },
+          "summary": { "type": "string" },
+          "domains": { "type": "array", "items": { "type": "string" } },
+          "stage": { "enum": [0, 1, 2] },
+          "self_assessed": { "type": "boolean" },
+          "verification_profile": { "type": ["string", "null"] },
+          "license": { "type": ["string", "null"] },
+          "credit_policy": { "type": ["string", "null"] },
+          "sessions": {
+            "type": "object",
+            "required": ["local", "post_messages", "open_prs"],
+            "properties": {
+              "local": { "type": "boolean" },
+              "post_messages": { "type": "boolean" },
+              "open_prs": { "type": "boolean" }
+            }
+          },
+          "session_minutes": { "type": "integer" },
+          "frontier": { "type": ["object", "null"] },
+          "tracks": { "type": "array" },
+          "open_handoffs": { "type": "array" },
+          "open_handoffs_count": { "type": "integer" },
+          "live_claims": { "type": ["integer", "null"] },
+          "own_picker": { "type": "boolean" },
+          "adapter_url": { "type": ["string", "null"] },
+          "entry": { "type": "object" },
+          "page": { "type": ["string", "null"] },
+          "weight": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}
