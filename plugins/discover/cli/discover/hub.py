@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import adapter as adaptermod
 from . import board as boardmod
+from . import review as reviewmod
 from . import schema
 from .project import Source
 from . import HUB_REPO
@@ -43,7 +44,7 @@ def listing_state(entry, record):
     return "nominated"
 
 
-def project_summary(slug, entry, report, board=None, listing="listed", site=None):
+def project_summary(slug, entry, report, board=None, listing="listed", site=None, measured=None):
     m = report.get("manifest") or {}
     home = entry["repos"][0]
     repo = home["repo"]
@@ -76,6 +77,7 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
                            if entry.get("assessment") else None),
         "session_minutes": (m.get("session") or {}).get("default_minutes", 60),
         "permissions": m.get("permissions", {}),
+        "review": reviewmod.status(m.get("review"), measured),
         "frontier": None, "tracks": [], "board": None,
     }
     if f:
@@ -105,9 +107,10 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
 
 
 def launchable(p):
-    """Open to donated sessions: listed (not nominated), assessed at Stage 0 or above, and
-    its required files valid."""
-    return p["listing"] == "listed" and p.get("stage") in (0, 1, 2) and p["conformant"]
+    """Open to donated sessions: listed (not nominated), assessed at Stage 0 or above, its
+    required files valid, and not paused by its maintainer. Review load never closes it."""
+    return (p["listing"] == "listed" and p.get("stage") in (0, 1, 2) and p["conformant"]
+            and not (p.get("review") or {}).get("paused"))
 
 
 def agent_index(projects, site, hub_repo, generated_at):
@@ -138,6 +141,8 @@ def agent_index(projects, site, hub_repo, generated_at):
                        for t in p.get("tracks", [])],
             "open_handoffs": handoffs, "open_handoffs_count": len(handoffs),
             "live_claims": (p.get("board") or {}).get("live_claims"),
+            "review": {k: (p.get("review") or reviewmod.status(None))[k]
+                       for k in ("state", "per_week", "awaiting", "headroom")},
             "own_picker": p.get("picker", False), "adapter_url": p.get("adapter_url"),
             "entry": p.get("links", {}), "page": f"{site}#/p/{p['slug']}" if site else None,
         }
@@ -204,7 +209,14 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
                 board = boardmod.state(msgs)
             except Exception as e:
                 print(f"{slug}: board unavailable ({e})", file=log)
-        summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir))
+        measured = None
+        if with_board and listing == "listed":
+            try:
+                prs, total = reviewmod.fetch_open_prs(entry["repos"][0]["repo"])
+                measured = reviewmod.awaiting(prs, total=total)
+            except Exception as e:
+                print(f"{slug}: review queue unavailable ({e})", file=log)
+        summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir), measured)
         if entry.get("assessment"):
             from .hubcheck import parse_assessment
             apath = registry_dir.resolve().parent.parent / entry["assessment"]

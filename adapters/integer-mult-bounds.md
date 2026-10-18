@@ -107,6 +107,10 @@ Never change the project's repository to match this file.
       "algorithms"
     ],
     "license": "Apache-2.0",
+    "review": {
+      "per_week": "surge",
+      "note": "Declared by the maintainer for launch: ready for any amount of traffic. Merges run in queue passes, so open PRs wait for the next pass rather than for a comment."
+    },
     "maintainers": [
       {
         "name": "Douglas R. Colkitt"

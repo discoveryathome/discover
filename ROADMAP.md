@@ -83,46 +83,39 @@ the precomputed one, and each receipt was complete. Found: sessions finish well 
 their budget (E2 used 36 of 240 minutes), and E2 stopped early on its own judgment that
 more work would swamp a maintainer's review capacity. The playbook now says to switch to
 verification in that case rather than stop. Left: scheduled runs beyond the playbook's
-guidance (a script that makes a fresh seed per run), and review capacity as the draw's
-second weight, with item 4.
+guidance (a script that makes a fresh seed per run), and review headroom as the draw's
+second weight (item 4, after launch).
 
 ### 4. Matching launcher traffic to review capacity
 
-Review, not donated compute, is what a project can absorb. Today nothing changes
-until Review drops to weak, by which point the backlog exists. The plan, built so that
-it **never throttles a maintainer who is ready for mass traffic**: the launch's pilot
-projects are prepared for it, and missing a project going viral in week one would cost
-far more than a busy review queue.
+Review, not donated compute, is what a project can absorb. Built so that it **never
+throttles a project by default**: the launch's pilot projects are prepared for mass
+traffic, and missing a project going viral costs far more than a busy review queue.
 
-- **Capacity is declared, and "surge" is a valid answer.** `discover.json` gets
-  `review: {per_week: N, verification_counts: true}`, or `per_week: "surge"` for a
-  maintainer ready for unlimited traffic. Setup asks; the launch's pilot projects
-  declare `surge` (or a high number) before launch. Undeclared means a cautious default
-  (about 2 a week), for projects listed later whose maintainers haven't thought about it.
-- **Headroom is measured:** declared weekly capacity minus contributions waiting for a
-  first response (PRs and `done` messages), from GitHub data. Shown on the listing
-  ("needs reviewers", "busy: review queue full") and used to weight the cross-hub draw
-  (§12.2). For a `surge` project it is shown, never enforced.
-- **When the queue is full, the launcher changes what it offers instead of switching
-  off:** `local` sessions and verification of pending contributions only, since an
-  independent check adds review capacity rather than using it. Only projects with a
-  numeric capacity are steered this way.
-- **The binding check runs at session start.** The site is static and can't count
-  copied prompts, so the contribute playbook counts open contributions awaiting review
-  against declared capacity, and if the queue is full opens no new PR: it verifies, or
-  leaves a finding or handoff.
-- **The hard edge asks first for surge projects.** Spec §3.3 pauses the launcher as soon
-  as Review drops to weak. For a project that declared `surge`, that becomes an urgent
-  notice to the maintainer (hub issue, and their notices channel) who pauses with one
-  change (`per_week` to a number, or a `busy` flag); the hub doesn't pause it
-  automatically. Projects with a numeric capacity keep the automatic pause.
-- **Raising capacity is how a maintainer asks for more traffic.** It takes effect at the
-  next hub build; the session-start check reads it live.
+**Built (pre-launch half, 2026-10-18):**
 
-Order: declare capacity and show headroom first, before launch (no enforcement, so
-nothing viral is missed); the session-start check and steering for numeric-capacity
-projects after launch week, once real traffic shows where queues back up. Spec changes:
-§3.3 (the surge exception), §4 (the `review` field), §12.2 (headroom).
+- **Declared capacity** (spec §4): `review: {per_week: N | "surge", paused, note}` in
+  `discover.json`, or in the adapter for repos without one. Undeclared means no limit.
+  `paused: true` is the maintainer's one switch to close the launcher; nothing else
+  closes it. Setup asks (question 6). integer-mult-bounds declares `surge`.
+- **What's waiting, measured at each build:** open, non-draft PRs from outside the
+  project with no response from anyone but their author (`review.py`). Shown on the
+  listing with the declaration ("ready for surge traffic", "needs reviewers", "busy:
+  review queue full", "paused by its maintainers") and in `agents.json`. First reading:
+  integer-mult-bounds 230 waiting (of 432 open, oldest 5 days; its merges run in queue
+  passes); the other two 0.
+- **Spec §3.3:** a Review downgrade sends the maintainer an urgent notice instead of
+  pausing the launcher; only a numeric `per_week` opts a project in to steering.
+
+**After launch week**, once real traffic shows where queues back up, and only for projects
+with a numeric capacity:
+
+- Headroom as the cross-hub draw's second weight (§12.2).
+- **The session-start check:** the contribute playbook counts what's waiting against
+  the declared capacity, and when the queue is full opens no new PR: it verifies a
+  pending contribution, or leaves a finding or handoff.
+- The urgent notice itself, from the hub check, when a Review grade drops to weak.
+- `done` messages without a response, beside PRs, in the waiting count.
 
 ### 5. Donor safety
 
@@ -168,9 +161,9 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
 ## Rubric gaps found in testing
 
 - **Stage 1 with little review capacity.** `applied-butterfly-mult` reached Stage 1 on a
-  declared 1–3 reviews a week, and Stage 1 lets swarms post and open PRs. A Review
-  downgrade pauses the launcher only after a backlog shows. Planned in item 4. One D9
-  session alone opened two PRs, one of 51 files.
+  declared 1–3 reviews a week, and Stage 1 lets swarms post and open PRs. Item 4 now
+  shows the queue and gives the maintainer a pause switch; steering for numeric
+  capacities comes after launch. One D9 session alone opened two PRs, one of 51 files.
 - "Help needs specific hardware" (a non-M2 machine, a GPU, 32 GB of RAM) can't be
   expressed. E1 skipped a card needing a second architecture only by reading the card.
 - From E3's assessment of a marine-ecology replication repo: a finished paper's code is

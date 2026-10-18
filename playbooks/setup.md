@@ -41,10 +41,15 @@ can't work out. Then confirm or ask:
 4. **The bottleneck:** where effort is most useful now, and why.
 5. **Settled questions:** negative results agents shouldn't rediscover, each with its
    exact scope.
-6. **Review:** who reviews contributions, roughly how many a week, and whether
-   independent verification by other contributors counts toward acceptance. If capacity
-   is low, weight the tracks toward verification and audits, which filter work before
-   it reaches a person.
+6. **Review:** who reviews contributions, roughly how many a week they can give a first
+   response to, and whether independent verification by other contributors counts
+   toward acceptance. This becomes `review` in `discover.json` (spec §4):
+   `{"per_week": N}`, or `{"per_week": "surge"}` if they're ready for any amount of
+   traffic. Say what each means: the hub shows it on the listing and never throttles
+   them for it; a number also opts in to the hub steering traffic away when the queue is
+   full, and `"paused": true` is their switch to close the launcher. They can leave it
+   out (no limit). If capacity is low, weight the tracks toward verification and audits,
+   which filter work before it reaches a person.
 7. **Credit:** how contributors will be credited (co-authorship, acknowledgements, a
    contributors file, citation). Donors see this before they choose a project.
 8. **License:** if the repository has no `LICENSE` file, the maintainer chooses one; a
@@ -91,6 +96,7 @@ Then fill in, with the maintainer:
 - **Priority log:** revision 1, the reasons for the initial weights, and when to review
   next.
 - **`credit`** in `discover.json`: the policy in plain words.
+- **`review`** in `discover.json`, if they gave a capacity or said "surge" (question 6).
 - **`LICENSE`**, if missing: the standard text of the license the maintainer chose, and
   its SPDX identifier as `license` in `discover.json`.
 

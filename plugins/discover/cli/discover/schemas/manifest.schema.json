@@ -107,6 +107,16 @@
       "type": "string", "format": "date",
       "description": "Last change to how the project coordinates or reviews; activity measurements count from here."
     },
+    "review": {
+      "type": "object",
+      "description": "Review capacity, shown on the listing (spec §4, §12.2). Undeclared means no limit. Never a throttle: only `paused` closes the launcher.",
+      "additionalProperties": false,
+      "properties": {
+        "per_week": { "type": ["integer", "string"], "minimum": 1, "pattern": "^surge$", "description": "Contributions the maintainers can give a first response to in a week, or \"surge\" for ready for any amount of traffic." },
+        "paused": { "type": "boolean", "default": false, "description": "Close the launcher until set back to false. The maintainer's switch for a backlog." },
+        "note": { "type": "string", "description": "Who reviews, and anything donors should know." }
+      }
+    },
     "picker": {
       "type": "object", "required": ["command"],
       "description": "The project's own task picker, used instead of the protocol's draw (§7). Tools then pass the seed to it and never name a card themselves.",

@@ -27,6 +27,30 @@ function stageBadge(p) {
   return `<span class="badge ${cls}" title="${title}">${esc(label)}</span>${p.conformant === false ? '<span class="badge warn" title="Required files are missing or invalid">Files incomplete</span>' : ""}`;
 }
 
+// Review capacity (spec §12.2): a signal for donors, never a limit on the project.
+function reviewBadge(p) {
+  const r = p.review; if (!r || p.listing === "nominated") return "";
+  const waiting = r.awaiting == null ? "" : ` ${plural(r.awaiting, "contribution")} from outside the project ${r.awaiting === 1 ? "is" : "are"} waiting for a first response.`;
+  const b = {
+    paused: ["warn", "Paused by its maintainers", "The maintainers paused new sessions, usually to catch up on review."],
+    surge: ["ok", "Ready for surge traffic", "The maintainers are ready for any amount of help."],
+    room: ["ok", "Needs reviewers", `Review has room: ${r.headroom} of ${r.per_week} a week free.`],
+    full: ["warn", "Busy: review queue full", `More is waiting than the maintainers review in a week (${r.per_week}). Verifying pending contributions helps most.`],
+  }[r.state];
+  return b ? `<span class="badge ${b[0]}" title="${esc(b[2] + waiting)}">${esc(b[1])}</span>` : "";
+}
+
+function reviewText(r) {
+  if (!r) return "";
+  const cap = r.per_week === "surge" ? "Ready for surge traffic" : typeof r.per_week === "number" ? `About ${r.per_week} a week` : "Not declared";
+  return `${esc(cap)}${r.awaiting == null ? "" : ` · ${esc(plural(r.awaiting, "outside contribution"))} awaiting a first response`}${r.paused ? " · <b>paused by its maintainers</b>" : ""}`;
+}
+
+function pausedPanel() {
+  return `<section class="panel sticky" id="launcher"><h2>Paused</h2>
+    <p class="hint">The maintainers have paused new sessions, usually to catch up on review. It reopens when they unpause it. Browse the project's repository in the meantime.</p></section>`;
+}
+
 function trackBar(tracks) {
   if (!tracks?.length) return "";
   return `<div class="trackbar" role="img" aria-label="Effort allocation by track">${tracks
@@ -155,7 +179,7 @@ function projectCard(p) {
   const f = p.frontier;
   const handoffs = p.board?.open_handoffs?.length;
   return `<article class="card">
-    <div class="row">${stageBadge(p)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}${p.featured ? '<span class="badge accent">Featured</span>' : ""}</div>
+    <div class="row">${stageBadge(p)}${reviewBadge(p)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}${p.featured ? '<span class="badge accent">Featured</span>' : ""}</div>
     <h3><a href="#/p/${encodeURIComponent(p.slug)}">${esc(p.title)}</a></h3>
     <p class="summary">${esc(p.summary)}</p>
     ${metric(f)}
@@ -227,7 +251,7 @@ function viewProject(slug) {
     <div class="crumbs"><a href="#/">Explore</a> <span class="muted">/</span> <span class="muted">${esc(p.repo)}</span></div>
     <h1>${esc(p.title)}</h1>
     <p style="font-size:17px;color:var(--muted);max-width:720px">${esc(p.summary)}</p>
-    <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${stageBadge(p)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}${p.domains.map((d) => `<span class="badge">${esc(d)}</span>`).join("")}</div>
+    <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${stageBadge(p)}${reviewBadge(p)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}${p.domains.map((d) => `<span class="badge">${esc(d)}</span>`).join("")}</div>
   </div>
   <div class="layout">
     <div>
@@ -258,10 +282,10 @@ function viewProject(slug) {
       <section class="panel">
         <h2>Read more</h2>
         <div class="cols"><ul class="clean">${links}<li>${link(p.url, "Repository")}</li></ul><ul class="clean">${threads}</ul></div>
-        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd><dt>${p.listing === "nominated" ? "Catalogued" : "Listed"}</dt><dd>${esc(p.added_on || "")}</dd></dl>
+        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}${p.listing === "nominated" ? "" : `<dt>Review</dt><dd>${reviewText(p.review)}</dd>`}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd><dt>${p.listing === "nominated" ? "Catalogued" : "Listed"}</dt><dd>${esc(p.added_on || "")}</dd></dl>
       </section>
     </div>
-    <div>${p.listing === "nominated" ? nominatedPanel(p) : launcher(p)}</div>
+    <div>${p.listing === "nominated" ? nominatedPanel(p) : p.review?.paused ? pausedPanel() : launcher(p)}</div>
   </div>`;
 }
 
@@ -307,7 +331,7 @@ function explorePrompt(minutes, perms, interests, seed) {
 }
 
 function donateAnywhere() {
-  const open = state.data.projects.filter((p) => p.listing === "listed" && [0, 1, 2].includes(p.stage) && p.conformant);
+  const open = state.data.projects.filter((p) => p.listing === "listed" && [0, 1, 2].includes(p.stage) && p.conformant && !p.review?.paused);
   const domains = [...new Set(open.flatMap((p) => p.domains))].sort();
   return `
   <section class="panel" id="donate-anywhere" style="margin-bottom:16px"><h2>Donate wherever it's useful</h2>
@@ -527,7 +551,7 @@ function render(after) {
   document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("active", a.dataset.nav === nav));
   if (view === "p") {
     const p = state.data.projects.find((x) => x.slug === decodeURIComponent(arg || ""));
-    if (p) { if (p.listing !== "nominated") wireLauncher(app, p); document.title = `${p.title} · Discovery@Home`; }
+    if (p) { if (p.listing !== "nominated" && !p.review?.paused) wireLauncher(app, p); document.title = `${p.title} · Discovery@Home`; }
   } else {
     document.title = "Discovery@Home";
     if (!view || view === "") wireExplore(app);

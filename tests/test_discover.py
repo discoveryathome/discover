@@ -428,6 +428,59 @@ class ChooseTests(unittest.TestCase):
         self.assertIn("explore", prompt.templates("https://s/"))
 
 
+class ReviewTests(unittest.TestCase):
+    def pr(self, n, assoc="NONE", login="donor", draft=False, reviewers=(), commenters=(), typename="User", days=2):
+        at = datetime(2026, 10, 18, tzinfo=timezone.utc)
+        return {"number": n, "url": f"u{n}", "isDraft": draft, "createdAt": iso(at - timedelta(days=days)),
+                "authorAssociation": assoc, "author": {"__typename": typename, "login": login},
+                "reviews": {"nodes": [{"author": {"login": r}} for r in reviewers]},
+                "comments": {"nodes": [{"author": {"login": c}} for c in commenters]}}
+
+    def test_awaiting_counts_outside_prs_with_no_response(self):
+        from discover import review
+        prs = [self.pr(1, days=3), self.pr(2, commenters=["donor"]),  # waiting, incl. author's own comment
+               self.pr(3, assoc="OWNER"), self.pr(4, assoc="COLLABORATOR"),  # the project's own
+               self.pr(5, draft=True), self.pr(6, login="dep[bot]", typename="Bot"),
+               self.pr(7, reviewers=["maint"]), self.pr(8, commenters=["verifier"]),  # answered
+               self.pr(9, commenters=["ci[bot]"])]  # a bot's comment isn't a response
+        m = review.awaiting(prs, at=datetime(2026, 10, 18, tzinfo=timezone.utc))
+        self.assertEqual(m["awaiting"], 3)
+        self.assertEqual(m["oldest_days"], 3.0)
+
+    def test_status_never_limits_by_default(self):
+        from discover import review
+        q = {"awaiting": 4, "oldest_days": 1.0}
+        self.assertEqual(review.status(None, q)["state"], "undeclared")
+        self.assertIsNone(review.status(None, q)["headroom"])
+        self.assertEqual(review.status({"per_week": "surge"}, q)["state"], "surge")
+        self.assertEqual(review.status({"per_week": 5}, q)["headroom"], 1)
+        self.assertEqual(review.status({"per_week": 4}, q)["state"], "full")
+        self.assertEqual(review.status({"per_week": 4}, None)["state"], "declared")
+        self.assertEqual(review.status({"per_week": "surge", "paused": True}, q)["state"], "paused")
+
+    def test_manifest_review_field(self):
+        m = json.loads((EXAMPLE / "discover.json").read_text())
+        for ok in ({"per_week": 5}, {"per_week": "surge", "note": "two reviewers"}, {"paused": True}):
+            self.assertEqual(schema.check("manifest.schema.json", {**m, "review": ok}), [], ok)
+        for bad in ({"per_week": 0}, {"per_week": "lots"}, {"per_week": 2, "limit": 1}):
+            self.assertNotEqual(schema.check("manifest.schema.json", {**m, "review": bad}), [], bad)
+
+    def test_agent_index_skips_only_paused_projects(self):
+        from discover import review
+        base = {"repo": "o/r", "url": "https://github.com/o/r", "title": "T", "summary": "S", "domains": ["x"],
+                "listing": "listed", "conformant": True, "permissions": {}, "tracks": [], "stage": 1}
+        q = {"awaiting": 9, "oldest_days": 2.0}
+        ps = [{**base, "slug": "full", "review": review.status({"per_week": 2}, q)},
+              {**base, "slug": "paused", "review": review.status({"paused": True}, q)},
+              {**base, "slug": "surge", "review": review.status({"per_week": "surge"}, q)},
+              {**base, "slug": "undeclared", "review": review.status(None, q)}]
+        idx = hub.agent_index(ps, "https://s/", "h/h", "now")
+        self.assertEqual([p["slug"] for p in idx["projects"]], ["full", "surge", "undeclared"])
+        self.assertEqual(schema.check("agent-index.schema.json", idx), [])
+        self.assertEqual(idx["projects"][0]["review"], {"state": "full", "per_week": 2, "awaiting": 9, "headroom": -7})
+        self.assertEqual({p["weight"] for p in idx["projects"]}, {3})  # the draw ignores review load
+
+
 class HubCheckTests(unittest.TestCase):
     def test_hub_assessments_parse_and_match_the_registry(self):
         from discover import hubcheck

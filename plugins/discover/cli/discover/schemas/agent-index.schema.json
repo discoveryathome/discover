@@ -51,6 +51,16 @@
           "open_handoffs": { "type": "array" },
           "open_handoffs_count": { "type": "integer" },
           "live_claims": { "type": ["integer", "null"] },
+          "review": {
+            "type": "object",
+            "description": "Declared review capacity against open contributions awaiting a first response. A signal, never a limit.",
+            "properties": {
+              "state": { "enum": ["surge", "undeclared", "declared", "room", "full"] },
+              "per_week": { "type": ["integer", "string", "null"] },
+              "awaiting": { "type": ["integer", "null"] },
+              "headroom": { "type": ["integer", "null"] }
+            }
+          },
           "own_picker": { "type": "boolean" },
           "adapter_url": { "type": ["string", "null"] },
           "entry": { "type": "object" },

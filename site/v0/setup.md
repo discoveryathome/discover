@@ -31,9 +31,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-dba2c4237801.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-a8e381cfec90.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print dba2c423780191863ee874dc42e5aed76596aefde08b63a344299173ca64141d
+# must print a8e381cfec9079a321e986c84ffbe546673ac5bcaece7a3481e8ad3edf5bd4a8
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -152,10 +152,15 @@ can't work out. Then confirm or ask:
 4. **The bottleneck:** where effort is most useful now, and why.
 5. **Settled questions:** negative results agents shouldn't rediscover, each with its
    exact scope.
-6. **Review:** who reviews contributions, roughly how many a week, and whether
-   independent verification by other contributors counts toward acceptance. If capacity
-   is low, weight the tracks toward verification and audits, which filter work before
-   it reaches a person.
+6. **Review:** who reviews contributions, roughly how many a week they can give a first
+   response to, and whether independent verification by other contributors counts
+   toward acceptance. This becomes `review` in `discover.json` (spec §4):
+   `{"per_week": N}`, or `{"per_week": "surge"}` if they're ready for any amount of
+   traffic. Say what each means: the hub shows it on the listing and never throttles
+   them for it; a number also opts in to the hub steering traffic away when the queue is
+   full, and `"paused": true` is their switch to close the launcher. They can leave it
+   out (no limit). If capacity is low, weight the tracks toward verification and audits,
+   which filter work before it reaches a person.
 7. **Credit:** how contributors will be credited (co-authorship, acknowledgements, a
    contributors file, citation). Donors see this before they choose a project.
 8. **License:** if the repository has no `LICENSE` file, the maintainer chooses one; a
@@ -202,6 +207,7 @@ Then fill in, with the maintainer:
 - **Priority log:** revision 1, the reasons for the initial weights, and when to review
   next.
 - **`credit`** in `discover.json`: the policy in plain words.
+- **`review`** in `discover.json`, if they gave a capacity or said "surge" (question 6).
 - **`LICENSE`**, if missing: the standard text of the license the maintainer chose, and
   its SPDX identifier as `license` in `discover.json`.
 
