@@ -46,6 +46,7 @@
             }
           },
           "session_minutes": { "type": "integer" },
+          "requirements": { "type": ["object", "null"], "description": "What a donor's machine needs (manifest `requirements`)." },
           "frontier": { "type": ["object", "null"] },
           "tracks": { "type": "array" },
           "open_handoffs": { "type": "array" },

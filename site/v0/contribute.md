@@ -35,9 +35,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-97f4ba1c91b2.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-a9bf80600b76.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 97f4ba1c91b29c83ea2692f30baf0338f818da4dcfea86308651e8645caf8e27
+# must print a9bf80600b76655b7fc1f368b12a1f9653c84615eb1eb049ac8c811431b702a8
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -207,7 +207,11 @@ In priority order:
 2. An **open handoff** on a matching track: a concrete request someone left for the next
    contributor. Check the project's coordination channel for these; they're usually
    the most productive work. A handoff that someone has already taken up isn't open.
-3. A **drawn task**, using the randomness rules above. If your prompt names a task the
+3. A **drawn task**, using the randomness rules above. If a drawn card has `requires`
+   (hardware, OS, memory) this machine doesn't meet, take the next suggestion and say
+   which card you skipped and why; `discover pick` marks these "can't run here". The
+   same goes for the project's `requirements`: if the machine can't serve them, tell
+   the person before starting. If your prompt names a task the
    website drew, use it unless the project's current catalogue no longer has it; then
    draw again with the same seed. With focus `audit`, draw from the project's audit or
    verification track; with `explore`, from its new-approach track.

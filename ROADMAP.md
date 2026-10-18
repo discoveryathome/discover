@@ -198,11 +198,13 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
   declared 1–3 reviews a week, and Stage 1 lets swarms post and open PRs. Item 4 now
   shows the queue and gives the maintainer a pause switch; steering for numeric
   capacities comes after launch. One D9 session alone opened two PRs, one of 51 files.
-- "Help needs specific hardware" (a non-M2 machine, a GPU, 32 GB of RAM) can't be
-  expressed. E1 skipped a card needing a second architecture only by reading the card.
-- From E3's assessment of a marine-ecology replication repo: a finished paper's code is
-  graded down for having no stated priorities, data shared on request grades the same as
-  "trust the author", and no hub field covers the life sciences.
+- Fixed 2026-10-18 (spec §3.2, §4, §7): hardware needs (`requirements` in the manifest,
+  `requires` on a card; `discover pick` marks cards a machine can't serve); a finished
+  project's statement of what's still welcome counts as its priorities; restricted data
+  with a public pipeline, stated access route and hashed inputs can grade adequate; and
+  a suggested domain list including `life-sciences` and `ecology`. Grade effect on
+  Fingarfan/BlueForests: none yet (it states neither completion nor an access route), but
+  both are now reachable.
 - From E2: Review measured on all PRs lets a maintainer's own PRs dominate. Its proposal
   (count non-maintainers' PRs only) would move integer-mult-bounds from strong to
   adequate; it's waiting as a draft for the hub's maintainer.

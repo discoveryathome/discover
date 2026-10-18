@@ -230,6 +230,11 @@ Then fill in, with the maintainer:
   next.
 - **`credit`** in `discover.json`: the policy in plain words.
 - **`review`** in `discover.json`, if they gave a capacity or said "surge" (question 6).
+- **`domains`** from the spec's suggested list where they fit (§4), broad and narrow.
+- **`requirements`** in `discover.json` if the usual work needs particular hardware
+  (an architecture, an OS, memory, a GPU), and `requires` on any card that alone needs it.
+- **Finished work:** if the project is complete, say so in the entry doc, with the
+  contributions still welcome (reproductions, errata, ports). That's its priorities.
 - **`LICENSE`**, if missing: the standard text of the license the maintainer chose, and
   its SPDX identifier as `license` in `discover.json`.
 

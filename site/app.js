@@ -46,6 +46,11 @@ function reviewText(r) {
   return `${esc(cap)}${r.awaiting == null ? "" : ` · ${esc(plural(r.awaiting, "outside contribution"))} awaiting a first response`}${r.paused ? " · <b>paused by its maintainers</b>" : ""}`;
 }
 
+function needsText(r) {
+  return [r.arch && r.arch.join(" or "), r.os && r.os.join(" or "), r.ram_gb && `${r.ram_gb} GB RAM`,
+    r.disk_gb && `${r.disk_gb} GB disk`, r.gpu && `GPU: ${r.gpu}`, r.note].filter(Boolean).join(" · ");
+}
+
 function pausedPanel() {
   return `<section class="panel sticky" id="launcher"><h2>Paused</h2>
     <p class="hint">The maintainers have paused new sessions, usually to catch up on review. It reopens when they unpause it. Browse the project's repository in the meantime.</p></section>`;
@@ -282,7 +287,7 @@ function viewProject(slug) {
       <section class="panel">
         <h2>Read more</h2>
         <div class="cols"><ul class="clean">${links}<li>${link(p.url, "Repository")}</li></ul><ul class="clean">${threads}</ul></div>
-        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}${p.listing === "nominated" ? "" : `<dt>Review</dt><dd>${reviewText(p.review)}</dd>`}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd><dt>${p.listing === "nominated" ? "Catalogued" : "Listed"}</dt><dd>${esc(p.added_on || "")}</dd></dl>
+        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}${p.listing === "nominated" ? "" : `<dt>Review</dt><dd>${reviewText(p.review)}</dd>`}${p.requirements ? `<dt>Needs</dt><dd>${esc(needsText(p.requirements))}</dd>` : ""}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd><dt>${p.listing === "nominated" ? "Catalogued" : "Listed"}</dt><dd>${esc(p.added_on || "")}</dd></dl>
       </section>
     </div>
     <div>${p.listing === "nominated" ? nominatedPanel(p) : p.review?.paused ? pausedPanel() : launcher(p)}</div>

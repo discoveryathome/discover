@@ -24,7 +24,36 @@ def card_weight(card_id, board):
     return 1.0 / (1 + live + 0.5 * done)
 
 
-def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3):
+def machine():
+    """This machine, as `requires` blocks describe one (spec §4)."""
+    import os
+    import platform
+    arch = {"amd64": "x86_64", "aarch64": "arm64"}.get(platform.machine().lower(), platform.machine().lower())
+    system = {"darwin": "macos"}.get(platform.system().lower(), platform.system().lower())
+    ram = None
+    try:
+        ram = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / 2**30
+    except (ValueError, OSError, AttributeError):
+        pass
+    return {"arch": arch, "os": system, "ram_gb": ram}
+
+
+def unmet(requires, here):
+    """What a requires block asks for that this machine lacks. GPU and disk can't be checked
+    reliably, so they're left to the agent (with the note)."""
+    if not requires:
+        return []
+    out = []
+    if requires.get("arch") and here["arch"] not in [a.lower() for a in requires["arch"]]:
+        out.append(f"arch {'/'.join(requires['arch'])} (this is {here['arch']})")
+    if requires.get("os") and here["os"] not in [o.lower() for o in requires["os"]]:
+        out.append(f"os {'/'.join(requires['os'])} (this is {here['os']})")
+    if requires.get("ram_gb") and here["ram_gb"] and here["ram_gb"] < requires["ram_gb"]:
+        out.append(f"{requires['ram_gb']} GB RAM (this has {here['ram_gb']:.0f})")
+    return out
+
+
+def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3, here=None):
     seed = (seed or secrets.token_hex(16)).lower()
     if not re.fullmatch(r"[0-9a-f]{32}", seed):
         raise ValueError("seed must be exactly 32 hexadecimal digits")
@@ -67,6 +96,11 @@ def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3):
         s = {"task_id": card["id"], "question": card["question"], "method": method,
              "scope_key": scope_key(card["id"], method), "first_step": card.get("first_step"),
              "acceptance_gate": card.get("acceptance_gate")}
+        if card.get("requires"):
+            # The draw doesn't depend on the machine, so it stays reproducible; a session
+            # takes the next suggestion when this one can't be served here.
+            s["requires"] = card["requires"]
+            s["unmet_here"] = unmet(card["requires"], here or machine())
         if board:
             s["live_claims"] = board["live_by_task"].get(card["id"], 0)
             s["recent_done"] = board["recent_done_by_task"].get(card["id"], 0)
@@ -96,6 +130,10 @@ def format_pick(r):
         if "live_claims" in s:
             crowd = f"  [live claims {s['live_claims']}, recent done {s['recent_done']}]"
         lines.append(f"  - {s['task_id']}{crowd}")
+        if s.get("unmet_here"):
+            lines.append(f"    CAN'T RUN HERE, needs {'; '.join(s['unmet_here'])}: take the next suggestion")
+        elif s.get("requires"):
+            lines.append(f"    requires: {json.dumps(s['requires'])}")
         lines.append(f"    question: {s['question']}")
         lines.append(f"    method: {s['method']}")
         if s.get("first_step"):

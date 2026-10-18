@@ -107,6 +107,16 @@
       "type": "string", "format": "date",
       "description": "Last change to how the project coordinates or reviews; activity measurements count from here."
     },
+    "requirements": {
+      "type": "object", "additionalProperties": false,
+      "description": "What a donor's machine needs (spec §4). Every key optional.",
+      "properties": {
+        "arch": { "type": "array", "items": { "type": "string" }, "description": "e.g. x86_64, arm64" },
+        "os": { "type": "array", "items": { "type": "string" }, "description": "e.g. linux, macos, windows" },
+        "ram_gb": { "type": "integer", "minimum": 1 }, "disk_gb": { "type": "integer", "minimum": 1 },
+        "gpu": { "type": "string" }, "note": { "type": "string" }
+      }
+    },
     "review": {
       "type": "object",
       "description": "Review capacity, shown on the listing (spec §4, §12.2). Undeclared means no limit. Never a throttle: only `paused` closes the launcher.",

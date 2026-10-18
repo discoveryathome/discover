@@ -31,9 +31,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-97f4ba1c91b2.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-a9bf80600b76.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 97f4ba1c91b29c83ea2692f30baf0338f818da4dcfea86308651e8645caf8e27
+# must print a9bf80600b76655b7fc1f368b12a1f9653c84615eb1eb049ac8c811431b702a8
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -233,6 +233,11 @@ Then fill in, with the maintainer:
   next.
 - **`credit`** in `discover.json`: the policy in plain words.
 - **`review`** in `discover.json`, if they gave a capacity or said "surge" (question 6).
+- **`domains`** from the spec's suggested list where they fit (§4), broad and narrow.
+- **`requirements`** in `discover.json` if the usual work needs particular hardware
+  (an architecture, an OS, memory, a GPU), and `requires` on any card that alone needs it.
+- **Finished work:** if the project is complete, say so in the entry doc, with the
+  contributions still welcome (reproductions, errata, ports). That's its priorities.
 - **`LICENSE`**, if missing: the standard text of the license the maintainer chose, and
   its SPDX identifier as `license` in `discover.json`.
 

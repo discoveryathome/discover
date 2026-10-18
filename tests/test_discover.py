@@ -428,6 +428,29 @@ class ChooseTests(unittest.TestCase):
         self.assertIn("explore", prompt.templates("https://s/"))
 
 
+class RequirementsTests(unittest.TestCase):
+    def test_unmet_and_pick_marks_cards(self):
+        here = {"arch": "arm64", "os": "macos", "ram_gb": 16.0}
+        self.assertEqual(pick.unmet({"arch": ["arm64"], "os": ["macos", "linux"]}, here), [])
+        self.assertEqual(len(pick.unmet({"arch": ["x86_64"], "ram_gb": 32, "gpu": "CUDA"}, here)), 2)
+        card = {"id": "x86", "question": "q", "methods": ["m"], "requires": {"arch": ["x86_64"]}}
+        cat = {"tracks": [{"id": "t", "weight": 100, "tasks": [card, {"id": "any", "question": "q", "methods": ["m"]}]}]}
+        r = pick.pick(cat, seed="ab" * 16, here=here, count=2)
+        byid = {x["task_id"]: x for x in r["suggestions"]}
+        self.assertTrue(byid["x86"]["unmet_here"])
+        self.assertNotIn("unmet_here", byid["any"])
+        self.assertIn("CAN'T RUN HERE", pick.format_pick(r))
+        # The draw itself doesn't depend on the machine.
+        r2 = pick.pick(cat, seed="ab" * 16, here={"arch": "x86_64", "os": "linux", "ram_gb": 64}, count=2)
+        self.assertEqual([x["task_id"] for x in r["suggestions"]], [x["task_id"] for x in r2["suggestions"]])
+
+    def test_schemas_accept_requirements(self):
+        m = json.loads((EXAMPLE / "discover.json").read_text())
+        req = {"arch": ["x86_64"], "ram_gb": 32, "gpu": "CUDA, 24 GB"}
+        self.assertEqual(schema.check("manifest.schema.json", {**m, "requirements": req}), [])
+        self.assertNotEqual(schema.check("manifest.schema.json", {**m, "requirements": {"cpus": 8}}), [])
+
+
 class ReviewTests(unittest.TestCase):
     def pr(self, n, assoc="NONE", login="donor", draft=False, reviewers=(), commenters=(), typename="User", days=2):
         at = datetime(2026, 10, 18, tzinfo=timezone.utc)

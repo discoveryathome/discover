@@ -204,7 +204,11 @@ In priority order:
 2. An **open handoff** on a matching track: a concrete request someone left for the next
    contributor. Check the project's coordination channel for these; they're usually
    the most productive work. A handoff that someone has already taken up isn't open.
-3. A **drawn task**, using the randomness rules above. If your prompt names a task the
+3. A **drawn task**, using the randomness rules above. If a drawn card has `requires`
+   (hardware, OS, memory) this machine doesn't meet, take the next suggestion and say
+   which card you skipped and why; `discover pick` marks these "can't run here". The
+   same goes for the project's `requirements`: if the machine can't serve them, tell
+   the person before starting. If your prompt names a task the
    website drew, use it unless the project's current catalogue no longer has it; then
    draw again with the same seed. With focus `audit`, draw from the project's audit or
    verification track; with `explore`, from its new-approach track.

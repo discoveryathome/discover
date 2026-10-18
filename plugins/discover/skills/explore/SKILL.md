@@ -174,8 +174,9 @@ Don't stretch a match to include a project you like, and don't drop one you don'
 nothing matches, use no fields: the draw is then over every open project, and you say
 so.
 
-Leave out a project only if the person said they can't serve it (a field they excluded,
-hardware the project's summary says it needs and they don't have). Say which, and why.
+Leave out a project only if the person said they can't serve it (a field they excluded),
+or its `requirements` (architecture, OS, memory, GPU) rule this machine out. Say which,
+and why.
 
 ## 3. Draw the project
 

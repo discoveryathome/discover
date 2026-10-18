@@ -78,6 +78,7 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
         "session_minutes": (m.get("session") or {}).get("default_minutes", 60),
         "permissions": m.get("permissions", {}),
         "review": reviewmod.status(m.get("review"), measured),
+        "requirements": m.get("requirements"),
         "frontier": None, "tracks": [], "board": None,
     }
     if f:
@@ -134,6 +135,7 @@ def agent_index(projects, site, hub_repo, generated_at):
                          "post_messages": p["stage"] >= 1 and bool(perms.get("post_messages")),
                          "open_prs": p["stage"] >= 1 and bool(perms.get("open_prs"))},
             "session_minutes": p.get("session_minutes", 60),
+            "requirements": p.get("requirements"),
             "frontier": ({"statement": f.get("statement"), "open_assumptions": [a.get("id") or a.get("statement")
                                                                                 for a in f.get("open_assumptions", [])]}
                          if f else ({"doc": p["frontier_doc"]["url"]} if p.get("frontier_doc") else None)),
