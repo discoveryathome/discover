@@ -84,6 +84,19 @@ jobs:
           python3 plugins/discover/cli/discover.py validate --registry-entry "registry/projects/$SLUG.json" > "$RUNNER_TEMP/report.txt" 2>&1
           echo "ok=$([ $? -eq 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           cat "$RUNNER_TEMP/report.txt"
+      # A static screen for donors' safety (spec §12.7). Never runs the repo's code.
+      - name: Screen repository
+        id: screen
+        if: steps.dup.outputs.stop != 'true'
+        env:
+          REPO: ${{ steps.entry.outputs.repo }}
+        run: |
+          set +e
+          git clone --depth 1 --quiet "https://github.com/$REPO" "$RUNNER_TEMP/screen-repo"
+          python3 plugins/discover/cli/discover.py screen "$RUNNER_TEMP/screen-repo" > "$RUNNER_TEMP/screen.txt" 2>&1
+          code=$?
+          echo "high=$([ $code -eq 2 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/screen.txt"
       # Projects are met where they are (spec §3.4): a repo that doesn't validate yet still gets a
       # registry PR, labelled needs-adapter, and the hub writes its adapter before merging.
       - name: Open registry PR
@@ -95,6 +108,7 @@ jobs:
           REPO: ${{ steps.entry.outputs.repo }}
           OK: ${{ steps.validate.outputs.ok }}
           NOMINATED: ${{ steps.entry.outputs.nominated }}
+          HIGH: ${{ steps.screen.outputs.high }}
         run: |
           branch="$BRANCH"
           git config user.name "discover-registry-bot"
@@ -118,7 +132,11 @@ jobs:
             note="**Nomination.** Catalogued without a launcher until the project's maintainers add a consent record naming this hub. Don't contact them about it (spec §11.5). Assess it as is, and, if the entry links a proposal, as it would be after setup (\`projected\`). $note"
             labels="nomination${labels:+,$labels}"
           fi
-          { echo "$verb \`$REPO\` (closes #$ISSUE)."; echo; echo "$note"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; } > "$RUNNER_TEMP/pr.md"
+          if [ "$HIGH" = true ]; then
+            note="$note"$'\n\n'"**Screen: high findings.** Don't merge until a hub maintainer has read each one and recorded why it's benign in the assessment (spec §12.7). Findings are leads, not accusations."
+            labels="screen-review${labels:+,$labels}"
+          fi
+          { echo "$verb \`$REPO\` (closes #$ISSUE)."; echo; echo "$note"; echo; echo '```'; cat "$RUNNER_TEMP/report.txt"; echo '```'; echo; echo '<details><summary>Safety screen</summary>'; echo; echo '```'; cat "$RUNNER_TEMP/screen.txt" 2>/dev/null; echo '```'; echo '</details>'; } > "$RUNNER_TEMP/pr.md"
           # Only an open PR counts: a closed one for the same branch is history, not this request.
           url=$(gh pr list --head "$branch" --state open --json url -q '.[0].url // empty')
           [ -n "$url" ] || url=$(gh pr create --head "$branch" --title "$title" --body-file "$RUNNER_TEMP/pr.md" ${labels:+--label "$labels"})

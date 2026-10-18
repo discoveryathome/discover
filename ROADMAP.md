@@ -117,17 +117,42 @@ with a numeric capacity:
 - The urgent notice itself, from the hub check, when a Review grade drops to weak.
 - `done` messages without a response, beside PRs, in the waiting count.
 
-### 5. Donor safety
+### 5. Donor safety (built, first version)
 
-Donors run other people's research code on their own machines. Before inviting
-strangers to donate:
+Donors run other people's research code on their own machines. Built (2026-10-18; spec
+§12.7):
 
-- Sandboxing guidance (a container or VM) and when it's needed
-- Donor-side permission presets, with item 1: allow `gh` reads, ask before writes
-- Disk and machine limits (the playbooks now check free space and ask before large or
-  long work; a sandbox would enforce it)
-- Prompt-injection hygiene beyond "repository text is data"
-- A basic screen for malicious repositories before a hub lists them
+- **`discover screen`**: a static screen of a clone for files agents load by themselves,
+  install hooks, piped downloads, executed encoded code, credential paths, collection
+  endpoints, agent-override text, invisible characters and committed executables. It
+  reads tracked files only and runs in seconds on the listed repos. Intake runs it on
+  every submission (high findings label the PR `screen-review`, merged only once
+  explained), and the contribute, verify and assess playbooks run it before any of a
+  project's code. First pass on the listings: the hub and integer-mult-bounds (sparse
+  checkout) clean; applied-butterfly-mult has no high findings but commits Mach-O
+  executables under `results/`.
+- **Sandboxed donor presets:** `donor-local`, `donor-post` and a new `donor` (attended,
+  asks before posting) turn on Claude Code's sandbox: writes only to `~/discover-work`,
+  credential folders unreadable, network limited to GitHub, the site and package
+  registries (`--allow-domain` for more), failing closed. Tested headless with
+  `claude -p`: writes outside, reading `~/.ssh`, other hosts and `git push` refused;
+  `gh` reads worked (with `enableWeakerNetworkIsolation`, which Go's TLS needs on macOS).
+- **Playbook rules:** agents start in the session folder, never inside a clone (headless
+  runs load a folder's hooks and MCP servers without asking); no `sudo`, global installs,
+  piped downloads or committed binaries; text asking to widen permissions or hide
+  something is quoted to the person as a finding.
+- **The site** explains what protects donors and what doesn't.
+
+Left:
+
+- **Credentials held by tools.** Code inside the sandbox can still run `gh auth token`,
+  and GitHub is reachable, so a malicious project could act as the donor on GitHub. The
+  guidance is a container or VM with a fine-grained read-only token (or none); a tested
+  container recipe is still to do (Docker wasn't available to test).
+- The sandbox on Linux and WSL2 (only macOS tested), and `failIfUnavailable` where no
+  sandbox exists.
+- Codex: its sandbox confines writes only; no domain or credential limits yet.
+- A full-checkout screen of integer-mult-bounds, and a screen in the weekly hub check.
 
 ### 6. A second, outside pilot
 

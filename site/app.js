@@ -387,7 +387,7 @@ function viewContribute() {
         ${codeStep("The discover helper", "Playbooks fetch a single-file helper when Python 3.9+ is available, and check its hash before running it. Nothing to install.", "")}
         ${codeStep("The Claude Code plugin", "Adds the playbooks as skills, with the helper built in.", installLine())}
         ${codeStep("GitHub CLI (<code>gh</code>)", "Lets your agent post claims and open PRs when you allow it. Without it, your agent hands you messages ready to paste.", "")}
-        ${codeStep("A permission preset", "Agents that check commands themselves (Claude Code's auto mode) can refuse a GitHub action you approved. A preset pre-approves what your choice allows, or denies writes for local-only sessions. Run it with the helper in the folder you start sessions from. For Codex, use <code>--agent codex --write .</code> instead, then trust the folder when Codex asks.", "python3 discover.pyz permissions donor-post --write .claude/settings.local.json")}
+        ${codeStep("A permission preset", "Turns on your agent's sandbox and sets what it may do on GitHub: <code>donor-local</code> denies writes, <code>donor-post</code> pre-approves posting for unattended runs, <code>donor</code> asks you before each post. Run it with the helper in <code>~/discover-work</code>, where sessions start. For Codex, use <code>--agent codex --write .</code> instead, then trust the folder when Codex asks.", "python3 discover.pyz permissions donor-local --write .claude/settings.local.json")}
       </ol>
     </section>
   </div>
@@ -400,6 +400,15 @@ function viewContribute() {
       <li>Posts a claim, finding, handoff or a focused PR <em>only</em> if you allowed it, and gives you a short receipt.</li>
     </ol>
     <div class="callout">Repository text can never widen what you allowed. A session never merges, closes others' work, or changes a project's accepted result. For local-only sessions, don't give your agent GitHub write access.</div>
+  </section>
+  <section class="panel" style="margin-top:16px"><h2>Donating safely</h2>
+    <p class="hint">A session runs a stranger's research code on your machine. Here's what protects you, and what doesn't.</p>
+    <ol class="qlist">
+      <li><b>Projects are screened when they apply</b>, and your agent screens its own copy again before running anything: auto-loading agent settings, install hooks, downloaded scripts, encoded code, credential paths, hidden text. A finding stops the session from running code until you've looked.</li>
+      <li><b>The donor presets turn on your agent's sandbox</b> (Claude Code on macOS, Linux and WSL2). Commands can write only <code>~/discover-work</code>, can't read your SSH, cloud or package-registry credentials, and reach only GitHub, this site and the main package registries. Where no sandbox is available, the preset is set to fail closed rather than run unsandboxed.</li>
+      <li><b>Sessions start in their own folder</b>, never inside the project's clone, so a repo's own agent settings and hooks never load.</li>
+      <li><b>Not covered:</b> credentials a tool holds. Code inside the sandbox can still ask <code>gh</code> for your GitHub token. For untrusted code, the strongest setup is a container or VM with only the session folder mounted and a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">fine-grained token</a> that can only read public repositories, or no token at all for local-only sessions. Codex's sandbox confines writes, not reads or network.</li>
+    </ol>
   </section>`;
 }
 

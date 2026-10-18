@@ -66,6 +66,11 @@ any disposable copies, logs and the report beside it, and record the commit you'
 assessing. Clone the hub, `{{HUB_REPO}}`, to write the result. If there's a registry PR,
 check out its branch.
 
+Screen the clone (`discover screen repo`, spec §12.7) and put every **high** finding in
+the report with your reading of it: what the file does, and whether it's benign. A
+listing isn't merged with a high finding nobody has explained. Don't run any of the
+project's code while one is unexplained.
+
 ## 2. Probe orientation (§3.2, property 1)
 
 Run a **fresh** agent session with no context but this donation prompt, read-only,

@@ -45,6 +45,9 @@ cd "$S/repo" && git switch -c session/$(date -u +%Y%m%dT%H%M)
 git rev-parse HEAD    # record the base commit
 ```
 
+Then screen the clone before running any of its code (see Safety above):
+`discover screen "$S/repo"`. Start or keep your agent in `$S`, never inside `repo/`.
+
 If you're asked to loop over several sessions, **refetch at the start of every round** and before
 submitting: a stale clone means stale priorities.
 

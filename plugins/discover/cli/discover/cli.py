@@ -66,6 +66,13 @@ def cmd_validate(a):
     return 0 if r["conformant"] else 1
 
 
+def cmd_screen(a):
+    from . import screen
+    findings = screen.screen(a.path)
+    emit({"path": a.path, "findings": findings}, a.json, lambda _: screen.format_report(findings, a.path))
+    return 2 if any(f["severity"] == "high" for f in findings) else 0
+
+
 def cmd_init(a):
     repo = parse_repo(a.repo)
     r = init.scaffold(a.path, a.title, a.summary, [d.strip() for d in a.domains.split(",")],
@@ -369,11 +376,11 @@ def cmd_permissions(a):
               f"{Path(a.write) / '.codex/rules/discover.rules'} -- gh pr merge 1")
         return 0
     if a.write:
-        added = presets.merge_into(a.write, a.preset)
+        added = presets.merge_into(a.write, a.preset, domains=a.allow_domain)
         print(f"{a.write}: {len(added)} rule(s) added for {a.preset}" + "".join(f"\n  {r}" for r in added))
         return 0
     print(f"# {presets.PRESETS[a.preset]['about']}")
-    print(json.dumps(presets.settings(a.preset), indent=2))
+    print(json.dumps(presets.settings(a.preset, domains=a.allow_domain), indent=2))
     return 0
 
 
@@ -437,6 +444,11 @@ def main(argv=None):
     v.add_argument("--registry-entry", help="apply a registry entry's overlay/adapter")
     v.add_argument("--json", action="store_true")
     v.set_defaults(func=cmd_validate)
+
+    sc = sub.add_parser("screen", help="screen a cloned repo for signs that running it could harm you (static; never runs it)")
+    sc.add_argument("path", nargs="?", default=".")
+    sc.add_argument("--json", action="store_true")
+    sc.set_defaults(func=cmd_screen)
 
     i = sub.add_parser("init", help="scaffold protocol files in a repo (never overwrites)")
     i.add_argument("path", nargs="?", default=".")
@@ -555,7 +567,9 @@ def main(argv=None):
     s.set_defaults(func=cmd_submit)
 
     pm = sub.add_parser("permissions", help="print or write a coding-agent permission preset for a role")
-    pm.add_argument("preset", choices=["donor-local", "donor-post", "maintainer"])
+    pm.add_argument("preset", choices=["donor-local", "donor-post", "donor", "maintainer"])
+    pm.add_argument("--allow-domain", action="append", default=[], metavar="HOST",
+                    help="donor presets: another host sandboxed commands may reach (repeatable)")
     pm.add_argument("--agent", choices=["claude", "codex"], default="claude")
     pm.add_argument("--write", metavar="PATH",
                     help="claude: merge into a settings file, e.g. .claude/settings.local.json (keeps existing "

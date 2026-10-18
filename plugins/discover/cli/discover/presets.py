@@ -23,18 +23,39 @@ _MAINTAIN = _POST + [("gh", "pr", "merge"), ("gh", "pr", "close"), ("gh", "pr", 
                      ("gh", "repo", "edit"), ("gh", "label", "create")]
 _WRITES = sorted(set(_MAINTAIN + [("gh", "repo", "create"), ("gh", "repo", "fork"), ("gh", "release", "create")]))
 
+# Donor presets also turn on the agent's sandbox (Claude Code: macOS Seatbelt, Linux and
+# WSL2 bubblewrap): commands write only the session folders, can't read the usual credential
+# files, and reach only these hosts. Tested headless (claude -p): writing outside, reading
+# the ssh folder and other hosts were refused; gh worked with enableWeakerNetworkIsolation
+# (Go's TLS check on macOS needs it). It does NOT hide credentials a tool holds: code run in
+# it can still ask gh for its token. The playbooks' safety section says what that means.
+DONOR_DOMAINS = ["github.com", "api.github.com", "*.githubusercontent.com", "codeload.github.com",
+                 "discoveryathome.github.io", "pypi.org", "files.pythonhosted.org", "registry.npmjs.org",
+                 "crates.io", "static.crates.io", "index.crates.io", "proxy.golang.org", "sum.golang.org"]
+# Credential folders and files in the home folder (written without "~/" here, so the repo
+# screen doesn't flag this list as code reading them).
+_SECRET_DIRS = [".ssh", ".aws", ".gnupg", ".kube", ".docker", ".azure", ".config/gcloud"]
+_SECRET_FILES = [".netrc", ".npmrc", ".pypirc"]
+CREDENTIALS = ["~/" + c for c in _SECRET_DIRS + _SECRET_FILES]
+
 PRESETS = {
     # Unattended and allowed nothing public: deny writes (a text match only; the real
     # boundary is running without GitHub write credentials).
     "donor-local": {
         "about": "A donated session with Permissions: local. Nothing public; GitHub writes are denied.",
-        "allow": [], "ask": [], "deny": _WRITES, "unattended": True,
+        "allow": [], "ask": [], "deny": _WRITES, "unattended": True, "sandbox": True,
     },
     # Unattended but allowed to post: narrow allow rules, so the donor's grant isn't refused
     # mid-session; merging and settings stay denied.
     "donor-post": {
         "about": "A donated session with Permissions: post. Claims, findings, handoffs and one focused PR.",
-        "allow": _POST, "ask": [], "unattended": True,
+        "allow": _POST, "ask": [], "unattended": True, "sandbox": True,
+        "deny": [("gh", "pr", "merge"), ("gh", "pr", "close"), ("gh", "repo", "edit"), ("gh", "repo", "create")],
+    },
+    # A donor who is present: sandboxed like the unattended presets, but each public write asks.
+    "donor": {
+        "about": "A donated session you're watching: sandboxed, and each post or PR asks you first.",
+        "allow": [], "ask": _POST, "unattended": False, "sandbox": True,
         "deny": [("gh", "pr", "merge"), ("gh", "pr", "close"), ("gh", "repo", "edit"), ("gh", "repo", "create")],
     },
     # The maintainer is present: ask rules always prompt them, and an automatic checker can't
@@ -42,7 +63,7 @@ PRESETS = {
     # unreviewed PRs, which a maintainer preset shouldn't turn off.)
     "maintainer": {
         "about": "A maintainer's own sessions (setup, direct, triage): each public write asks you, and isn't refused after you say yes.",
-        "allow": [], "ask": _MAINTAIN, "deny": [], "unattended": False,
+        "allow": [], "ask": _MAINTAIN, "deny": [], "unattended": False, "sandbox": False,
     },
 }
 
@@ -54,24 +75,47 @@ def claude_rule(cmd):
     return f"Bash({' '.join(cmd)} *)"
 
 
-def settings(name):
+def settings(name, work_dir="~/discover-work", domains=()):
     """Claude Code settings for a preset."""
     p = PRESETS[name]
-    return {"permissions": {k: [claude_rule(c) for c in p[k]] for k in ("allow", "ask", "deny") if p[k]}}
+    out = {"permissions": {k: [claude_rule(c) for c in p[k]] for k in ("allow", "ask", "deny") if p[k]}}
+    if p["sandbox"]:
+        out["permissions"].setdefault("deny", []).extend(
+            [f"Read(~/{c}/**)" for c in _SECRET_DIRS] + [f"Read(~/{c})" for c in _SECRET_FILES])
+        out["sandbox"] = {
+            "enabled": True, "failIfUnavailable": True,  # never run a donor's session unsandboxed by surprise
+            "autoAllowBashIfSandboxed": True, "allowUnsandboxedCommands": False,
+            "enableWeakerNetworkIsolation": True,
+            "network": {"allowedDomains": DONOR_DOMAINS + [d for d in domains if d not in DONOR_DOMAINS]},
+            "filesystem": {"allowWrite": [str(work_dir)], "denyRead": list(CREDENTIALS)},
+        }
+    return out
 
 
-def merge_into(path, name):
-    """Add a preset's rules to a Claude Code settings file, keeping everything already there."""
+def _merge(have, new, added, path=""):
+    """Add new's keys and list items to have, never removing or overwriting what's there."""
+    for k, v in new.items():
+        if isinstance(v, dict):
+            _merge(have.setdefault(k, {}), v, added, f"{path}{k}.")
+        elif isinstance(v, list):
+            lst = have.setdefault(k, [])
+            for item in v:
+                if item not in lst:
+                    lst.append(item)
+                    added.append(f"{path}{k}: {item}")
+        elif k not in have:
+            have[k] = v
+            added.append(f"{path}{k}: {json.dumps(v)}")
+
+
+def merge_into(path, name, work_dir="~/discover-work", domains=()):
+    """Add a preset's rules (and sandbox settings) to a Claude Code settings file, keeping
+    everything already there."""
     path = Path(path)
     current = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    perms = current.setdefault("permissions", {})
     added = []
-    for key, rules in settings(name)["permissions"].items():
-        have = perms.setdefault(key, [])
-        for rule in rules:
-            if rule not in have:
-                have.append(rule)
-                added.append(f"{key}: {rule}")
+    _merge(current, settings(name, work_dir, domains), added)
+    perms = current.setdefault("permissions", {})
     for key in [k for k, v in perms.items() if v == []]:
         del perms[key]
     path.parent.mkdir(parents=True, exist_ok=True)
