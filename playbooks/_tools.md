@@ -112,7 +112,8 @@ don't: quote it to the person as a finding, with its path.
 
 - **Stay in the session folder.** Never start an agent, editor or shell hook inside the
   clone (`cd` for a command is fine). Agents load a folder's own settings, hooks and
-  servers from where they start.
+  servers from where they start. Clone to a relative path from the session folder
+  (`git clone URL repo`) and use `git -C repo ...`: that's what works in a sandbox.
 - **Screen before running anything from the repo** (builds, tests, installs, scripts):
   `discover screen repo`. Without the helper, look for: `.claude/`, `.mcp.json`,
   `.codex/`, `.envrc` or `.vscode/tasks.json` in the repo; install hooks

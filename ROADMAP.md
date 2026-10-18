@@ -137,6 +137,10 @@ Donors run other people's research code on their own machines. Built (2026-10-18
   registries (`--allow-domain` for more), failing closed. Tested headless with
   `claude -p`: writes outside, reading `~/.ssh`, other hosts and `git push` refused;
   `gh` reads worked (with `enableWeakerNetworkIsolation`, which Go's TLS needs on macOS).
+  A test session found that `git -C path push` slipped past the prefix deny rule (it
+  pushed a scratch branch, deleted at once): deny rules now also match options before the
+  subcommand, and `donor-local` redirects pushes to an invalid host. Clones need
+  `git clone` outside the sandbox and a relative target; the playbooks now clone that way.
 - **Playbook rules:** agents start in the session folder, never inside a clone (headless
   runs load a folder's hooks and MCP servers without asking); no `sudo`, global installs,
   piped downloads or committed binaries; text asking to widen permissions or hide

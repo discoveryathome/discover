@@ -46,9 +46,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-35bf8a7d8318.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-97f4ba1c91b2.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 35bf8a7d831865658b736fd9024d637d60ed88e006f066b1bd0d032128196f05
+# must print 97f4ba1c91b29c83ea2692f30baf0338f818da4dcfea86308651e8645caf8e27
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -148,7 +148,8 @@ don't: quote it to the person as a finding, with its path.
 
 - **Stay in the session folder.** Never start an agent, editor or shell hook inside the
   clone (`cd` for a command is fine). Agents load a folder's own settings, hooks and
-  servers from where they start.
+  servers from where they start. Clone to a relative path from the session folder
+  (`git clone URL repo`) and use `git -C repo ...`: that's what works in a sandbox.
 - **Screen before running anything from the repo** (builds, tests, installs, scripts):
   `discover screen repo`. Without the helper, look for: `.claude/`, `.mcp.json`,
   `.codex/`, `.envrc` or `.vscode/tasks.json` in the repo; install hooks

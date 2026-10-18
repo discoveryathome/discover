@@ -39,14 +39,17 @@ creates lives in one folder: the clone in `repo/`, and your notes, scripts, logs
 `HANDOFF.md` and any extra worktrees beside it.
 
 ```sh
-S=~/discover-work/OWNER-NAME-$(date -u +%Y%m%dT%H%M) && mkdir -p "$S"
-git clone --filter=blob:none https://github.com/OWNER/NAME "$S/repo"
-cd "$S/repo" && git switch -c session/$(date -u +%Y%m%dT%H%M)
-git rev-parse HEAD    # record the base commit
+S=~/discover-work/OWNER-NAME-$(date -u +%Y%m%dT%H%M) && mkdir -p "$S" && cd "$S"
+git clone --filter=blob:none https://github.com/OWNER/NAME repo
+git -C repo switch -c session/$(date -u +%Y%m%dT%H%M)
+git -C repo rev-parse HEAD    # record the base commit
 ```
 
-Then screen the clone before running any of its code (see Safety above):
-`discover screen "$S/repo"`. Start or keep your agent in `$S`, never inside `repo/`.
+Run each line as its own command, and clone to the **relative** path `repo` from the
+session folder: a sandboxed agent (the donor presets) can clone only that way. Use
+`git -C repo ...` afterwards rather than `cd repo && git ...`. Then screen the clone
+before running any of its code (see Safety above): `discover screen repo`. Keep your
+agent's working folder at `$S`, never inside `repo/`.
 
 If you're asked to loop over several sessions, **refetch at the start of every round** and before
 submitting: a stale clone means stale priorities.

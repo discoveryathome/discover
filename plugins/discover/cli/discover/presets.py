@@ -75,11 +75,39 @@ def claude_rule(cmd):
     return f"Bash({' '.join(cmd)} *)"
 
 
+def claude_rules(cmd, loose):
+    """The rule, plus (when loose) the form with options before the subcommand
+    (`git -C path push`, `gh -R o/r pr create`), which a prefix alone misses. Used for deny
+    and ask; allow stays exact, so it never approves more than it names."""
+    out = [claude_rule(cmd)]
+    if loose:
+        out.append(f"Bash({cmd[0]} * {' '.join(cmd[1:])} *)")
+    return out
+
+
+# A clone writes .git/config and hooks, which the sandbox protects, so `git clone` runs
+# outside it (still under the permission rules; a clone runs no repository code). Tested
+# on Claude Code 2.1.302: this works only with a relative target (`git clone URL repo` from
+# the session folder); an absolute target still fails. Everything after the clone (switch,
+# fetch, commit, worktree) works inside the sandbox.
+_GIT_SETUP = [("git", "clone")]
+
+# donor-local: point every push to GitHub at a host that doesn't exist, so a push fails
+# whatever form it's typed in. (A deliberate override can undo it; the real boundary is
+# running without write credentials.)
+_NO_PUSH_ENV = {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "url.https://push-disabled.invalid/.pushInsteadOf",
+                "GIT_CONFIG_VALUE_0": "https://github.com/"}
+
+
 def settings(name, work_dir="~/discover-work", domains=()):
     """Claude Code settings for a preset."""
     p = PRESETS[name]
-    out = {"permissions": {k: [claude_rule(c) for c in p[k]] for k in ("allow", "ask", "deny") if p[k]}}
+    out = {"permissions": {k: [r for c in p[k] for r in claude_rules(c, k != "allow")]
+                           for k in ("allow", "ask", "deny") if p[k]}}
     if p["sandbox"]:
+        # Sessions write their own files and set up clones without being asked.
+        out["permissions"].setdefault("allow", []).extend(
+            [f"Edit({work_dir}/**)"] + [claude_rule(c) for c in _GIT_SETUP])
         out["permissions"].setdefault("deny", []).extend(
             [f"Read(~/{c}/**)" for c in _SECRET_DIRS] + [f"Read(~/{c})" for c in _SECRET_FILES])
         out["sandbox"] = {
@@ -88,7 +116,10 @@ def settings(name, work_dir="~/discover-work", domains=()):
             "enableWeakerNetworkIsolation": True,
             "network": {"allowedDomains": DONOR_DOMAINS + [d for d in domains if d not in DONOR_DOMAINS]},
             "filesystem": {"allowWrite": [str(work_dir)], "denyRead": list(CREDENTIALS)},
+            "excludedCommands": [f"{' '.join(c)} *" for c in _GIT_SETUP],
         }
+        if name == "donor-local":
+            out["env"] = dict(_NO_PUSH_ENV)
     return out
 
 

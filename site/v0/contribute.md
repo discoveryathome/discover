@@ -35,9 +35,9 @@ the helper once, outside the project repo, and check its hash before running it:
 
 ```sh
 mkdir -p ~/discover-work && cd ~/discover-work
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-35bf8a7d8318.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-97f4ba1c91b2.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 35bf8a7d831865658b736fd9024d637d60ed88e006f066b1bd0d032128196f05
+# must print 97f4ba1c91b29c83ea2692f30baf0338f818da4dcfea86308651e8645caf8e27
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -137,7 +137,8 @@ don't: quote it to the person as a finding, with its path.
 
 - **Stay in the session folder.** Never start an agent, editor or shell hook inside the
   clone (`cd` for a command is fine). Agents load a folder's own settings, hooks and
-  servers from where they start.
+  servers from where they start. Clone to a relative path from the session folder
+  (`git clone URL repo`) and use `git -C repo ...`: that's what works in a sandbox.
 - **Screen before running anything from the repo** (builds, tests, installs, scripts):
   `discover screen repo`. Without the helper, look for: `.claude/`, `.mcp.json`,
   `.codex/`, `.envrc` or `.vscode/tasks.json` in the repo; install hooks
@@ -174,14 +175,17 @@ creates lives in one folder: the clone in `repo/`, and your notes, scripts, logs
 `HANDOFF.md` and any extra worktrees beside it.
 
 ```sh
-S=~/discover-work/OWNER-NAME-$(date -u +%Y%m%dT%H%M) && mkdir -p "$S"
-git clone --filter=blob:none https://github.com/OWNER/NAME "$S/repo"
-cd "$S/repo" && git switch -c session/$(date -u +%Y%m%dT%H%M)
-git rev-parse HEAD    # record the base commit
+S=~/discover-work/OWNER-NAME-$(date -u +%Y%m%dT%H%M) && mkdir -p "$S" && cd "$S"
+git clone --filter=blob:none https://github.com/OWNER/NAME repo
+git -C repo switch -c session/$(date -u +%Y%m%dT%H%M)
+git -C repo rev-parse HEAD    # record the base commit
 ```
 
-Then screen the clone before running any of its code (see Safety above):
-`discover screen "$S/repo"`. Start or keep your agent in `$S`, never inside `repo/`.
+Run each line as its own command, and clone to the **relative** path `repo` from the
+session folder: a sandboxed agent (the donor presets) can clone only that way. Use
+`git -C repo ...` afterwards rather than `cd repo && git ...`. Then screen the clone
+before running any of its code (see Safety above): `discover screen repo`. Keep your
+agent's working folder at `$S`, never inside `repo/`.
 
 If you're asked to loop over several sessions, **refetch at the start of every round** and before
 submitting: a stale clone means stale priorities.

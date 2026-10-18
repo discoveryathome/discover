@@ -611,8 +611,12 @@ class HubCheckTests(unittest.TestCase):
 class PresetTests(unittest.TestCase):
     def test_presets_merge_without_clobbering_and_are_idempotent(self):
         from discover import presets
-        self.assertNotIn("allow", presets.settings("donor-local")["permissions"])
         local = presets.settings("donor-local")["permissions"]
+        self.assertFalse([r for r in local["allow"] if "push" in r or "gh " in r])  # only edits and clone setup
+        self.assertIn("Bash(git * push *)", local["deny"])  # git -C path push
+        self.assertIn("Bash(gh * pr create *)", local["deny"])  # gh -R o/r pr create
+        self.assertIn("push-disabled.invalid", json.dumps(presets.settings("donor-local")["env"]))
+        self.assertNotIn("env", presets.settings("donor-post"))
         for write in ("Bash(git push *)", "Bash(gh pr create *)", "Bash(gh pr merge *)"):
             self.assertIn(write, local["deny"])
         self.assertIn("Bash(gh pr merge *)", presets.settings("donor-post")["permissions"]["deny"])
