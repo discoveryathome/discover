@@ -203,6 +203,14 @@ Put the session's folder inside `D`.
 (`--round 2`, and so on) and run another session. A round can land on the same project
 again; that's fine. Refetch `agents.json` first.
 
+Don't end a donation early on your own estimate of a project's review capacity: the
+draw's weights and the hub's capacity signals are where that's decided. If you think a
+project already has more waiting for review than it can absorb, spend that round on
+**verification** instead (the verify playbook, https://discoveryathome.github.io/discover/v0/verify.md): an independent
+check of a pending contribution adds review capacity rather than using it. Say in the
+receipt why you switched. Stop before the budget only when nothing useful is left that
+fits the remaining time, and say what that was.
+
 ## 5. Leave a receipt
 
 Write `D/receipt.json`:

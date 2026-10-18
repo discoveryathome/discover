@@ -76,9 +76,15 @@ Built:
 - **The site:** "Donate wherever it's useful" on the Contribute page (budget,
   permissions, interests), linked from Explore.
 
-Left: a test series (a local donation, a long one with several rounds, interests that
-match nothing); scheduled runs beyond the playbook's guidance (a script that makes a
-fresh seed per run); and review capacity as the draw's second weight, with item 4.
+Tested (2026-10-18, headless, local-only): E1, 20 minutes with matching interests; E3,
+15 minutes with interests no project matches (the draw fell back to all projects);
+E2, 240 minutes, which ran four rounds across all three projects. Every draw matched
+the precomputed one, and each receipt was complete. Found: sessions finish well inside
+their budget (E2 used 36 of 240 minutes), and E2 stopped early on its own judgment that
+more work would swamp a maintainer's review capacity. The playbook now says to switch to
+verification in that case rather than stop. Left: scheduled runs beyond the playbook's
+guidance (a script that makes a fresh seed per run), and review capacity as the draw's
+second weight, with item 4.
 
 ### 4. Matching launcher traffic to review capacity
 
@@ -165,7 +171,14 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
   declared 1–3 reviews a week, and Stage 1 lets swarms post and open PRs. A Review
   downgrade pauses the launcher only after a backlog shows. Planned in item 4. One D9
   session alone opened two PRs, one of 51 files.
-- "Help needs specific hardware" (a non-M2 machine, a GPU) can't be expressed.
+- "Help needs specific hardware" (a non-M2 machine, a GPU, 32 GB of RAM) can't be
+  expressed. E1 skipped a card needing a second architecture only by reading the card.
+- From E3's assessment of a marine-ecology replication repo: a finished paper's code is
+  graded down for having no stated priorities, data shared on request grades the same as
+  "trust the author", and no hub field covers the life sciences.
+- From E2: Review measured on all PRs lets a maintainer's own PRs dominate. Its proposal
+  (count non-maintainers' PRs only) would move integer-mult-bounds from strong to
+  adequate; it's waiting as a draft for the hub's maintainer.
 - The probes agreed across five runs on one repo (spec §13, question 7). More repos and
   the donor-tier model are still needed.
 
