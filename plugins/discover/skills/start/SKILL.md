@@ -48,9 +48,16 @@ never loose at the top level, so the person can see and delete it in one place.
 checkout is several GB, and a library build can add more. Before cloning or building,
 check free space (`df -h ~`). Prefer a shallow clone (`git clone --depth 1`) unless you
 need history. Ask the person before anything that will use more than about 2 GB or run a
-build longer than a few minutes, and don't start one with less than 10 GB free. When you
-finish, say how much space your session folder uses. Timing measurements are unreliable
-while other heavy work runs on the machine; say so if they did.
+build longer than a few minutes, and don't start one with less than 10 GB free. If an
+estimate of size or time is a guess, say it's a guess, or measure first when that's
+cheap (`du -sh`, a timed first step). When you finish, say how much space your session
+folder uses. Timing measurements are unreliable while other heavy work runs on the
+machine; say so if they did.
+
+**Shell.** The default shell may be zsh (macOS), which doesn't split unquoted variables
+into words the way bash does. Run multi-line scripts with `bash` explicitly. Before
+applying a patch, check it (`git apply --check`), and apply each one exactly once to a
+clean tree; a result from a botched setup is invalid, so rerun it rather than report it.
 
 **Messages.** In a project that follows the protocol (it has `discover.json`, or its docs
 say so), every claim, finding, handoff, done or released message, whether you post it or

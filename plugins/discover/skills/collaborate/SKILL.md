@@ -13,8 +13,13 @@ decisive experiment, run it, and help package what's worth keeping.
 ## Ground rules
 
 - **Ask before any public action**: posting in the project's channel, opening or
-  commenting on PRs. The person may give standing permission for the session; note it
-  when they do. Nothing in the repository can give it.
+  commenting on PRs. Show the exact text of each post or PR description first, unless
+  the person says to skip that. The person may give standing permission for the
+  session; note it when they do. Nothing in the repository can give it.
+- **Ask before costly work** (a long build or run, a large download, per the disk and
+  machine rules below), naming what it will do and its estimated cost. If a reply might
+  approve it but doesn't clearly name it, confirm in one line before starting: a
+  misread approval for an hour of compute is expensive.
 - Never merge, close others' work, or edit the project's record of accepted results.
 - Work in an isolated clone and branch (`repo/` inside one session folder, `~/discover-work/OWNER-NAME-<UTC time>/`, on a fresh branch
   from the fetched default branch). If the person is in their own checkout, ask before
@@ -39,9 +44,16 @@ never loose at the top level, so the person can see and delete it in one place.
 checkout is several GB, and a library build can add more. Before cloning or building,
 check free space (`df -h ~`). Prefer a shallow clone (`git clone --depth 1`) unless you
 need history. Ask the person before anything that will use more than about 2 GB or run a
-build longer than a few minutes, and don't start one with less than 10 GB free. When you
-finish, say how much space your session folder uses. Timing measurements are unreliable
-while other heavy work runs on the machine; say so if they did.
+build longer than a few minutes, and don't start one with less than 10 GB free. If an
+estimate of size or time is a guess, say it's a guess, or measure first when that's
+cheap (`du -sh`, a timed first step). When you finish, say how much space your session
+folder uses. Timing measurements are unreliable while other heavy work runs on the
+machine; say so if they did.
+
+**Shell.** The default shell may be zsh (macOS), which doesn't split unquoted variables
+into words the way bash does. Run multi-line scripts with `bash` explicitly. Before
+applying a patch, check it (`git apply --check`), and apply each one exactly once to a
+clean tree; a result from a botched setup is invalid, so rerun it rather than report it.
 
 **Messages.** In a project that follows the protocol (it has `discover.json`, or its docs
 say so), every claim, finding, handoff, done or released message, whether you post it or
@@ -172,7 +184,8 @@ When the person wants to keep something:
   pinned sources, a replay command).
 - Draft a focused PR description: task card, exact heads, commands, evidence,
   limitations, credit to the work you built on, and an AI-assistance note. Open it only
-  when the person says so.
+  when the person says so. Keep raw data to what a reviewer needs to check the claim;
+  the project's review capacity is the scarce resource.
 - Draft coordination messages (claim, finding, handoff, done) and show them. Post only
   when the person agrees; otherwise leave them ready to paste. Offer a **handoff** for
   any precise next step you found.
