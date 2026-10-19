@@ -223,7 +223,7 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
   both are now reachable.
 - From E2: Review measured on all PRs lets a maintainer's own PRs dominate. Its proposal
   (count non-maintainers' PRs only) would move integer-mult-bounds from strong to
-  adequate; it's waiting as a draft for the hub's maintainer.
+  adequate; adopted in spec §3.2 (contributions, the 7-day denominator, the backlog test).
 - Fixed 2026-10-18 (spec §3.2, Coverage): a theorem whose declared check covers only the
   computations around it grades Verification at most adequate; strong needs a formal
   proof or recorded independent reviews of the steps. Assessments record what the check
