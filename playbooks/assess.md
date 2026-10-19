@@ -111,6 +111,10 @@ Coordination, not Orientation.
   response) grew from the window's midpoint to its end by more than max(3, 10%). Count
   independent verifications maintainers acted on. With no contributions to measure, use
   the declared `review` capacity, at most adequate.
+  Where the project's docs say merges are archival intake and review is recorded
+  separately (a ledger, say), also report the share of the window's merged
+  contributions with no recorded review outcome, and when the frontier last changed.
+  These are reported beside the grade and don't set it.
 - **Steering (property 5):** where priorities are stated, when they were last revised
   and why, and whether feedback gets read.
 
