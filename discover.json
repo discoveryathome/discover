@@ -36,6 +36,9 @@
     ]
   },
   "verification_profile": "review-only",
+  "review": {
+    "per_week": 5000
+  },
   "credit": {
     "policy": "Contributors to merged hub work are credited in the commit history, and every assessment record names its assessors.",
     "kinds": [
