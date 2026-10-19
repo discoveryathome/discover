@@ -29,9 +29,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-462688115b3e.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-4c5ba2a0e611.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 462688115b3ed66628ae75e5cf4974e50150e4100b7ba87308a3ca02d46d7dad
+# must print 4c5ba2a0e6115825f6f01ca35b46db64e521491573872d54ffcb9f902b81dee0
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -99,7 +99,7 @@ Headless `codex exec` can't ask, so use the maintainer preset in interactive ses
 **Folder not set up yet?** If you're a donated session and the folder you were started
 in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
 `.codex/rules/discover.rules`), end your report with one line offering it for next time:
-"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.org/v0/prepare.md and
 follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
@@ -180,7 +180,7 @@ match the adapter.
   they don't, it's a **nomination**: never present a nomination as an application.
 - Optionally, a quick check: does `AGENTS.md` or the README tell a newcomer what the
   project is and how to contribute? If not, suggest the **setup** playbook
-  (https://discoveryathome.github.io/discover/v0/setup.md) first. It isn't required.
+  (https://discoveryathome.org/v0/setup.md) first. It isn't required.
 - For an application, ask for the **credit policy** (how contributors will be credited)
   if the repo doesn't state one. A listing needs it before donors get a contribution
   launcher. The same goes for a **`LICENSE`** file: if the repo has none, say so, and

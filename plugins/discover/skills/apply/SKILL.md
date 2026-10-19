@@ -87,7 +87,7 @@ Headless `codex exec` can't ask, so use the maintainer preset in interactive ses
 **Folder not set up yet?** If you're a donated session and the folder you were started
 in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
 `.codex/rules/discover.rules`), end your report with one line offering it for next time:
-"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.org/v0/prepare.md and
 follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
@@ -168,7 +168,7 @@ match the adapter.
   they don't, it's a **nomination**: never present a nomination as an application.
 - Optionally, a quick check: does `AGENTS.md` or the README tell a newcomer what the
   project is and how to contribute? If not, suggest the **setup** playbook
-  (https://discoveryathome.github.io/discover/v0/setup.md) first. It isn't required.
+  (https://discoveryathome.org/v0/setup.md) first. It isn't required.
 - For an application, ask for the **credit policy** (how contributors will be credited)
   if the repo doesn't state one. A listing needs it before donors get a contribution
   launcher. The same goes for a **`LICENSE`** file: if the repo has none, say so, and

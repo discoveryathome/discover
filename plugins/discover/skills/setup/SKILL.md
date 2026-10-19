@@ -98,7 +98,7 @@ Headless `codex exec` can't ask, so use the maintainer preset in interactive ses
 **Folder not set up yet?** If you're a donated session and the folder you were started
 in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
 `.codex/rules/discover.rules`), end your report with one line offering it for next time:
-"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.org/v0/prepare.md and
 follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
@@ -225,7 +225,7 @@ Then fill in, with the maintainer:
   accepted, the bottleneck, a table of tracks, settled questions, what evidence is
   expected, how review works, and the credit policy. Only project-specific content
   belongs here; the generic session procedure lives in the hub's playbooks. Link to
-  them at their hosted address, https://discoveryathome.github.io/discover/v0/contribute.md (and `verify.md`,
+  them at their hosted address, https://discoveryathome.org/v0/contribute.md (and `verify.md`,
   `collaborate.md`), never to the hub's source folder on GitHub.
 - **Frontier record:** `statement`, `evidence_level` (every level that honestly
   applies; see the rule below), `scope`, `assumptions[]` as discrete open obligations, `reproduce` (the
@@ -303,7 +303,7 @@ To say which hubs may list the project, add a consent record to `discover.json`:
 `[{"hub": "*", "list": false}]`. Push permissions (letting a hub open issues or PRs
 here) are separate and never implied; see spec §11.4.
 
-To get listed, follow the **apply** playbook (https://discoveryathome.github.io/discover/v0/apply.md). No GitHub settings
+To get listed, follow the **apply** playbook (https://discoveryathome.org/v0/apply.md). No GitHub settings
 need to change in the project's repo to be listed.
 
 ## 6. Hand over

@@ -9,5 +9,5 @@ import os
 CANONICAL_HUB = "discoveryathome/discover"
 HUB_REPO = os.environ.get("DISCOVER_HUB") or CANONICAL_HUB
 # Where the hub's website (and its playbooks, under v0/) is served.
-CANONICAL_SITE = "https://discoveryathome.github.io/discover/"
+CANONICAL_SITE = "https://discoveryathome.org/"
 SITE = os.environ.get("DISCOVER_SITE") or CANONICAL_SITE

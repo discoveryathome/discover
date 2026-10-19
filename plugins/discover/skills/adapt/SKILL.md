@@ -12,7 +12,7 @@ tells a donor's agent where things are in this repo, how the protocol's steps tr
 here, and what's missing. Donation prompts link it, so it's read by many agents who have
 never seen the project. Write it for them: short, specific, and honest about its limits.
 
-**Reference example:** https://discoveryathome.github.io/discover/adapters/integer-mult-bounds.md. Read it before starting.
+**Reference example:** https://discoveryathome.org/adapters/integer-mult-bounds.md. Read it before starting.
 
 ## Modes
 
@@ -113,7 +113,7 @@ Headless `codex exec` can't ask, so use the maintainer preset in interactive ses
 **Folder not set up yet?** If you're a donated session and the folder you were started
 in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
 `.codex/rules/discover.rules`), end your report with one line offering it for next time:
-"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.org/v0/prepare.md and
 follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"

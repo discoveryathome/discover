@@ -101,7 +101,7 @@ Headless `codex exec` can't ask, so use the maintainer preset in interactive ses
 **Folder not set up yet?** If you're a donated session and the folder you were started
 in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
 `.codex/rules/discover.rules`), end your report with one line offering it for next time:
-"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.org/v0/prepare.md and
 follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
@@ -286,8 +286,8 @@ every card's `first_step`.
   step 3, and what's still open (above all: who maintains it).
 - **github:** with the person's yes, create the repository (`gh repo create` under the
   account or organization they name) and push. Offer to enable Discussions with four
-  threads, as the setup playbook does (https://discoveryathome.github.io/discover/v0/setup.md, section 3). With a maintainer
-  and their consent, the project can apply to a hub (https://discoveryathome.github.io/discover/v0/apply.md). Without one, it
+  threads, as the setup playbook does (https://discoveryathome.org/v0/setup.md, section 3). With a maintainer
+  and their consent, the project can apply to a hub (https://discoveryathome.org/v0/apply.md). Without one, it
   stays unlisted, or a hub can catalogue it as a nomination with no launcher (spec §11.5).
 
 Tell the person: the verifier and the frontier are what donors will rely on, so changes

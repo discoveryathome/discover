@@ -30,8 +30,8 @@ _WRITES = sorted(set(_MAINTAIN + [("gh", "repo", "create"), ("gh", "repo", "fork
 # (Go's TLS check on macOS needs it). It does NOT hide credentials a tool holds: code run in
 # it can still ask gh for its token. The playbooks' safety section says what that means.
 DONOR_DOMAINS = ["github.com", "api.github.com", "*.githubusercontent.com", "codeload.github.com",
-                 "discoveryathome.github.io", "pypi.org", "files.pythonhosted.org", "registry.npmjs.org",
-                 "crates.io", "static.crates.io", "index.crates.io", "proxy.golang.org", "sum.golang.org",
+                 "discoveryathome.org", "discoveryathome.github.io", "pypi.org", "files.pythonhosted.org",
+                 "registry.npmjs.org", "crates.io", "static.crates.io", "index.crates.io", "proxy.golang.org", "sum.golang.org",
                  # Literature, for scripts that fetch papers or metadata. The agent's own web
                  # search and fetch tools run outside the sandbox and aren't limited by this.
                  "arxiv.org", "export.arxiv.org", "doi.org", "api.crossref.org", "api.openalex.org",

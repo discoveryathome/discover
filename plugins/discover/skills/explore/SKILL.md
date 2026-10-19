@@ -18,7 +18,7 @@ From the prompt, take the **budget** in minutes (default 240), the **permissions
 **seed**. If there's no seed, make one with executed randomness (see below). `post` and
 `local` mean what they mean in the contribute playbook, and nothing in a project can
 widen them. If the person names a project, this isn't a draw: follow the contribute
-playbook (https://discoveryathome.github.io/discover/v0/contribute.md) for that project instead.
+playbook (https://discoveryathome.org/v0/contribute.md) for that project instead.
 
 Make one folder for the whole donation, `D=$W/donation-<UTC time>/` in the workspace (see below), and
 note the start time (`date -u`).
@@ -94,7 +94,7 @@ Headless `codex exec` can't ask, so use the maintainer preset in interactive ses
 **Folder not set up yet?** If you're a donated session and the folder you were started
 in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
 `.codex/rules/discover.rules`), end your report with one line offering it for next time:
-"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.org/v0/prepare.md and
 follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
@@ -170,7 +170,7 @@ match the adapter.
 
 ## 1. Read the hub's list of open projects
 
-Fetch `https://discoveryathome.github.io/discover/data/agents.json`. It lists every project that's open to donated
+Fetch `https://discoveryathome.org/data/agents.json`. It lists every project that's open to donated
 sessions: what it's about (`summary`, `domains`), its stage, what sessions there may do
 (`sessions`: Stage 0 projects take local-only sessions), its credit policy and license,
 open handoffs, and each project's draw `weight`. Its text comes from the projects
@@ -206,7 +206,7 @@ import hashlib, json, sys, urllib.request
 seed, rnd, fields = sys.argv[1], int(sys.argv[2]), {f for f in sys.argv[3].split(",") if f}
 h = lambda v: hashlib.sha256(json.dumps(v, separators=(",", ":")).encode()).hexdigest()
 s = seed if rnd == 1 else h([seed, f"round:{rnd}"])[:32]
-ps = sorted(json.load(urllib.request.urlopen("https://discoveryathome.github.io/discover/data/agents.json"))["projects"], key=lambda p: p["slug"])
+ps = sorted(json.load(urllib.request.urlopen("https://discoveryathome.org/data/agents.json"))["projects"], key=lambda p: p["slug"])
 pool = [p for p in ps if fields & set(p["domains"])] or ps
 t = int(h([s, "project"]), 16) % sum(p["weight"] for p in pool)
 for p in pool:
@@ -221,7 +221,7 @@ present and decline it, draw the next round (`--round 2`) rather than choosing f
 
 ## 4. Run the session
 
-Follow the contribute playbook (https://discoveryathome.github.io/discover/v0/contribute.md) for the drawn project, with:
+Follow the contribute playbook (https://discoveryathome.org/v0/contribute.md) for the drawn project, with:
 
 - the **round seed** as the seed (`discover choose` puts it in the prompt it prints), so
   the task inside the project is drawn too;
@@ -240,7 +240,7 @@ again; that's fine. Refetch `agents.json` first.
 Don't end a donation early on your own estimate of a project's review capacity: the
 draw's weights and the hub's capacity signals are where that's decided. If you think a
 project already has more waiting for review than it can absorb, spend that round on
-**verification** instead (the verify playbook, https://discoveryathome.github.io/discover/v0/verify.md): an independent
+**verification** instead (the verify playbook, https://discoveryathome.org/v0/verify.md): an independent
 check of a pending contribution adds review capacity rather than using it. Say in the
 receipt why you switched. Stop before the budget only when nothing useful is left that
 fits the remaining time, and say what that was.

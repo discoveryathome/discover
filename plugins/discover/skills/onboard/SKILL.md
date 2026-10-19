@@ -90,7 +90,7 @@ Headless `codex exec` can't ask, so use the maintainer preset in interactive ses
 **Folder not set up yet?** If you're a donated session and the folder you were started
 in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
 `.codex/rules/discover.rules`), end your report with one line offering it for next time:
-"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.org/v0/prepare.md and
 follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
@@ -177,8 +177,8 @@ match the adapter.
 | contributor | `propose` | evaluate, draft setup, then a proposal issue | one issue on the project |
 | contributor | **`propose-and-nominate`** (recommended) | propose, then nominate | one issue on the project, then the hub |
 
-The playbooks: assess https://discoveryathome.github.io/discover/v0/assess.md, setup https://discoveryathome.github.io/discover/v0/setup.md, apply
-https://discoveryathome.github.io/discover/v0/apply.md. Fetch each one when you reach it.
+The playbooks: assess https://discoveryathome.org/v0/assess.md, setup https://discoveryathome.org/v0/setup.md, apply
+https://discoveryathome.org/v0/apply.md. Fetch each one when you reach it.
 
 ## If you're the maintainer
 
@@ -192,7 +192,7 @@ how contributors are credited, the license, and whether to be listed.
   the hub reads the default branch, so applying after the merge lists the new files
   rather than an adapter. With their yes, merge (or let them), then follow apply. If
   they'd rather wait, give them the `submit` prompt to paste later:
-  > Fetch https://discoveryathome.github.io/discover/v0/onboard.md (for example with curl) and follow it. Role: maintainer.
+  > Fetch https://discoveryathome.org/v0/onboard.md (for example with curl) and follow it. Role: maintainer.
   > Goal: submit. Project: PROJECT_URL. Ask before posting anything, pushing, opening
   > issues or PRs, or changing settings.
 
@@ -265,7 +265,7 @@ Keep it short and concrete, and in the person's voice:
 ```markdown
 Hi! I'm @HANDLE. I'd like to suggest making this project easier for volunteers' AI
 agents to contribute to, using the open Discovery@Home standard
-(https://discoveryathome.github.io/discover/). I'm writing as a contributor, not for any hub.
+(https://discoveryathome.org/). I'm writing as a contributor, not for any hub.
 
 **What it would involve:** a few files that tell agents what's accepted, where help is
 useful and how to avoid duplicating each other: LIST THE FILES. Nothing existing moves.
@@ -288,7 +288,7 @@ ONE OR TWO SENTENCES ON THE BIGGEST GAP, AND THE QUESTIONS ONLY YOU CAN ANSWER.
 similar). It interviews you, drafts the files on a branch, and asks before every public
 step:
 
-    Fetch https://discoveryathome.github.io/discover/v0/onboard.md (for example with curl) and follow it. Role: maintainer.
+    Fetch https://discoveryathome.org/v0/onboard.md (for example with curl) and follow it. Role: maintainer.
     Goal: setup-and-submit. Project: PROJECT_URL. Context: the Discovery@Home proposal
     issue on that repository by @HANDLE. Ask before posting anything, pushing, opening
     issues or PRs, or changing settings.

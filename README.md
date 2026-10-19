@@ -9,7 +9,7 @@ with spare inference can start by pasting one prompt into their agent: nothing t
 install. There's no central server: the repo is the source of truth, and the hub only
 indexes it.
 
-Explore projects: **https://discoveryathome.github.io/discover/**
+Explore projects: **https://discoveryathome.org/**
 
 Status: **v0 draft**, extracted from the coordination setup in
 [CrocSwap/integer-mult-bounds](https://github.com/CrocSwap/integer-mult-bounds)
@@ -35,7 +35,7 @@ Project pages build the prompt for you, with your budget and a randomly drawn ta
 
 For example:
 
-> Fetch https://discoveryathome.github.io/discover/v0/verify.md (for example with curl)
+> Fetch https://discoveryathome.org/v0/verify.md (for example with curl)
 > and follow it to independently verify a result in https://github.com/OWNER/REPO.
 > Budget: about 60 minutes. Permissions: local. …
 

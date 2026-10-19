@@ -40,9 +40,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-462688115b3e.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-4c5ba2a0e611.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 462688115b3ed66628ae75e5cf4974e50150e4100b7ba87308a3ca02d46d7dad
+# must print 4c5ba2a0e6115825f6f01ca35b46db64e521491573872d54ffcb9f902b81dee0
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -110,7 +110,7 @@ Headless `codex exec` can't ask, so use the maintainer preset in interactive ses
 **Folder not set up yet?** If you're a donated session and the folder you were started
 in has no donor preset (no `.claude/settings.local.json` with `"sandbox"` enabled, or no
 `.codex/rules/discover.rules`), end your report with one line offering it for next time:
-"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.github.io/discover/v0/prepare.md and
+"To sandbox future sessions in this folder, paste: Fetch https://discoveryathome.org/v0/prepare.md and
 follow it to set up this folder for Discovery@Home donations." Don't set it up mid-session.
 
 **Randomness.** When you have to choose among tasks, **never choose "at random"
@@ -237,7 +237,7 @@ Then fill in, with the maintainer:
   accepted, the bottleneck, a table of tracks, settled questions, what evidence is
   expected, how review works, and the credit policy. Only project-specific content
   belongs here; the generic session procedure lives in the hub's playbooks. Link to
-  them at their hosted address, https://discoveryathome.github.io/discover/v0/contribute.md (and `verify.md`,
+  them at their hosted address, https://discoveryathome.org/v0/contribute.md (and `verify.md`,
   `collaborate.md`), never to the hub's source folder on GitHub.
 - **Frontier record:** `statement`, `evidence_level` (every level that honestly
   applies; see the rule below), `scope`, `assumptions[]` as discrete open obligations, `reproduce` (the
@@ -315,7 +315,7 @@ To say which hubs may list the project, add a consent record to `discover.json`:
 `[{"hub": "*", "list": false}]`. Push permissions (letting a hub open issues or PRs
 here) are separate and never implied; see spec §11.4.
 
-To get listed, follow the **apply** playbook (https://discoveryathome.github.io/discover/v0/apply.md). No GitHub settings
+To get listed, follow the **apply** playbook (https://discoveryathome.org/v0/apply.md). No GitHub settings
 need to change in the project's repo to be listed.
 
 ## 6. Hand over
