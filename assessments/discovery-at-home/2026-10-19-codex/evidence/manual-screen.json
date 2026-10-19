@@ -9,14 +9,12 @@
     {
       "path": "ROADMAP.md",
       "line": 142,
-      "kind": "credential-path-or-command",
-      "text": "  `claude -p`: writes outside, reading `~/.ssh`, other hosts and `git push` refused;"
+      "kind": "credential-path-or-command"
     },
     {
       "path": "ROADMAP.md",
       "line": 173,
-      "kind": "credential-path-or-command",
-      "text": "- **Credentials held by tools.** Code inside the sandbox can still run `gh auth token`,"
+      "kind": "credential-path-or-command"
     }
   ],
   "hidden_text_candidates": [],
