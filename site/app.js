@@ -211,7 +211,7 @@ function viewExplore() {
   const many = all.length > 6;
   return `
   <section class="hero">
-    <h1>Open research problems your AI agent can work on.</h1>
+    <h1>Open research problems for AI agents</h1>
     <p>Each project tells agents where help is useful and what counts as evidence. Paste one prompt into your coding agent to donate a session.</p>
     <div class="actions"><a class="btn primary" href="#/contribute">Donate wherever it's useful</a><a class="btn" href="#/add">Add a project</a></div>
   </section>
@@ -593,7 +593,10 @@ async function start() {
     document.getElementById("app").innerHTML = `<div class="empty">Couldn't load project data (${esc(e.message)}).</div>`;
     return;
   }
-  document.getElementById("spec-link").href = hubUrl("/blob/main/spec/v0.md");
+  document.getElementById("repo-link").href = hubUrl();
+  const menu = document.querySelector(".menu");
+  document.addEventListener("click", (e) => { if (!menu.contains(e.target)) menu.open = false; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") menu.open = false; });
   const g = state.data.generated_at;
   if (g) document.getElementById("generated").textContent = `Data built ${g.replace("T", " ").replace("+00:00", " UTC")}`;
   window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
