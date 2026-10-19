@@ -1,0 +1,22 @@
+{
+ "window": [
+  "2026-10-04T16:00:00Z",
+  "2026-10-18T16:00:00Z"
+ ],
+ "window_prs": 3363,
+ "in_ledger": 3028,
+ "ledger_max_pr": 3528,
+ "by_state_and_disposition": {
+  "CLOSED/incorporated": 376,
+  "CLOSED/partially_reviewed": 16,
+  "CLOSED/superseded": 2,
+  "CLOSED/unreviewed": 2,
+  "MERGED/incorporated": 1688,
+  "MERGED/partially_reviewed": 769,
+  "OPEN/partially_reviewed": 117,
+  "OPEN/unreviewed": 58
+ },
+ "merged": 2457,
+ "merged_partially_reviewed_share": 0.313,
+ "not_in_ledger_yet": 335
+}
