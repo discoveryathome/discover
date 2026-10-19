@@ -240,7 +240,12 @@ Coordination, not Orientation.
 - **Verification (property 3):** find the single authoritative record of what's
   accepted. Run its stated check within a fixed budget (an incremental check of the
   newest step is fine). Record prerequisites you had to discover, the runtime, and the
-  outcome. Spot-check that recent result packages pin their sources.
+  outcome. Spot-check that recent result packages pin their sources. Then say what the
+  check **covers** against what the record claims: `computation` (arithmetic, margins,
+  cases), `formal proof` (of the claim, or of each listed step), or `reviewed argument`
+  (recorded independent reviews of each step). A theorem whose check covers only
+  computation grades at most adequate (spec §3.2, Coverage); list the steps nobody has
+  checked, since they make good verify cards.
 - **Review (property 4):** from GitHub data, for contributions opened in the last 14
   days (or since `process_changed_on`): median time to first review response, the share
   waiting more than 7 days, and whether the number awaiting a response is growing.

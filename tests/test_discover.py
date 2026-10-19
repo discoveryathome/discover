@@ -461,6 +461,15 @@ class RequirementsTests(unittest.TestCase):
         self.assertNotEqual(schema.check("manifest.schema.json", {**m, "requirements": {"cpus": 8}}), [])
 
 
+class CoverageTests(unittest.TestCase):
+    def test_assessment_records_what_verification_covers(self):
+        sch = schema.load("assessment.schema.json")
+        self.assertIn("verification_covers", sch["properties"])
+        ok = {"verification_covers": ["computation"]}
+        self.assertEqual(schema.errors(sch["properties"]["verification_covers"], ok["verification_covers"]), [])
+        self.assertNotEqual(schema.errors(sch["properties"]["verification_covers"], ["vibes"]), [])
+
+
 class ReviewTests(unittest.TestCase):
     def pr(self, n, assoc="NONE", login="donor", draft=False, reviewers=(), commenters=(), typename="User", days=2):
         at = datetime(2026, 10, 18, tzinfo=timezone.utc)

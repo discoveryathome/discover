@@ -71,9 +71,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-8f6e73e0bfb0.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.github.io/discover/cli/discover-462688115b3e.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 8f6e73e0bfb0ad15a6c386fb4ff82c7cd3c10b8ae78706fe28aa60f4d7a4d14c
+# must print 462688115b3ed66628ae75e5cf4974e50150e4100b7ba87308a3ca02d46d7dad
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -252,7 +252,12 @@ Coordination, not Orientation.
 - **Verification (property 3):** find the single authoritative record of what's
   accepted. Run its stated check within a fixed budget (an incremental check of the
   newest step is fine). Record prerequisites you had to discover, the runtime, and the
-  outcome. Spot-check that recent result packages pin their sources.
+  outcome. Spot-check that recent result packages pin their sources. Then say what the
+  check **covers** against what the record claims: `computation` (arithmetic, margins,
+  cases), `formal proof` (of the claim, or of each listed step), or `reviewed argument`
+  (recorded independent reviews of each step). A theorem whose check covers only
+  computation grades at most adequate (spec §3.2, Coverage); list the steps nobody has
+  checked, since they make good verify cards.
 - **Review (property 4):** from GitHub data, for contributions opened in the last 14
   days (or since `process_changed_on`): median time to first review response, the share
   waiting more than 7 days, and whether the number awaiting a response is growing.

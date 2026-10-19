@@ -222,6 +222,12 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
 - From E2: Review measured on all PRs lets a maintainer's own PRs dominate. Its proposal
   (count non-maintainers' PRs only) would move integer-mult-bounds from strong to
   adequate; it's waiting as a draft for the hub's maintainer.
+- Fixed 2026-10-18 (spec §3.2, Coverage): a theorem whose declared check covers only the
+  computations around it grades Verification at most adequate; strong needs a formal
+  proof or recorded independent reviews of the steps. Assessments record what the check
+  covers (`verification_covers`), shown beside the grade. Found pre-assessing
+  `rohanarun/van-der-waerden-refinement`, whose CI checks every parameter margin of a
+  conditional bound whose proofs nobody has reviewed.
 - The probes agreed across five runs on one repo (spec §13, question 7). More repos and
   the donor-tier model are still needed.
 

@@ -306,7 +306,7 @@ function gradesTable(p) {
   if (!asIs && !proj) return '<p class="hint">Not assessed yet.</p>';
   const cell = (g) => esc(g || "·");
   return `<table class="grades"><tr><th></th><th>As is</th>${proj ? "<th>After setup</th>" : ""}</tr>${PROPS.map((k) =>
-    `<tr><td>${k[0].toUpperCase()}${k.slice(1)}</td><td>${cell(asIs?.[k])}</td>${proj ? `<td>${cell(proj[k])}</td>` : ""}</tr>`).join("")}
+    `<tr><td>${k[0].toUpperCase()}${k.slice(1)}</td><td>${cell(asIs?.[k])}${k === "verification" && p.verification_covers?.length ? `<br><span class="muted" style="font-size:12px">checks: ${esc(p.verification_covers.join(", "))}</span>` : ""}</td>${proj ? `<td>${cell(proj[k])}</td>` : ""}</tr>`).join("")}
     <tr><td><b>Stage</b></td><td>${esc(stageText(p.stage))}</td>${proj ? `<td>${esc(stageText(p.projected.stage))}</td>` : ""}</tr></table>`;
 }
 

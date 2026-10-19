@@ -225,6 +225,7 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             apath = registry_dir.resolve().parent.parent / entry["assessment"]
             ablock = parse_assessment(apath.read_text(encoding="utf-8"))[0] if apath.exists() else None
             summary["self_assessed"] = bool((ablock or {}).get("self_assessed"))
+            summary["verification_covers"] = (ablock or {}).get("verification_covers")
         if fdoc and report.get("manifest_origin") == "adapter":
             home = entry["repos"][0]
             summary["frontier_doc"] = {"url": f"https://github.com/{home['repo']}/blob/HEAD/{fdoc['path']}",

@@ -22,6 +22,7 @@
     "grades": { "$ref": "#/$defs/grades" },
     "stage": { "enum": ["assessed", 0, 1, 2] },
     "adapter_dependent": { "type": "array", "items": { "enum": ["orientation", "coordination", "verification", "review", "steering"] }, "description": "Grades that rest on the hub's adapter (spec §3.1, rule 5)." },
+    "verification_covers": { "type": "array", "items": { "enum": ["computation", "formal proof", "reviewed argument"] }, "description": "What the declared check covers of the accepted claim (spec §3.2, Coverage)." },
     "projected": {
       "type": "object", "description": "For a nomination with a proposal: the grades if the proposed setup were adopted.",
       "properties": { "grades": { "$ref": "#/$defs/grades" }, "stage": { "enum": ["assessed", 0, 1, 2] }, "based_on": { "type": "string" } }
