@@ -1,0 +1,26 @@
+{
+  "method": "Assessor-written static searches, not project screen code. Candidates manually reviewed.",
+  "commit": "a6f03f61efd35e396a6de03a4ae52d83dc1103e7",
+  "tracked_files": 119,
+  "autoload_files": [],
+  "symlinks": [],
+  "binary_or_zip_files": [],
+  "pattern_candidates": [
+    {
+      "path": "ROADMAP.md",
+      "line": 142,
+      "kind": "credential-path-or-command"
+    },
+    {
+      "path": "ROADMAP.md",
+      "line": 173,
+      "kind": "credential-path-or-command"
+    }
+  ],
+  "hidden_text_candidates": [],
+  "conclusion": "No unexplained high findings. ROADMAP credential paths/token command are descriptions of sandbox risks, not executable collection. Test fixtures and screen/presets patterns are defensive data. Committed pyz archives were not run.",
+  "committed_python_zipapps": [
+    "site/cli/discover-4c5ba2a0e611.pyz",
+    "site/cli/discover-462688115b3e.pyz"
+  ]
+}
