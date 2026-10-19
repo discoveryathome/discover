@@ -247,10 +247,14 @@ Coordination, not Orientation.
   computation grades at most adequate (spec §3.2, Coverage); list the steps nobody has
   checked, since they make good verify cards.
 - **Review (property 4):** from GitHub data, for contributions opened in the last 14
-  days (or since `process_changed_on`): median time to first review response, the share
-  waiting more than 7 days, and whether the number awaiting a response is growing.
-  Count independent verifications maintainers acted on. Below 20 contributions, the
-  measured part is *unknown*.
+  days (or since `process_changed_on`). Contributions are PRs from accounts other than
+  the maintainers and bots; report maintainers' own PRs as context only. Measure the
+  median time to first review response; the share that waited more than 7 days, among
+  contributions at least 7 days old (fewer than 20 of those: *unknown*, grade at most
+  adequate); and whether the backlog (contributions waiting over a day for a first
+  response) grew from the window's midpoint to its end by more than max(3, 10%). Count
+  independent verifications maintainers acted on. With no contributions to measure, use
+  the declared `review` capacity, at most adequate.
 - **Steering (property 5):** where priorities are stated, when they were last revised
   and why, and whether feedback gets read.
 
