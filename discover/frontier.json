@@ -1,11 +1,23 @@
 {
   "schema": "discover-frontier/v0",
-  "statement": "The v0 rubric (five properties, Stages 0-2) has recorded assessments of one listed project: applied-butterfly-mult, a benchmark project, assessed as a nomination and again after setup (Stage 1, self-assessed, 2026-10-17). The nomination's projected grades held for Coordination, Verification and Steering; Orientation and Review came out one grade higher. Records for integer-mult-bounds and the hub itself are in review as PRs. Adapters were tested on six third-party repositories, each probed with and without its adapter. Assessment records have a schema, and a weekly hub check flags stale listings. integer-mult-bounds' informal Stage 1 from 2026-10-16 has no record and doesn't count.",
-  "status": "One project with merged records, two in review; every record self-assessed, awaiting an independent rerun; thresholds uncalibrated; no donor-tier probe model yet.",
+  "statement": "The v0 rubric (five properties, Stages 0-2) has a merged assessment record for every listed project: applied-butterfly-mult (a benchmark project, Stage 1), integer-mult-bounds (an exact-certificate math project, through an adapter, Stage 1) and the hub itself (Stage 0), all self-assessed on 2026-10-17. For applied-butterfly-mult, the nomination's projected grades held for Coordination, Verification and Steering; Orientation and Review came out one grade higher. The adapt playbook produced adapters that adapter-check accepts on six unlisted third-party repositories; after fixes, the two adapters rewritten and re-probed matched or beat the bare repository on every orientation question (discover/records/2026-10-17-adapter-tests.md). Assessment records have a schema, and a weekly hub check flags stale listings.",
+  "status": "Every listing has a merged record; every record self-assessed, awaiting an independent rerun; thresholds uncalibrated; no donor-tier probe model yet; four of six test adapters not rerun after the adapter fixes.",
   "evidence_level": [
     "author-checked"
   ],
-  "scope": "Two listed projects with records, of two shapes (benchmark; the hub's own review-only project), plus six unlisted third-party repositories probed for adapter testing. Not yet tested on a replication or conjecture-style listing, or with a donor-tier probe model.",
+  "scope": "Three listed projects with records, of three shapes (benchmark; exact-certificate math through an adapter; the hub's own review-only project), plus six unlisted third-party repositories probed once each for adapter testing. Not yet tested on a replication or conjecture-style listing, or with a donor-tier probe model.",
+  "sources": [
+    "assessments/applied-butterfly-mult/2026-10-17-claude-listed.md",
+    "assessments/integer-mult-bounds/2026-10-17-claude.md",
+    "assessments/discovery-at-home/2026-10-17-claude-reassess.md",
+    "discover/records/2026-10-17-adapter-tests.md"
+  ],
+  "reproduce": "python3 plugins/discover/cli/discover.py hub-check --registry registry/projects --strict",
+  "reproduce_minutes": 1,
+  "prerequisites": [
+    "Python 3.9+",
+    "gh, signed in"
+  ],
   "assumptions": [
     {
       "id": "probe-agreement",
@@ -24,5 +36,5 @@
     }
   ],
   "review": "spec/v0.md §3 and §13",
-  "updated_on": "2026-10-17"
+  "updated_on": "2026-10-19"
 }

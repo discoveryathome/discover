@@ -14,12 +14,14 @@ properties and stages are §3, interfaces §11, hubs §12.
 ## Current state
 
 The frontier record is [`discover/frontier.json`](discover/frontier.json); read it for
-the details. In short: one listed project (a benchmark project) has recorded assessments,
-and records for the other two (an exact-certificate math project and the hub itself) are
-in review as PRs. Adapters have been tested on six third-party repositories, assessment
-records have a format, and a weekly hub check flags stale listings. Every record so far
-is self-assessed (spec §12.4): the hub's maintainers maintain the projects too. Probe thresholds are uncalibrated, and probes haven't been run with a
-donor-tier model.
+the details. In short: every listed project has a merged assessment record: a benchmark
+project, an exact-certificate math project listed through an adapter, and the hub itself
+(all in [`assessments/`](assessments/)). Adapters have been tested on six third-party
+repositories ([the record](discover/records/2026-10-17-adapter-tests.md), including what
+it doesn't show), assessment records have a schema, and a weekly hub check flags stale
+listings. Every record so far is self-assessed (spec §12.4): the hub's maintainers
+maintain the projects too. Probe thresholds are uncalibrated, and probes haven't been run
+with a donor-tier model.
 
 ## Where help is most useful
 
@@ -54,6 +56,10 @@ their reasons are in [`discover/priority-log.md`](discover/priority-log.md).
   assess playbook says what goes in it).
 - **Check:** a hub maintainer reviews. An independent rerun on the
   `verify-assessments` track is the preferred evidence.
+- **Checking the frontier:** its `reproduce` command (`discover hub-check --strict`,
+  about a minute with `gh` signed in) confirms every listing's record exists, parses
+  and matches the registry. The grades themselves are checked by rerunning a record at
+  its commit with the verify playbook.
 - **Never contact other projects' maintainers.** Assess public repos read-only and
   locally; outreach is done by hub maintainers under the first-contact rule (§11.4).
 - **Never post to, or open PRs on, the project you're assessing.**

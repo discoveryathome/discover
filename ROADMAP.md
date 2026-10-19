@@ -15,8 +15,10 @@ hub operations are built and running as a dry run.
   by both paths. Plus `start`, for a new project from a problem statement, tested in local
   mode on a real problem.
 - **Adapters** (spec §12.5): the `adapt` playbook and `discover adapter-check`, tested on
-  six third-party repositories, with and without each adapter, and fixed until adapters
-  never left a donor less oriented than the bare repo.
+  six third-party repositories, with and without each adapter
+  ([record](discover/records/2026-10-17-adapter-tests.md)). Three first-round adapters
+  left donors less sure where to help; the playbook was fixed, and the two adapters
+  rerun under it matched or beat the bare repo. The other four haven't been rerun.
 - **The donation loop**, on a project with its own files and one listed through an
   adapter: local and posting sessions, independent verification, four donors at once,
   a planted adapter error caught and fixed by a donor, and the maintainer's triage and
