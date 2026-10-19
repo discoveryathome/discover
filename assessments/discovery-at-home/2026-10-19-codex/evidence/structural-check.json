@@ -1,0 +1,37 @@
+{
+  "method": "Assessor-written JSON/schema structural checks; project code not imported or executed. This is not the declared hub-check verification probe.",
+  "registry_entries": [
+    {
+      "project": "applied-butterfly-mult",
+      "assessment": "assessments/applied-butterfly-mult/2026-10-17-claude-listed.md",
+      "assessed_commit": "8f6dcb3fd47e8c1dca2866d15cf686757145691d",
+      "stage_and_grades_match": true
+    },
+    {
+      "project": "discovery-at-home",
+      "assessment": "assessments/discovery-at-home/2026-10-17-claude-reassess.md",
+      "assessed_commit": "41aca7a48882d8fdc6fcc184452d3c728e607010",
+      "stage_and_grades_match": true
+    },
+    {
+      "project": "integer-mult-bounds",
+      "assessment": "assessments/integer-mult-bounds/2026-10-17-claude.md",
+      "assessed_commit": "463113d675af7410ac91d53a4fed51ec6494eb9a",
+      "stage_and_grades_match": true
+    }
+  ],
+  "all_frontier_sources_exist": true,
+  "schema_keywords_checked": [
+    "$ref",
+    "type",
+    "required",
+    "additionalProperties",
+    "const",
+    "enum",
+    "pattern",
+    "format:date",
+    "properties",
+    "items"
+  ],
+  "outcome": "pass"
+}
