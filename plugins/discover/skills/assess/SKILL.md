@@ -252,6 +252,13 @@ Coordination, not Orientation.
   check the statement claims no more than that kind supports: a `model` result names
   its model and version, a `measured` one its hardware and tolerance, an
   `observational` one says candidates. Say where it overreaches.
+- **Machines.** Record the architecture and OS you ran on (`assessor_machine`). Then
+  compare what the work needs, from the README's build steps, the frontier's
+  `prerequisites` and scope, and each card's commands and methods, with what's declared:
+  `requirements` in the manifest (or adapter) and `requires` on cards (spec §4). A
+  platform, GPU, toolchain or memory need that's undeclared is a finding, with the
+  declarations to propose. If your machine is the project's only platform, say that your
+  checks can't show whether other machines can do the work.
 - **Review (property 4):** from GitHub data, for contributions opened in the last 14
   days (or since `process_changed_on`). Contributions are PRs from accounts other than
   the maintainers and bots; report maintainers' own PRs as context only. Measure the

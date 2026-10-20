@@ -71,9 +71,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-3a234db110f0.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-77c850c65ff5.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 3a234db110f0384a6319010d8eb603efd852c0c40b7c0f34204491480a38b806
+# must print 77c850c65ff54e951b102950d06321751273ba6e9ef1bf28786930fb216802b6
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -264,6 +264,13 @@ Coordination, not Orientation.
   check the statement claims no more than that kind supports: a `model` result names
   its model and version, a `measured` one its hardware and tolerance, an
   `observational` one says candidates. Say where it overreaches.
+- **Machines.** Record the architecture and OS you ran on (`assessor_machine`). Then
+  compare what the work needs, from the README's build steps, the frontier's
+  `prerequisites` and scope, and each card's commands and methods, with what's declared:
+  `requirements` in the manifest (or adapter) and `requires` on cards (spec §4). A
+  platform, GPU, toolchain or memory need that's undeclared is a finding, with the
+  declarations to propose. If your machine is the project's only platform, say that your
+  checks can't show whether other machines can do the work.
 - **Review (property 4):** from GitHub data, for contributions opened in the last 14
   days (or since `process_changed_on`). Contributions are PRs from accounts other than
   the maintainers and bots; report maintainers' own PRs as context only. Measure the

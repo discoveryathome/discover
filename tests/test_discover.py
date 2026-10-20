@@ -1032,3 +1032,27 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(Source(repo="o/r", ref="main", root="sub").raw_url("f.json"),
                          "https://raw.githubusercontent.com/o/r/main/sub/f.json")
         self.assertIsNone(Source(local=GOLOMB).raw_url("f.json"))
+
+
+class HardwareHintTests(unittest.TestCase):
+    def test_undeclared_hardware_is_found_and_declarations_clear_it(self):
+        from discover.hubcheck import hardware_hints
+        with tempfile.TemporaryDirectory() as d:
+            init.scaffold(d, "T", "Faster squaring on Apple M2 with NEON", ["math"], "M", "o/r")
+            r = validate(Source(local=d))
+            self.assertEqual(hardware_hints(r), (["Apple M2", "NEON"], False))
+            r["catalog"]["tracks"][0]["tasks"][0]["requires"] = {"arch": ["arm64"]}
+            self.assertEqual(hardware_hints(r)[1], True)
+            r["catalog"]["tracks"][0]["tasks"][0].pop("requires")
+            r["manifest"]["requirements"] = {"note": "Apple Silicon for timing cards"}
+            self.assertEqual(hardware_hints(r)[1], True)
+        with tempfile.TemporaryDirectory() as d:
+            init.scaffold(d, "T", "Exact bounds for multiplication", ["math"], "M", "o/r")
+            self.assertEqual(hardware_hints(validate(Source(local=d)))[0], [])
+
+    def test_assessment_records_the_machine(self):
+        block = {"schema": "discover-assessment/v0", "project": "p", "repo": "o/p", "assessed_commit": "aaaaaaa",
+                 "assessed_on": "2026-01-01", "rubric": "v0", "assessor": "t", "assessor_machine": "arm64 macOS",
+                 "grades": {k: "adequate" for k in ("orientation", "coordination", "verification", "review", "steering")},
+                 "stage": 1}
+        self.assertEqual(schema.check("assessment.schema.json", block), [])
