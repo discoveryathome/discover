@@ -4,6 +4,8 @@ import json
 from datetime import date
 from pathlib import Path
 
+from .project import existing_entry_doc
+
 AGENTS_SNIPPET = """\
 ## Discovery@Home
 
@@ -91,12 +93,15 @@ GitHub open/closed state is tracked separately.
 
 
 def scaffold(root, title, summary, domains, maintainer, repo, github=None, minutes=60,
-             profile="review-only"):
+             profile="review-only", entry=None):
+    """`entry` names the project entry doc. By default an existing DISCOVERY.md or
+    autoresearch.md (any spelling in project.ENTRY_DOCS) is kept and pointed to, so a
+    project never ends up with two; otherwise DISCOVERY.md is written."""
     root = Path(root)
     today = date.today().isoformat()
     paths = {"frontier": "discover/frontier.json", "catalog": "discover/catalog.json",
              "priority_log": "discover/priority-log.md", "ledger": "discover/ledger.md"}
-    entry_project = "DISCOVERY.md"
+    entry_project = entry or existing_entry_doc(root) or "DISCOVERY.md"
     maint = {"name": maintainer}
     if github:
         maint["github"] = github
@@ -151,7 +156,8 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
     for rel, text in files.items():
         p = root / rel
         if p.exists():
-            skipped.append(rel)
+            skipped.append(f"{rel} (exists: kept as the entry doc; check it covers the problem, frontier, "
+                           f"bottleneck and credit)" if rel == entry_project else rel)
             continue
         p.parent.mkdir(parents=True, exist_ok=True)
         with open(p, "w", encoding="utf-8", newline="\n") as f:  # LF on every OS; works on 3.9
@@ -169,4 +175,4 @@ def scaffold(root, title, summary, domains, maintainer, repo, github=None, minut
             f.write("# Agent entry point\n\n" + snippet)
         created.append("AGENTS.md")
         snippet = None
-    return {"created": created, "skipped": skipped, "agents_snippet": snippet}
+    return {"created": created, "skipped": skipped, "agents_snippet": snippet, "entry_doc": entry_project}

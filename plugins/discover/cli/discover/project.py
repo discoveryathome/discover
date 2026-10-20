@@ -9,6 +9,20 @@ from pathlib import Path
 
 RAW = "https://raw.githubusercontent.com/{repo}/{ref}/{path}"
 
+# Project entry docs (spec §2): DISCOVERY.md is recommended; the autoresearch names that many
+# projects already use are equal alternatives. In order of preference when several exist.
+ENTRY_DOCS = ("DISCOVERY.md", "autoresearch.md", "AUTORESEARCH.md", "auto-research.md")
+
+
+def existing_entry_doc(root):
+    """The entry doc already in a local checkout's root, by exact name, or None. Compares
+    names exactly, so a case-insensitive filesystem doesn't report one spelling as another."""
+    try:
+        names = set(os.listdir(root))
+    except OSError:
+        return None
+    return next((n for n in ENTRY_DOCS if n in names), None)
+
 
 class Source:
     """Reads repository files from a local directory or raw.githubusercontent.com."""

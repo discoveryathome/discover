@@ -11,6 +11,8 @@ import json
 import re
 from pathlib import Path
 
+from .project import ENTRY_DOCS
+
 MAX_BYTES = 2_000_000
 MAX_FILES = 20_000
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__", ".tox", "build", "dist", "target"}
@@ -28,7 +30,9 @@ PROSE_EXT = {".md", ".txt", ".rst", ".tex", ".html", ".ipynb", ""}
 HIDDEN = re.compile("[\\u200b-\\u200f\\u202a-\\u202e\\u2060\\u2066-\\u2069\\ufeff]|[\\U000e0000-\\U000e007f]")
 TAGS = re.compile("[\\U000e0000-\\U000e007f]")
 BIDI = re.compile("[\\u202a-\\u202e\\u2066-\\u2069]")
-AGENT_FILES = ("AGENTS.md", "CLAUDE.md", "README.md", "DISCOVERY.md", "CONTRIBUTING.md")
+# Files agents read first, where hidden text deserves a closer look. Names compare without
+# case (AUTORESEARCH.md, autoresearch.md); the manifest's own `entry` paths count too.
+AGENT_FILES = ("AGENTS.md", "CLAUDE.md", "README.md", "CONTRIBUTING.md") + ENTRY_DOCS
 
 PATTERNS = [
     # (severity in code, kind, regex, severity in prose or None to skip prose, what it means)
@@ -137,6 +141,13 @@ def screen(root):
     """Findings for a checked-out repository: [{severity, kind, path, line, excerpt, why}]."""
     root = Path(root)
     found = []
+    agent_names = {n.lower() for n in AGENT_FILES}
+    agent_paths = set()
+    try:
+        entry = (json.loads((root / "discover.json").read_text(encoding="utf-8")) or {}).get("entry") or {}
+        agent_paths = {v.strip("/") for v in entry.values() if isinstance(v, str)}
+    except (OSError, ValueError, AttributeError):
+        pass
 
     def add(sev, kind, rel, line, excerpt, why):
         found.append({"severity": sev, "kind": kind, "path": rel, "line": line, "excerpt": excerpt, "why": why})
@@ -207,7 +218,7 @@ def screen(root):
                         elif BIDI.search(line):
                             sev, why = ("warn" if prose else "high"), "bidirectional controls: text that reads differently from what it is"
                         else:
-                            sev = "warn" if path.name in AGENT_FILES else "info"
+                            sev = "warn" if path.name.lower() in agent_names or rel in agent_paths else "info"
                             why = "zero-width characters (common in generated HTML; in a file agents read first, look closer)"
                     else:
                         sev, kind, _, prose_sev, why = pat
