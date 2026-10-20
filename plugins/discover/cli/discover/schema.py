@@ -1,7 +1,7 @@
 """Minimal JSON Schema (2020-12 subset) checker, standard library only.
 
 Supports the keywords the spec's schemas use: type, const, enum, required,
-properties, additionalProperties (bool), items, minItems, uniqueItems, minimum,
+properties, additionalProperties (bool), items, minItems, maxItems, uniqueItems, minimum,
 pattern, allOf, if/then, and local $ref ("#/$defs/..."). Formats are not checked.
 """
 
@@ -65,6 +65,8 @@ def errors(schema, value, root=None, path="$"):
     if isinstance(value, list):
         if len(value) < schema.get("minItems", 0):
             out.append(f"{path}: needs at least {schema['minItems']} items")
+        if "maxItems" in schema and len(value) > schema["maxItems"]:
+            out.append(f"{path}: allows at most {schema['maxItems']} items")
         if schema.get("uniqueItems"):
             seen = [json.dumps(v, sort_keys=True) for v in value]
             if len(seen) != len(set(seen)):
