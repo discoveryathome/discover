@@ -52,7 +52,7 @@ def points_from_file(entries):
     out = []
     for e in sorted(entries, key=lambda e: str(e["date"])):
         p = {"date": str(e["date"])[:10], "value": str(e["value"]), "number": number(e["value"])}
-        for k in ("statement", "bound", "case", "by", "source", "note"):
+        for k in ("statement", "bound", "case", "formulation", "by", "source", "note"):
             if e.get(k) not in (None, "", []):
                 p[k] = e[k]
         out.append(p)
@@ -81,5 +81,7 @@ def from_git(source, path, normalize=None, limit=60):
             p["statement"] = rec["statement"]
         if rec.get("sources"):
             p["sources"] = rec["sources"]
+        if isinstance(rec.get("formulation"), dict) and rec["formulation"].get("id"):
+            p["formulation"] = rec["formulation"]["id"]
         points.append(p)
     return points[-MAX_POINTS:]

@@ -1034,6 +1034,89 @@ class HistoryTests(unittest.TestCase):
         self.assertIsNone(Source(local=GOLOMB).raw_url("f.json"))
 
 
+TSP = ROOT / "examples" / "tsp-heuristics"
+
+
+class SuiteTests(unittest.TestCase):
+    """Evaluation suites and formulations (spec §5)."""
+
+    SUITE = {"current": "m", "direction": "lower-is-better",
+             "baselines": [{"method": "s", "strength": "starter"}, {"method": "p", "strength": "published"}]}
+
+    def rows(self, spec):
+        return [{"method": m, "instance": str(i), "value": str(v)} for m, vals in spec.items() for i, v in enumerate(vals)]
+
+    def test_sign_test(self):
+        from discover.suite import sign_test
+        self.assertEqual(sign_test(12, 0), 2 / 4096)
+        self.assertEqual(sign_test(0, 0), 1.0)
+        self.assertAlmostEqual(sign_test(6, 1), 0.125)
+
+    def test_compare_and_strongest(self):
+        from discover import suite
+        rows = self.rows({"m": [90] * 8, "s": [100] * 8, "p": [90, 90, 91, 89, 92, 90, 90, 90]})
+        out = suite.summary(rows, self.SUITE)
+        s, p = out["baselines"]
+        self.assertEqual((s["wins"], s["verdict"]), (8, "beats"))
+        self.assertAlmostEqual(s["mean_gain"], 0.1)
+        self.assertEqual((p["wins"], p["ties"], p["losses"], p["verdict"]), (2, 5, 1, "inconclusive"))
+        self.assertEqual((out["strongest_beaten"], out["has_mature"]), ("starter", False))
+        higher = {**self.SUITE, "direction": "higher-is-better"}
+        self.assertEqual(suite.summary(rows, higher)["baselines"][0]["verdict"], "loses")
+
+    def test_timed_budgets_pair_within_a_machine(self):
+        from discover import suite
+        st = {**self.SUITE, "budget": {"unit": "seconds", "amount": 10}}
+        rows = [{"method": "m", "instance": "a", "value": "9", "machine": "fast"},
+                {"method": "s", "instance": "a", "value": "5", "machine": "slow"}]
+        self.assertEqual(suite.compare(rows, st, "m", "s")["instances"], 0)
+        no_machine = [{"method": "m", "instance": "a", "value": "1"}]
+        self.assertTrue(any("machine" in w for w in suite.warnings(no_machine, st)))
+        rows.append({"method": "s", "instance": "a", "value": "10", "machine": "fast"})
+        self.assertEqual(suite.compare(rows, st, "m", "s")["wins"], 1)
+
+    def test_problems(self):
+        from discover import suite
+        probs = suite.problems(self.rows({"m": [1], "x": ["n/a"]}), self.SUITE)
+        self.assertTrue(any("baseline 's'" in p for p in probs))
+        self.assertTrue(any("non-numeric" in p for p in probs))
+        self.assertTrue(any("current method" in p for p in suite.problems(self.rows({"s": [1], "p": [1]}), self.SUITE)))
+
+    def test_schema(self):
+        f = json.loads((TSP / "frontier.json").read_text())
+        self.assertEqual(schema.check("frontier.schema.json", f), [])
+        f["suite"]["baselines"][0]["strength"] = "strong"
+        self.assertTrue(schema.check("frontier.schema.json", f))
+        del f["suite"]["instances"]
+        self.assertTrue(any("instances" in e for e in schema.check("frontier.schema.json", f)))
+
+    def test_example(self):
+        r = validate(Source(local=TSP))
+        self.assertTrue(r["conformant"], r["problems"])
+        st = r["suite"]
+        self.assertEqual((st["current"], st["instances"], st["strongest_beaten"], st["has_mature"]),
+                         ("kicked-ils", 12, "published", False))
+        self.assertTrue(any("no `mature` baseline" in w for w in r["warnings"]))
+        self.assertEqual(r["history"][0]["formulation"], "tsp-euclid-60-v1")
+        p = hub.project_summary("tsp", {"repos": [{"repo": "o/r"}]}, r)
+        self.assertEqual(p["frontier"]["suite"]["url"], "https://github.com/o/r/blob/HEAD/results.jsonl")
+        self.assertEqual((p["frontier"]["suite"]["instances"], p["frontier"]["suite"]["held_out"]["draw"]), (12, "drawn"))
+        self.assertEqual(p["frontier"]["formulation"]["doc_url"], "https://github.com/o/r/blob/HEAD/README.md")
+
+    def test_example_draw_is_checked(self):
+        sys.path.insert(0, str(TSP))
+        try:
+            import evaluate
+            self.assertEqual(len(evaluate.randomness("33241488")), 64)
+        finally:
+            sys.path.remove(str(TSP))
+
+    def test_formulation_in_history(self):
+        from discover import history
+        entries, _ = history.parse('{"date": "2026-10-01", "value": "1", "formulation": "a"}', "h.jsonl")
+        self.assertEqual(history.points_from_file(entries)[0]["formulation"], "a")
+
+
 class VisualTests(unittest.TestCase):
     """The hero visual (spec §4, Visual)."""
 

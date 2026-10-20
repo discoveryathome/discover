@@ -201,6 +201,7 @@ function projectCard(p) {
     <h3><a class="stretch" href="#/p/${encodeURIComponent(p.slug)}">${esc(p.title)}</a></h3>
     <p class="summary">${esc(p.summary)}</p>
     ${metric(p.frontier)}
+    ${p.frontier?.suite ? `<p class="hint">${esc(strengthLine(p.frontier.suite))}.</p>` : ""}
     <div class="meta">${esc(p.domains.join(" · "))}${handoffs ? ` · <b>${plural(handoffs, "open handoff")}</b>` : ""}</div>
   </article>`;
 }
@@ -343,8 +344,13 @@ function stepChart(points, metricInfo, { refs = [], compact = false, W = 640, H 
   const pad = (v1 - v0) * 0.08; v0 -= pad; v1 += pad;
   const X = (x) => L + ((x - t0) / (t1 - t0)) * (W - L - R), Y = (y) => T + (1 - (y - v0) / (v1 - v0)) * (H - T - B);
   let d = `M${X(t[0]).toFixed(1)},${Y(v[0]).toFixed(1)}`;
-  for (let i = 1; i < pts.length; i++) d += `H${X(t[i]).toFixed(1)}V${Y(v[i]).toFixed(1)}`;
-  const area = `${d}H${(W - R).toFixed(1)}V${(H - B).toFixed(1)}H${X(t[0]).toFixed(1)}Z`;
+  // A new formulation is a new problem: start a new line there instead of drawing a jump.
+  const breaks = [];
+  for (let i = 1; i < pts.length; i++) {
+    if ((pts[i].formulation || "") !== (pts[i - 1].formulation || "")) { d += `M${X(t[i]).toFixed(1)},${Y(v[i]).toFixed(1)}`; breaks.push(i); }
+    else d += `H${X(t[i]).toFixed(1)}V${Y(v[i]).toFixed(1)}`;
+  }
+  const area = breaks.length ? "" : `${d}H${(W - R).toFixed(1)}V${(H - B).toFixed(1)}H${X(t[0]).toFixed(1)}Z`;
   const big = Math.max(Math.abs(v0), Math.abs(v1)), sci = big >= 1e5 || big < 1e-2;
   const fmt = (y) => (y === 0 ? "0" : sci ? y.toExponential(2) : String(+y.toPrecision(4)));
   const day = (ms) => new Date(ms).toISOString().slice(0, 10);
@@ -356,7 +362,8 @@ function stepChart(points, metricInfo, { refs = [], compact = false, W = 640, H 
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(metricInfo?.name || "value")} over time" preserveAspectRatio="${compact ? "none" : "xMidYMid meet"}">
       ${compact ? "" : ticks.map((y) => `<line x1="${L}" x2="${W - R}" y1="${Y(y).toFixed(1)}" y2="${Y(y).toFixed(1)}" class="grid"/><text x="${L - 6}" y="${(Y(y) + 4).toFixed(1)}" text-anchor="end">${esc(fmt(y))}</text>`).join("")}
       ${compact ? "" : `<text x="${L}" y="${H - 6}">${esc(day(t0))}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${esc(day(t1))}</text>`}
-      <path d="${area}" class="area"/>${refLines}
+      ${area ? `<path d="${area}" class="area"/>` : ""}${refLines}
+      ${breaks.map((i) => `<line x1="${X(t[i]).toFixed(1)}" x2="${X(t[i]).toFixed(1)}" y1="${T}" y2="${H - B}" class="ref"/><text x="${(X(t[i]) + 4).toFixed(1)}" y="${T + 10}" class="ref-label">${esc(pts[i].formulation || "new formulation")}</text>`).join("")}
       <path d="${d}" class="line"/>
       ${pts.map((x, i) => `<circle cx="${X(t[i]).toFixed(1)}" cy="${Y(v[i]).toFixed(1)}" r="${compact && i < pts.length - 1 ? 0 : 3}"><title>${esc(`${x.date}: ${x.value}${x.by ? ` (${[].concat(x.by).join(", ")})` : ""}`)}</title></circle>`).join("")}
     </svg>`;
@@ -364,7 +371,7 @@ function stepChart(points, metricInfo, { refs = [], compact = false, W = 640, H 
 function historyChart(points, metricInfo) {
   const svg = stepChart(points, metricInfo);
   return svg ? `<figure class="chart">${svg}
-    <figcaption class="hint">${esc(metricInfo?.name || "Value")} at each change of the frontier${metricInfo?.direction ? `; ${esc(metricInfo.direction.replace(/-/g, " "))}` : ""}.</figcaption>
+    <figcaption class="hint">${esc(metricInfo?.name || "Value")} at each change of the frontier${metricInfo?.direction ? `; ${esc(metricInfo.direction.replace(/-/g, " "))}` : ""}. A vertical line marks a new formulation, which isn't comparable with the one before.</figcaption>
   </figure>` : "";
 }
 
@@ -372,9 +379,54 @@ function historyChart(points, metricInfo) {
 // The project's declared visual, else the best the hub can draw from its frontier. An image
 // is read as bytes and shown through a blob URL in an <img>, so an SVG's scripts never run.
 
+// --- evaluation suites (spec §5): a method against baselines on held-out instances -----
+
+const STRENGTH = { starter: "the project's starter", published: "a published method", mature: "a mature solver" };
+const pct = (g) => (g == null ? "–" : `${g >= 0 ? "+" : ""}${(g * 100).toFixed(Math.abs(g) < 0.01 ? 2 : 1)}%`);
+const pval = (p) => (p < 0.001 ? "< 0.001" : p.toFixed(3));
+function strengthLine(st) {
+  const best = st.strongest_beaten;
+  const head = best ? `Beats ${STRENGTH[best]}` : "Doesn't yet beat any baseline significantly";
+  return `${head}${st.has_mature ? "" : best === "mature" ? "" : "; not compared with a mature solver"}`;
+}
+const DRAWS = { fixed: "from a public, fixed set (methods may have been tuned to it)", drawn: "drawn after the method was frozen", sealed: "that the maintainers keep sealed" };
+
+function suiteBars(st, compact) {
+  const bs = st.baselines || [];
+  if (!bs.length) return "";
+  const W = 640, H = compact ? 320 : 220, L = compact ? 150 : 190, R = 70, rowH = (H - 20) / bs.length;
+  const gmax = Math.max(0.001, ...bs.map((b) => Math.abs(b.mean_gain || 0)));
+  const neg = bs.some((b) => (b.mean_gain || 0) < 0);
+  const x0 = neg ? L + (W - L - R) / 2 : L, scale = (neg ? (W - L - R) / 2 : W - L - R) / gmax;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(`${st.current} against ${bs.length} baselines`)}">
+    <line x1="${x0}" x2="${x0}" y1="6" y2="${H - 6}" class="grid"/>
+    ${bs.map((b, i) => {
+      const y = 10 + i * rowH, g = b.mean_gain || 0, w = Math.abs(g) * scale, x = g >= 0 ? x0 : x0 - w;
+      return `<g><title>${esc(`${b.method} (${b.strength}): ${pct(g)} mean, ${b.wins}–${b.ties}–${b.losses}, p = ${pval(b.p)}`)}</title>
+        <text x="${L - 10}" y="${(y + rowH / 2 + 4).toFixed(1)}" text-anchor="end" class="bar-label">${esc(b.method)}</text>
+        <text x="${L - 10}" y="${(y + rowH / 2 + 18).toFixed(1)}" text-anchor="end" class="bar-sub">${esc(b.strength || "")}</text>
+        <rect x="${x.toFixed(1)}" y="${(y + rowH * 0.2).toFixed(1)}" width="${Math.max(1, w).toFixed(1)}" height="${(rowH * 0.6).toFixed(1)}" rx="3" class="bar ${b.verdict}"/>
+        <text x="${(g >= 0 ? x + w + 6 : x - 6).toFixed(1)}" y="${(y + rowH / 2 + 4).toFixed(1)}" text-anchor="${g >= 0 ? "start" : "end"}" class="bar-value">${esc(pct(g))}</text></g>`;
+    }).join("")}
+  </svg>`;
+}
+
+function suiteSection(p, st) {
+  const rows = (st.baselines || []).map((b) => `<tr><td class="mono">${esc(b.method)}</td><td><span class="badge${b.strength === "mature" ? " accent" : ""}">${esc(b.strength || "")}</span></td>
+    <td class="mono">${esc(pct(b.mean_gain))}</td><td class="mono">${esc(`${b.wins}–${b.ties}–${b.losses}`)}</td><td class="mono">${esc(pval(b.p))}</td>
+    <td>${b.verdict === "beats" ? '<span class="badge ok">beats</span>' : b.verdict === "loses" ? '<span class="badge warn">loses</span>' : '<span class="badge">inconclusive</span>'}</td>
+    <td class="hint">${b.source ? (safeUrl(b.source) ? link(b.source, "source") : esc(b.source)) : ""}${b.version ? ` ${esc(b.version)}` : ""}</td></tr>`).join("");
+  const inst = st.held_out || {}, budget = st.budget;
+  return `<div><h3 style="margin-bottom:6px">Held-out evaluation</h3>
+    <p><b>${esc(strengthLine(st))}.</b> <span class="hint">${esc(st.current)} on ${esc(plural(st.instances, "instance"))} ${esc(DRAWS[inst.draw] || inst.draw || "")}${budget ? `, at ${esc(Number(budget.amount).toLocaleString())} ${esc(budget.unit)} per run` : ""}.</span></p>
+    <div class="scroll"><table class="records"><tr><th>Baseline</th><th>Strength</th><th>Mean gain</th><th>W–T–L</th><th>p</th><th></th><th></th></tr>${rows}</table></div>
+    <p class="hint">Gain is ${esc(st.objective || "the value")} relative to the baseline, per instance, averaged over seeds; W–T–L counts instances won, tied and lost; p is a two-sided sign test. Computed by the hub from the ${link(st.url, "results file")}.</p></div>`;
+}
+
 const VISUAL_KINDS = { witness: "The result itself", derived: "Drawn from the frontier", illustration: "Illustration" };
 function heroOf(p, f = p.frontier) {
   if (p.visual) return p.visual;
+  if (f?.suite) return { render: "suite", kind: "derived", auto: true };
   if (f?.table) return { render: "records", kind: "derived", auto: true };
   const n = chartPoints(f?.history?.points).length;
   if (n >= 2 && f.metric?.bound) return { render: "bound-gap", kind: "derived", auto: true };
@@ -415,6 +467,7 @@ function heroInner(p, f, compact) {
   ] : [];
   const W = 640, H = compact ? 320 : 220;
   if (v.render === "image") return imgTag(p, v);
+  if (v.render === "suite" && f?.suite) return suiteBars(f.suite, compact);
   if (v.render === "records" && f?.table) return recordsGrid(f.table, f.table.live_rows || f.table.rows_snapshot, compact);
   if (["progress", "bound-gap"].includes(v.render)) return stepChart(f?.history?.points, f?.metric, { refs, compact, W, H }) || titleCard(p, f);
   return titleCard(p, f);
@@ -424,6 +477,7 @@ function heroCaption(p, f) {
   const v = heroOf(p, f);
   if (v.render === "title") return "";
   const auto = { records: "Each case in the record table: filled when settled, outlined while open.",
+    suite: `How much better ${f?.suite?.current || "the method"} does than each baseline, on average over ${f?.suite?.instances || "the"} held-out instances. Solid bars are significant on a sign test.`,
     progress: `${f?.metric?.name || "The value"} at each change of the frontier${f?.metric?.direction ? `; ${f.metric.direction.replace(/-/g, " ")}` : ""}.` };
   auto["bound-gap"] = `${auto.progress.slice(0, -1)}, against ${[f?.metric?.bound ? "the proven bound" : "", v.baseline ? "where it started" : ""].filter(Boolean).join(" and ") || "its range"}.`;
   const text = v.caption || (v.render === "image" ? v.alt : auto[v.render]);
@@ -482,11 +536,13 @@ function frontierInner(p, f, origin) {
   return `<h2>Current frontier</h2>
     ${metric(f)}
     <p>${esc(f.statement)}</p>
+    ${f.formulation ? `<p class="hint">Formulation ${f.formulation.doc_url ? link(f.formulation.doc_url, f.formulation.id) : `<code>${esc(f.formulation.id)}</code>`}${f.formulation.since ? ` since ${esc(f.formulation.since)}` : ""}${f.formulation.replaces ? `; replaces <code>${esc(f.formulation.replaces)}</code>, so earlier results aren't comparable` : ""}</p>` : ""}
     ${f.table ? `<p class="hint">A table of ${esc(plural(f.table.rows, "case"))}, ${esc(f.table.open)} still open · ${link(f.table.url, "table")}</p>` : ""}
     <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${claimBadges(f.claim_kind)}${(f.evidence_level || []).map((e) => `<span class="badge ok">${esc(e.replace(/-/g, " "))}</span>`).join("")}</div>
     ${f.external?.length ? `<p class="hint">Accepted by ${f.external.map((x) => link(x.url, x.authority)).join(", ")}</p>` : ""}
     ${f.scope ? `<details><summary>Scope and conditions</summary><p class="hint">${esc(f.scope)}</p></details>` : ""}
     ${assumptions}
+    ${f.suite ? suiteSection(p, f.suite) : ""}
     ${historySection(p, f)}
     <p class="hint">Updated ${esc(f.updated_on || "unknown")} · ${link(f.record_url, "record")}${where ? ` · ${where}` : ""}</p>`;
 }

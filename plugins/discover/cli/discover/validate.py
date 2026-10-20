@@ -7,6 +7,7 @@ assessment of the five properties (spec §3), never from this check.
 from . import schema
 from . import history as historymod
 from . import visual as visualmod
+from . import suite as suitemod
 from . import table as tablemod
 from .project import Source, load_manifest
 
@@ -151,6 +152,15 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
                 req += tablemod.problems(rows, tbl)
                 r["table_rows"] = rows
                 r["table"] = tablemod.summary(rows, tbl)
+        st = frontier.get("suite")
+        if isinstance(st, dict) and {"path", "current", "baselines"} <= st.keys():
+            rows, problem = suitemod.load(source, st)
+            if problem:
+                req.append(problem.replace("frontier table", "frontier suite"))
+            else:
+                req += suitemod.problems(rows, st)
+                r["warnings"] += suitemod.warnings(rows, st)
+                r["suite"] = suitemod.summary(rows, st)
         hpath = frontier.get("history")
         if isinstance(hpath, str):
             text = source.read(hpath)

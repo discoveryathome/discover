@@ -105,6 +105,15 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
                 "rows_snapshot": report.get("table_rows", [])[:TABLE_SNAPSHOT_ROWS],
                 "truncated": len(report.get("table_rows", [])) > TABLE_SNAPSHOT_ROWS,
             }
+        if f.get("suite") and report.get("suite"):
+            st = f["suite"]
+            out["frontier"]["suite"] = {
+                **report["suite"], "url": blob + st["path"], "held_out": st.get("instances"),
+                **{k: st[k] for k in ("objective", "direction", "budget", "evaluate") if st.get(k)},
+            }
+        if f.get("formulation"):
+            fm = f["formulation"]
+            out["frontier"]["formulation"] = {**fm, **({"doc_url": blob + fm["doc"]} if fm.get("doc") else {})}
         if history and history.get("points"):
             out["frontier"]["history"] = history
         if live:
@@ -159,6 +168,8 @@ def agent_index(projects, site, hub_repo, generated_at):
             "requirements": p.get("requirements"),
             "frontier": ({"statement": f.get("statement"), "claim_kind": f.get("claim_kind", []),
                           **({"table": {k: f["table"][k] for k in ("rows", "open")}} if f.get("table") else {}),
+                          **({"suite": {k: f["suite"][k] for k in ("current", "instances", "strongest_beaten", "has_mature")}}
+                             if f.get("suite") else {}),
                           "open_assumptions": [a.get("id") or a.get("statement")
                                                for a in f.get("open_assumptions", [])]}
                          if f else ({"doc": p["frontier_doc"]["url"]} if p.get("frontier_doc") else None)),
