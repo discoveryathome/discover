@@ -27,6 +27,6 @@
         "note": { "type": "string", "description": "How to read it, in the project's own terms." }
       }
     },
-    "frontier_adapter": { "type": "object", "description": "Maps the repo's own results record onto frontier fields: {v0_field: raw_field}, plus metric, a declared evidence_level and claim_kind, and optionally select {list, key, current} to read the entry a registry's current field names." }
+    "frontier_adapter": { "type": "object", "description": "Maps the repo's own results record onto frontier fields: {v0_field: raw_field}, plus metric, a declared evidence_level and claim_kind, and history (a path in the repo), and optionally select {list, key, current} to read the entry a registry's current field names." }
   }
 }

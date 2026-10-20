@@ -5,6 +5,7 @@ assessment of the five properties (spec §3), never from this check.
 """
 
 from . import schema
+from . import history as historymod
 from . import table as tablemod
 from .project import Source, load_manifest
 
@@ -44,7 +45,7 @@ def normalize_frontier(raw, adapter=None):
             if "direction" in src:
                 m["direction"] = src["direction"]
             out["metric"] = m
-        elif key in ("evidence_level", "claim_kind"):
+        elif key in ("evidence_level", "claim_kind", "history"):
             out[key] = src  # declared by the adapter, not read from the record
         elif isinstance(src, str) and src in raw:
             out[key] = raw[src]
@@ -149,6 +150,16 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
                 req += tablemod.problems(rows, tbl)
                 r["table_rows"] = rows
                 r["table"] = tablemod.summary(rows, tbl)
+        hpath = frontier.get("history")
+        if isinstance(hpath, str):
+            text = source.read(hpath)
+            if text is None:
+                req.append(f"frontier history not found: {hpath}")
+            else:
+                entries, probs = historymod.parse(text, hpath)
+                req += probs
+                if not probs:
+                    r["history"] = entries
 
     cat_path = manifest.get("catalog")
     catalog = source.read_json(cat_path) if cat_path else None

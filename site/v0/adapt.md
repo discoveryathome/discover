@@ -55,9 +55,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-d0e9ce87016c.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-3a234db110f0.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print d0e9ce87016c42aea0082fa171e29992d9c84a70ca1de0f0713e660fd57e1ea4
+# must print 3a234db110f0384a6319010d8eb603efd852c0c40b7c0f34204491480a38b806
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -294,6 +294,9 @@ JSON block (https://github.com/discoveryathome/discover/tree/main/spec/schemas/a
   from the selected entry. You may declare `evidence_level` and `claim_kind` (spec §5)
   in it, but only what the project's own text supports: a result the repo calls a
   simulation is `model`, whatever its headline says.
+  The hub charts a mapped record's `metric` from the file's git history by itself; if the
+  project keeps its own log of improvements in JSON Lines with `date` and `value`, add
+  `"history": "path"` to the mapping instead.
 - The kind of claim, even without a machine-readable record: say in the adapter's text
   whether the project's results are exact, formal, within a model, measured or
   observational, in the project's own terms, so donors know what a check can show.

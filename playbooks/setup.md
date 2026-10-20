@@ -90,6 +90,13 @@ Then fill in, with the maintainer:
   applies; see the rule below), `scope`, `assumptions[]` as discrete open obligations, `reproduce` (the
   command that rechecks it; an incremental check of the newest step is fine), its
   expected runtime and prerequisites, and `review`.
+  Ask which kind of claim it is (`claim_kind`: exact, formal, a model's result, a
+  measurement, an observation). If the result is a number, a `metric` (with its `unit`)
+  gives the project page a chart of progress. If the problem is a family of cases (one
+  record per size, length or count), make the frontier a `table`, with `by`, `source`
+  and `updated` columns so each record is credited. If they keep a log of improvements,
+  point `history` at it (spec §5); otherwise the hub derives one from git, without
+  credits.
 - **Catalogue:** 2–6 tracks with integer weights summing to 100. Always include an
   independent-verification or audit track. For each track, 1–4 cards, each with a
   precise `question`, `starting_points`, `methods`, an `acceptance_gate`, a `first_step`

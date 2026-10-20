@@ -265,6 +265,8 @@ from the schemas. Then fill them in from steps 2–4:
 - **`discover/frontier.json`**: the best known result, its `scope`, `evidence_level`
   (never `maintainer-reviewed` unless a maintainer has confirmed it), `assumptions` for
   any unverified claims, and `reproduce` running the verifier on the worked example.
+  A numeric result gets a `metric` (the hub charts its progress); a family of cases gets
+  a `table` with `by`, `source` and `updated` columns (spec §5).
 - **`discover/catalog.json`**: 2–5 tracks summing to 100. Early projects usually need:
   verifying or reproducing the known results (including any unverified claims from step
   1), hardening the verifier, a literature audit, and one or two research directions

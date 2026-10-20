@@ -138,6 +138,9 @@ JSON block ({{SCHEMAS_URL}}/adapter.schema.json):
   from the selected entry. You may declare `evidence_level` and `claim_kind` (spec §5)
   in it, but only what the project's own text supports: a result the repo calls a
   simulation is `model`, whatever its headline says.
+  The hub charts a mapped record's `metric` from the file's git history by itself; if the
+  project keeps its own log of improvements in JSON Lines with `date` and `value`, add
+  `"history": "path"` to the mapping instead.
 - The kind of claim, even without a machine-readable record: say in the adapter's text
   whether the project's results are exact, formal, within a model, measured or
   observational, in the project's own terms, so donors know what a check can show.
