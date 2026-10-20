@@ -38,9 +38,11 @@
         "decimal": { "type": "string" },
         "direction": { "enum": ["higher-is-better", "lower-is-better"] },
         "bound": { "type": "string", "description": "The best proven bound on the other side, exact representation: no value can beat it. When the value meets it, the question is settled." },
-        "bound_source": { "type": "string", "description": "Where the bound is proved: a path, DOI or URL." }
+        "bound_source": { "type": "string", "description": "Where the bound is proved: a path, DOI or URL." },
+        "unit": { "type": "string", "description": "Unit shown beside the value, if any." }
       }
     },
+    "history": { "type": "string", "description": "Path of the frontier's history: JSON Lines (or a JSON array), one entry per change, {date, value, statement, bound, case, by, source, note} (spec §5). Without it the hub derives a history from the record's git history." },
     "table": {
       "type": "object", "required": ["path", "key", "value"],
       "description": "A frontier made of many independent cases, one row each (spec §5, record tables). `statement` describes the family.",
@@ -53,7 +55,10 @@
         "bound": { "type": "string", "description": "Column holding the best proven bound on the other side, where known. A row is open while it has no bound or its value doesn't meet it." },
         "object": { "type": "string", "description": "Column holding the path of the case's witness, the object a check recomputes." },
         "check_row": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Argv that checks one row, run from the repo root; {column} is replaced by the row's value in that column." },
-        "check_row_minutes": { "type": "integer", "minimum": 0, "description": "Expected runtime of check_row on a typical row." }
+        "check_row_minutes": { "type": "integer", "minimum": 0, "description": "Expected runtime of check_row on a typical row." },
+        "by": { "type": "string", "description": "Column crediting who found the case's current value." },
+        "source": { "type": "string", "description": "Column with where it came from: a PR (#123), a commit, or a URL." },
+        "updated": { "type": "string", "description": "Column with the date (YYYY-MM-DD) the case's value last changed." }
       }
     },
     "scope": { "type": "string", "description": "Conditions under which the statement holds." },

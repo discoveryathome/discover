@@ -960,3 +960,75 @@ class EntryDocTests(unittest.TestCase):
             got = {f["path"]: f["severity"] for f in screen.screen(d) if f["kind"] == "hidden-text"}
         self.assertEqual(got, {"AUTORESEARCH.md": "warn", "auto-research.md": "warn",
                                "docs/brief.md": "warn", "docs/other.md": "info"})
+
+
+class HistoryTests(unittest.TestCase):
+    """The frontier's history (spec §5) and what project pages read live (§12.6)."""
+
+    def test_number(self):
+        from discover.history import number
+        self.assertEqual(number("3/4"), 0.75)
+        self.assertEqual(number("1e-3"), 0.001)
+        self.assertEqual(number(7), 7.0)
+        self.assertIsNone(number("3.10% [2.85, 3.35]"))
+        self.assertIsNone(number(True))
+        self.assertIsNone(number("1/0"))
+
+    def test_history_file(self):
+        from discover import history
+        entries, probs = history.parse('{"date": "2026-10-02", "value": "5", "by": "b"}\n'
+                                       '{"date": "2026-10-01", "value": "1/2"}\n', "h.jsonl")
+        self.assertEqual(probs, [])
+        pts = history.points_from_file(entries)
+        self.assertEqual([p["date"] for p in pts], ["2026-10-01", "2026-10-02"])
+        self.assertEqual((pts[0]["number"], pts[1]["by"]), (0.5, "b"))
+        self.assertTrue(history.parse('[{"value": 1}]', "h.json")[1])
+        self.assertTrue(history.parse('[{"date": "Oct 1", "value": 1}]', "h.json")[1])
+        self.assertTrue(history.parse('{"date": "2026-10-01"}', "h.json")[1])
+
+    def test_validate_reads_the_history_file(self):
+        r = validate(Source(local=GOLOMB))
+        self.assertTrue(r["conformant"], r["problems"])
+        self.assertEqual(r["history"][0]["value"], "9")
+        with tempfile.TemporaryDirectory() as d:
+            for f in ("discover.json", "frontier.json", "catalog.json", "LICENSE", "rulers.csv"):
+                (Path(d) / f).write_text((GOLOMB / f).read_text())
+            r = validate(Source(local=d))
+            self.assertIn("frontier history not found: history.jsonl", r["problems"])
+
+    def git(self, d, *args):
+        subprocess.run(["git", "-C", d, *args], check=True, capture_output=True,
+                       env={"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+                            "GIT_COMMITTER_EMAIL": "t@t", "PATH": __import__("os").environ["PATH"]})
+
+    def test_history_from_git_keeps_changes_and_maps_records(self):
+        from discover import history
+        from discover.validate import normalize_frontier
+        with tempfile.TemporaryDirectory() as d:
+            self.git(d, "init", "-q")
+            for kappa, note in (("1/1000", "a"), ("1/1000", "reworded"), ("3/2000", "b"), ("1/500", "c")):
+                (Path(d) / "result.json").write_text(json.dumps({"status": note, "kappa": kappa}))
+                self.git(d, "add", "result.json")
+                self.git(d, "commit", "-q", "-m", note)
+            mapping = {"statement": "status", "metric": {"name": "κ", "value": "kappa"}}
+            pts = history.from_git(Source(local=d), "result.json", lambda raw: normalize_frontier(raw, mapping)[0])
+        self.assertEqual([p["value"] for p in pts], ["1/1000", "3/2000", "1/500"])  # the rewording is dropped
+        self.assertEqual([p["statement"] for p in pts], ["a", "b", "c"])
+        self.assertEqual(pts[-1]["number"], 0.002)
+        self.assertRegex(pts[0]["source"], r"^[0-9a-f]{40}$")
+
+    def test_summary_carries_history_live_urls_and_table_rows(self):
+        entry = {"repos": [{"repo": "example/golomb-rulers"}]}
+        report = validate(Source(local=GOLOMB))
+        hist = {"from": "project", "points": [{"date": "2026-10-19", "value": "9", "number": 9.0}]}
+        live = {"url": "https://raw.githubusercontent.com/example/golomb-rulers/HEAD/frontier.json",
+                "map": None, "table_url": "https://raw.githubusercontent.com/example/golomb-rulers/HEAD/rulers.csv"}
+        s = hub.project_summary("g", entry, report, history=hist, live=live)
+        f = s["frontier"]
+        self.assertEqual(f["history"], hist)
+        self.assertEqual(f["live"], live)
+        self.assertEqual((f["table"]["by"], f["table"]["updated"], len(f["table"]["rows_snapshot"])), ("by", "updated", 13))
+        self.assertFalse(f["table"]["truncated"])
+        self.assertEqual(Source(repo="o/r", ref="main", root="sub").raw_url("f.json"),
+                         "https://raw.githubusercontent.com/o/r/main/sub/f.json")
+        self.assertIsNone(Source(local=GOLOMB).raw_url("f.json"))

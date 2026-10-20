@@ -71,7 +71,7 @@ def is_open(row, table):
 def problems(rows, table):
     """Missing columns and duplicate keys."""
     out = []
-    cols = [table["value"], *table["key"]] + [table[c] for c in ("bound", "object") if table.get(c)]
+    cols = [table["value"], *table["key"]] + [table[c] for c in ("bound", "object", "by", "source", "updated") if table.get(c)]
     for c in dict.fromkeys(cols):
         missing = sum(1 for r in rows if c not in r)
         if missing:

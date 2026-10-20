@@ -72,7 +72,7 @@ function metric(f) {
   if (!f?.metric) return "";
   const m = f.metric;
   const bound = m.bound ? `<span class="muted" style="font-size:13px">proven bound ${esc(m.bound)}${m.bound_source ? ` (${link(m.bound_source, "source")})` : ""}</span>` : "";
-  return `<div class="metric"><span class="n">${esc(m.name)}</span><span class="v">${esc(m.decimal || m.value)}</span>${bound}</div>`;
+  return `<div class="metric"><span class="n">${esc(m.name)}</span><span class="v">${esc(m.decimal || m.value)}${m.unit ? ` ${esc(m.unit)}` : ""}</span>${bound}</div>`;
 }
 
 // What kind of claim a record makes (spec §5), in donors' words.
@@ -239,6 +239,197 @@ function wireExplore(root) {
   root.querySelectorAll("[data-domain]").forEach((b) => b.addEventListener("click", () => { state.domain = b.dataset.domain; render(); }));
 }
 
+// --- the frontier, read live from the project (spec §12.6) -----------------------
+// Upstream data is the project's own claim: rendered as text only, size-capped, and fetched
+// only from the registry's repo and paths. The build's snapshot is the fallback.
+
+const LIVE_MAX_BYTES = 2_000_000;
+async function fetchUpstream(url) {
+  if (!safeUrl(url) || !url.startsWith("https://raw.githubusercontent.com/")) throw new Error("not a project URL");
+  const r = await fetch(url, { cache: "no-cache" });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const text = await r.text();
+  if (text.length > LIVE_MAX_BYTES) throw new Error("too large");
+  return text;
+}
+
+// The adapter's mapping of a record in another shape (the same as `normalize_frontier`).
+function mapFrontier(raw, map) {
+  if (!map) return raw;
+  if (map.select) {
+    const sel = map.select, want = raw[sel.current || "current"];
+    raw = (raw[sel.list || "results"] || []).find((i) => i && i[sel.key || "id"] === want);
+    if (!raw) return null;
+  }
+  const out = { schema: "discover-frontier/v0" };
+  for (const [k, src] of Object.entries(map)) {
+    if (k === "select") continue;
+    if (k === "metric") {
+      out.metric = { name: src.name, value: String(raw[src.value] ?? "") };
+      if (src.decimal && src.decimal in raw) out.metric.decimal = String(raw[src.decimal]);
+      if (src.direction) out.metric.direction = src.direction;
+    } else if (["evidence_level", "claim_kind", "history"].includes(k)) out[k] = src;
+    else if (typeof src === "string" && src in raw) out[k] = raw[src];
+  }
+  return out;
+}
+
+// The fields the frontier panel shows, from a live record; anything malformed keeps the snapshot's.
+function liveFields(rec, snap) {
+  const str = (v) => (typeof v === "string" ? v : undefined);
+  const arr = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === "string") : undefined);
+  const m = rec.metric && typeof rec.metric === "object" ? rec.metric : null;
+  return {
+    ...snap,
+    statement: str(rec.statement) ?? snap.statement, status: str(rec.status) ?? snap.status,
+    scope: str(rec.scope) ?? snap.scope, updated_on: str(rec.updated_on) ?? snap.updated_on,
+    evidence_level: arr(rec.evidence_level) ?? snap.evidence_level, claim_kind: arr(rec.claim_kind) ?? snap.claim_kind,
+    external: Array.isArray(rec.external) ? rec.external.filter((x) => x && typeof x === "object") : snap.external,
+    metric: m ? Object.fromEntries(Object.entries(m).filter(([, v]) => typeof v === "string")) : snap.metric,
+    open_assumptions: Array.isArray(rec.assumptions)
+      ? rec.assumptions.filter((a) => a && typeof a.statement === "string" && a.status !== "closed") : snap.open_assumptions,
+  };
+}
+
+function parseTable(text, fmt) {
+  const asText = (r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v == null ? "" : typeof v === "string" ? v : JSON.stringify(v)]));
+  if (fmt === "csv") {
+    const rows = [], cells = [];
+    let cell = "", row = [], q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; } else if (c === '"') q = false; else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === ",") { row.push(cell); cell = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cell); cells.push(row); row = []; cell = ""; }
+      else cell += c;
+    }
+    if (cell || row.length) { row.push(cell); cells.push(row); }
+    const [head, ...body] = cells.filter((r) => r.length > 1 || r[0] !== "");
+    for (const r of body) rows.push(Object.fromEntries(head.map((h, i) => [h, r[i] ?? ""])));
+    return rows;
+  }
+  const data = fmt === "jsonl" ? text.split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l)) : JSON.parse(text);
+  const rows = Array.isArray(data) ? data : data?.rows;
+  if (!Array.isArray(rows)) throw new Error("not a table");
+  return rows.filter((r) => r && typeof r === "object").map(asText);
+}
+const tableFormat = (t) => t.format || ({ csv: "csv", jsonl: "jsonl" }[String(t.url || "").split(".").pop().toLowerCase()] || "json");
+const num = (v) => { const m = String(v).trim().match(/^(-?\d+)\s*\/\s*(\d+)$/); const x = m ? Number(m[1]) / Number(m[2]) : Number(String(v).trim()); return Number.isFinite(x) ? x : null; };
+const rowOpen = (r, t) => { const b = t.bound && String(r[t.bound] ?? "").trim(); if (!b) return true; const v = String(r[t.value] ?? "").trim(); return !(v === b || (num(v) !== null && num(v) === num(b))); };
+
+// A PR (#12 or 12), a commit, or a URL, as a link into the project.
+function sourceLink(src, repo) {
+  const s = String(src ?? "").trim();
+  if (/^#?\d+$/.test(s)) return link(`https://github.com/${repo}/pull/${s.replace("#", "")}`, `#${s.replace("#", "")}`);
+  if (/^[0-9a-f]{7,40}$/.test(s)) return link(`https://github.com/${repo}/commit/${s}`, s.slice(0, 7));
+  return safeUrl(s) ? link(s, "source") : esc(s);
+}
+const credit = (by) => (Array.isArray(by) ? by : by ? [by] : []).map((b) => esc(b)).join(", ");
+
+// A step chart of the frontier's value over time, inline SVG.
+function historyChart(points, metricInfo) {
+  const pts = points.filter((x) => typeof x.number === "number" && Number.isFinite(x.number) && x.date);
+  if (pts.length < 2) return "";
+  const W = 640, H = 180, L = 78, R = 12, T = 12, B = 26;
+  const t = pts.map((x) => Date.parse(x.date)), v = pts.map((x) => x.number);
+  let [t0, t1] = [Math.min(...t), Math.max(...t)], [v0, v1] = [Math.min(...v), Math.max(...v)];
+  if (t1 === t0) t1 = t0 + 86400000;
+  if (v1 === v0) { v0 -= Math.abs(v0) * 0.1 || 1; v1 += Math.abs(v1) * 0.1 || 1; }
+  const pad = (v1 - v0) * 0.08; v0 -= pad; v1 += pad;
+  const X = (x) => L + ((x - t0) / (t1 - t0)) * (W - L - R), Y = (y) => T + (1 - (y - v0) / (v1 - v0)) * (H - T - B);
+  let d = `M${X(t[0]).toFixed(1)},${Y(v[0]).toFixed(1)}`;
+  for (let i = 1; i < pts.length; i++) d += `H${X(t[i]).toFixed(1)}V${Y(v[i]).toFixed(1)}`;
+  const big = Math.max(Math.abs(v0), Math.abs(v1)), sci = big >= 1e5 || big < 1e-2;
+  const fmt = (y) => (sci ? y.toExponential(2) : String(+y.toPrecision(4)));
+  const day = (ms) => new Date(ms).toISOString().slice(0, 10);
+  const ticks = [v0 + pad, (v0 + v1) / 2, v1 - pad];
+  return `<figure class="chart" aria-label="${esc(metricInfo?.name || "value")} over time">
+    <svg viewBox="0 0 ${W} ${H}" role="img">
+      ${ticks.map((y) => `<line x1="${L}" x2="${W - R}" y1="${Y(y).toFixed(1)}" y2="${Y(y).toFixed(1)}" class="grid"/><text x="${L - 6}" y="${(Y(y) + 4).toFixed(1)}" text-anchor="end">${esc(fmt(y))}</text>`).join("")}
+      <text x="${L}" y="${H - 6}">${esc(day(t0))}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${esc(day(t1))}</text>
+      <path d="${d}" class="line"/>
+      ${pts.map((x, i) => `<circle cx="${X(t[i]).toFixed(1)}" cy="${Y(v[i]).toFixed(1)}" r="3"><title>${esc(`${x.date}: ${x.value}${x.by ? ` (${[].concat(x.by).join(", ")})` : ""}`)}</title></circle>`).join("")}
+    </svg>
+    <figcaption class="hint">${esc(metricInfo?.name || "Value")} at each change of the frontier${metricInfo?.direction ? `; ${esc(metricInfo.direction.replace(/-/g, " "))}` : ""}.</figcaption>
+  </figure>`;
+}
+
+function historySection(p, f) {
+  const h = f.history;
+  if (!h?.points?.length) return "";
+  const origin = h.from === "project" ? "the project's history file" : "the frontier record's git history";
+  const rows = h.points.slice().reverse().map((x) => `<tr><td>${esc(x.date)}</td><td class="mono">${esc(x.value)}</td><td>${credit(x.by)}</td><td>${x.source ? sourceLink(x.source, p.repo) : ""}${x.note ? ` <span class="hint">${esc(x.note)}</span>` : ""}</td></tr>`).join("");
+  return `<div><h3 style="margin-bottom:6px">Progress</h3>${historyChart(h.points, f.metric)}
+    <details><summary>${esc(plural(h.points.length, "change"))}, from ${esc(origin)}</summary>
+    <div class="scroll"><table class="records"><tr><th>Date</th><th>Value</th><th>By</th><th>Source</th></tr>${rows}</table></div></details></div>`;
+}
+
+function frontierInner(p, f, origin) {
+  const assumptions = f.open_assumptions?.length
+    ? `<div><h3 style="margin-bottom:6px">Open obligations</h3><ul class="qlist">${f.open_assumptions.map((a) => `<li>${esc(a.statement)}${a.link ? ` (${link(a.link, "link")})` : ""}</li>`).join("")}</ul></div>` : "";
+  const where = origin?.live ? `read live from the project ${esc(origin.at)}` : f.live ? `snapshot from the hub's last build${origin?.error ? ` (couldn't read it live: ${esc(origin.error)})` : ""}` : "";
+  return `<h2>Current frontier</h2>
+    ${metric(f)}
+    <p>${esc(f.statement)}</p>
+    ${f.table ? `<p class="hint">A table of ${esc(plural(f.table.rows, "case"))}, ${esc(f.table.open)} still open · ${link(f.table.url, "table")}</p>` : ""}
+    <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${claimBadges(f.claim_kind)}${(f.evidence_level || []).map((e) => `<span class="badge ok">${esc(e.replace(/-/g, " "))}</span>`).join("")}</div>
+    ${f.external?.length ? `<p class="hint">Accepted by ${f.external.map((x) => link(x.url, x.authority)).join(", ")}</p>` : ""}
+    ${f.scope ? `<details><summary>Scope and conditions</summary><p class="hint">${esc(f.scope)}</p></details>` : ""}
+    ${assumptions}
+    ${historySection(p, f)}
+    <p class="hint">Updated ${esc(f.updated_on || "unknown")} · ${link(f.record_url, "record")}${where ? ` · ${where}` : ""}</p>`;
+}
+
+// The record table as a leaderboard of cases (not of people): value, bound, credit, source.
+function recordsInner(p, t, rows, origin) {
+  const cols = [...t.key, t.value, ...(t.bound ? [t.bound] : [])];
+  const openOnly = state.openOnly ?? true;
+  const shown = rows.filter((r) => !openOnly || rowOpen(r, t));
+  const head = `<tr>${cols.map((c) => `<th>${esc(c)}</th>`).join("")}<th></th>${t.by ? "<th>By</th>" : ""}${t.source ? "<th>Source</th>" : ""}${t.updated ? "<th>Updated</th>" : ""}</tr>`;
+  const body = shown.slice(0, 1000).map((r) => `<tr>${cols.map((c) => `<td class="mono">${esc(r[c])}</td>`).join("")}<td>${rowOpen(r, t) ? '<span class="badge accent">open</span>' : '<span class="badge ok">settled</span>'}</td>${t.by ? `<td>${esc(r[t.by])}</td>` : ""}${t.source ? `<td>${r[t.source] ? sourceLink(r[t.source], p.repo) : ""}</td>` : ""}${t.updated ? `<td>${esc(r[t.updated])}</td>` : ""}</tr>`).join("");
+  const where = origin?.live ? `Read live from the project ${esc(origin.at)}` : `Snapshot from the hub's last build${t.truncated ? " (first rows only)" : ""}${origin?.error ? `; couldn't read it live: ${esc(origin.error)}` : ""}`;
+  return `<h2>Records</h2>
+    <p class="hint">One row per case. A case is open until its value meets its proven bound.</p>
+    <label class="hint"><input type="checkbox" data-open-only ${openOnly ? "checked" : ""}> Open cases only (${esc(rows.filter((r) => rowOpen(r, t)).length)} of ${esc(rows.length)})</label>
+    <div class="scroll"><table class="records">${head}${body}</table></div>
+    ${shown.length > 1000 ? `<p class="hint">Showing 1,000 of ${esc(shown.length)}; the full table is in the ${link(t.url, "repository")}.</p>` : ""}
+    <p class="hint">${where} · ${link(t.url, "table")}</p>`;
+}
+
+function wireRecords(root, p, t, rows, origin) {
+  const box = root.querySelector("#records-panel");
+  if (!box) return;
+  box.innerHTML = recordsInner(p, t, rows, origin);
+  box.querySelector("[data-open-only]")?.addEventListener("change", (e) => { state.openOnly = e.target.checked; wireRecords(root, p, t, rows, origin); });
+}
+
+async function loadLive(root, p) {
+  const f = p.frontier, live = f?.live;
+  if (!live?.url) return;
+  const at = () => `at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  const panel = () => root.querySelector("#frontier-panel");
+  try {
+    const rec = mapFrontier(JSON.parse(await fetchUpstream(live.url)), live.map);
+    if (!rec || typeof rec.statement !== "string") throw new Error("not a frontier record");
+    const g = liveFields(rec, f);
+    const last = g.history?.points?.at(-1), now = g.metric?.value;
+    if (g.history && now && last && last.value !== now) {
+      g.history = { ...g.history, points: [...g.history.points, { date: (g.updated_on || new Date().toISOString()).slice(0, 10), value: now, number: num(g.metric.decimal || now), note: "current" }] };
+    }
+    if (panel()) panel().innerHTML = frontierInner(p, g, { live: true, at: at() });
+  } catch (e) {
+    if (panel()) panel().innerHTML = frontierInner(p, f, { error: e.message });
+  }
+  if (f.table && live.table_url) {
+    try {
+      wireRecords(root, p, f.table, parseTable(await fetchUpstream(live.table_url), tableFormat({ ...f.table, url: live.table_url })), { live: true, at: at() });
+    } catch (e) {
+      wireRecords(root, p, f.table, f.table.rows_snapshot || [], { error: e.message });
+    }
+  }
+}
+
 function viewProject(slug) {
   const p = state.data.projects.find((x) => x.slug === slug);
   if (!p) return `<div class="empty">No project “${esc(slug)}”. <a href="#/">Back to explore</a></div>`;
@@ -250,8 +441,6 @@ function viewProject(slug) {
     ...(p.discussions.all ? [link(p.discussions.all, "Discussions")] : []),
     ...(p.assessment_url ? [link(p.assessment_url, "Hub assessment")] : []),
     ...(p.adapter_url ? [link(p.adapter_url, "Hub adapter")] : [])].map((l) => `<li>${l}</li>`).join("");
-  const assumptions = f?.open_assumptions?.length
-    ? `<div><h3 style="margin-bottom:6px">Open obligations</h3><ul class="qlist">${f.open_assumptions.map((a) => `<li>${esc(a.statement)}${a.link ? ` (${link(a.link, "link")})` : ""}</li>`).join("")}</ul></div>` : "";
   const board = p.board?.open_handoffs?.length
     ? `<section class="panel"><h2>Open handoffs</h2>
       <ul class="clean">${p.board.open_handoffs.map((h) => `<li>${link(h.url, h.question)}<div class="hint">${esc(h.track || "any track")}${h.est_minutes ? ` · ~${esc(h.est_minutes)} min` : ""}</div></li>`).join("")}</ul>
@@ -266,17 +455,8 @@ function viewProject(slug) {
   <div class="layout">
     <div class="side">${p.listing === "nominated" ? nominatedPanel(p) : p.review?.paused ? pausedPanel() : launcher(p)}</div>
     <div class="main">
-      ${f ? `<section class="panel">
-        <h2>Current frontier</h2>
-        ${metric(f)}
-        <p>${esc(f.statement)}</p>
-        ${f.table ? `<p class="hint">A table of ${esc(plural(f.table.rows, "case"))}, ${esc(f.table.open)} still open · ${link(f.table.url, "table")}</p>` : ""}
-        <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${claimBadges(f.claim_kind)}${(f.evidence_level || []).map((e) => `<span class="badge ok">${esc(e.replace(/-/g, " "))}</span>`).join("")}</div>
-        ${f.external?.length ? `<p class="hint">Accepted by ${f.external.map((x) => link(x.url, x.authority)).join(", ")}</p>` : ""}
-        ${f.scope ? `<details><summary>Scope and conditions</summary><p class="hint">${esc(f.scope)}</p></details>` : ""}
-        ${assumptions}
-        <p class="hint">Updated ${esc(f.updated_on || "unknown")} · ${link(f.record_url, "record")}</p>
-      </section>` : p.frontier_doc ? `<section class="panel">
+      ${f ? `<section class="panel" id="frontier-panel">${frontierInner(p, f, null)}</section>
+      ${f.table ? `<section class="panel" id="records-panel">${recordsInner(p, f.table, f.table.rows_snapshot || [], null)}</section>` : ""}` : p.frontier_doc ? `<section class="panel">
         <h2>Current result</h2>
         <p>The project states its current result in ${link(p.frontier_doc.url, p.frontier_doc.path)}.</p>
         ${p.frontier_doc.note ? `<p class="hint">${esc(p.frontier_doc.note)}</p>` : ""}
@@ -583,7 +763,12 @@ function render(after) {
   document.querySelectorAll("[data-nav]").forEach((a) => a.classList.toggle("active", a.dataset.nav === nav));
   if (view === "p") {
     const p = state.data.projects.find((x) => x.slug === decodeURIComponent(arg || ""));
-    if (p) { if (p.listing !== "nominated" && !p.review?.paused) wireLauncher(app, p); document.title = `${p.title} · Discovery@Home`; }
+    if (p) {
+      if (p.listing !== "nominated" && !p.review?.paused) wireLauncher(app, p);
+      document.title = `${p.title} · Discovery@Home`;
+      if (p.frontier?.table) wireRecords(app, p, p.frontier.table, p.frontier.table.rows_snapshot || [], null);
+      loadLive(app, p);
+    }
   } else {
     document.title = "Discovery@Home";
     if (!view || view === "") wireExplore(app);

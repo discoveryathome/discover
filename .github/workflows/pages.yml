@@ -32,7 +32,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
           DISCOVER_HUB: ${{ github.repository }}   # a copied hub points at itself
-        run: python3 plugins/discover/cli/discover.py hub --registry registry/projects --out site/data/projects.json --board
+        run: python3 plugins/discover/cli/discover.py hub --registry registry/projects --out site/data/projects.json --board --history
       - name: Publish adapters
         run: rm -rf site/adapters && cp -R adapters site/adapters
       - uses: actions/configure-pages@v5

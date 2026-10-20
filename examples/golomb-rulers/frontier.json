@@ -12,9 +12,13 @@
     "value": "length",
     "direction": "lower-is-better",
     "bound": "optimum",
+    "by": "by",
+    "source": "source",
+    "updated": "updated",
     "check_row": ["python3", "check.py", "--n", "{n}"],
     "check_row_minutes": 1
   },
+  "history": "history.jsonl",
   "reproduce": "python3 check.py --all",
   "reproduce_minutes": 1,
   "prerequisites": ["Python 3.9+"],

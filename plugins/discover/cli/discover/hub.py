@@ -7,12 +7,15 @@ from pathlib import Path
 
 from . import adapter as adaptermod
 from . import board as boardmod
+from . import history as historymod
 from . import review as reviewmod
 from . import schema
 from .project import Source
 from . import HUB_REPO
 from .prompt import templates
-from .validate import catalogued, validate
+from .validate import catalogued, normalize_frontier, validate
+
+TABLE_SNAPSHOT_ROWS = 500
 
 
 def consent_record(source, report, hub):
@@ -44,7 +47,10 @@ def listing_state(entry, record):
     return "nominated"
 
 
-def project_summary(slug, entry, report, board=None, listing="listed", site=None, measured=None):
+def project_summary(slug, entry, report, board=None, listing="listed", site=None, measured=None,
+                    history=None, live=None):
+    """`history` is {"from": "project" | "git", "points": [...]}; `live` says where a browser
+    reads the frontier record and its table from the project at load time (spec §12.6)."""
     m = report.get("manifest") or {}
     home = entry["repos"][0]
     repo = home["repo"]
@@ -91,8 +97,17 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
             "record_url": blob + m["frontier"] if m.get("frontier") else None,
         }
         if f.get("table") and report.get("table"):
-            out["frontier"]["table"] = {**report["table"], "url": blob + f["table"]["path"],
-                                        "key": f["table"]["key"], "value": f["table"]["value"]}
+            t = f["table"]
+            out["frontier"]["table"] = {
+                **report["table"], "url": blob + t["path"],
+                **{k: t[k] for k in ("key", "value", "direction", "bound", "by", "source", "updated", "format") if t.get(k)},
+                "rows_snapshot": report.get("table_rows", [])[:TABLE_SNAPSHOT_ROWS],
+                "truncated": len(report.get("table_rows", [])) > TABLE_SNAPSHOT_ROWS,
+            }
+        if history and history.get("points"):
+            out["frontier"]["history"] = history
+        if live:
+            out["frontier"]["live"] = live
     if cat:
         out["priority_revision"] = cat.get("priority_revision")
         out["assessed_on"] = cat.get("assessed_on")
@@ -181,7 +196,7 @@ def site_url(registry_dir):
         return None
 
 
-def build(registry_dir, out_path, with_board=False, log=sys.stderr):
+def build(registry_dir, out_path, with_board=False, log=sys.stderr, with_history=False):
     registry_dir = Path(registry_dir)
     projects, problems = [], []
     for path in sorted(registry_dir.glob("*.json")):
@@ -227,7 +242,21 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
                 measured = reviewmod.awaiting(prs, total=total, own=own, verdict_bots=bots)
             except Exception as e:
                 print(f"{slug}: review queue unavailable ({e})", file=log)
-        summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir), measured)
+        frontier_path = (report.get("manifest") or {}).get("frontier")
+        hist, live = None, None
+        if report.get("frontier") is not None and frontier_path:
+            if report.get("history"):
+                hist = {"from": "project", "points": historymod.points_from_file(report["history"])}
+            elif with_history and (report["frontier"].get("metric") or {}).get("value"):
+                norm = (lambda raw: normalize_frontier(raw, fadapter)[0]) if fadapter else None
+                hist = {"from": "git", "points": historymod.from_git(source, frontier_path, norm)}
+            tbl = report["frontier"].get("table") or {}
+            live = {"url": source.raw_url(frontier_path),
+                    # A record in another shape is mapped in the browser the same way.
+                    "map": fadapter if fadapter and any("pre-v0" in w for w in report["warnings"]) else None,
+                    "table_url": source.raw_url(tbl["path"]) if report.get("table") else None}
+        summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir), measured,
+                                  hist, live)
         if entry.get("assessment"):
             from .hubcheck import parse_assessment
             apath = registry_dir.resolve().parent.parent / entry["assessment"]

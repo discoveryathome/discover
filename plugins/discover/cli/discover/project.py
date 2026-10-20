@@ -91,6 +91,39 @@ class Source:
         except Exception:
             return None
 
+    def versions(self, path, limit=50):
+        """Commits that changed path, newest first: [(sha, date YYYY-MM-DD)]. Empty if unknown."""
+        path = self._p(path)
+        try:
+            if self.local:
+                out = subprocess.run(["git", "-C", str(self.local), "log", f"-{limit}", "--format=%H %cs",
+                                      "--", path], capture_output=True, text=True, timeout=60)
+                return [tuple(line.split()) for line in out.stdout.splitlines() if line.strip()]
+            url = f"https://api.github.com/repos/{self.repo}/commits?path={path}&per_page={min(limit, 100)}"
+            if self.ref != "HEAD":
+                url += f"&sha={self.ref}"
+            req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json"})
+            token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+            if token:
+                req.add_header("Authorization", f"Bearer {token}")
+            with urllib.request.urlopen(req, timeout=30) as r:
+                commits = json.loads(r.read().decode("utf-8"))
+            return [(c["sha"], c["commit"]["committer"]["date"][:10]) for c in commits][:limit]
+        except Exception:
+            return []
+
+    def read_at(self, sha, path):
+        """File text at a commit, or None."""
+        if self.local:
+            out = subprocess.run(["git", "-C", str(self.local), "show", f"{sha}:{self._p(path)}"],
+                                 capture_output=True, timeout=30)
+            return out.stdout.decode("utf-8", "replace") if out.returncode == 0 else None
+        return Source(repo=self.repo, ref=sha, root=self.root).read(path)
+
+    def raw_url(self, path):
+        """Where a browser can fetch the file (raw.githubusercontent.com allows any origin)."""
+        return None if self.local else RAW.format(repo=self.repo, ref=self.ref, path=self._p(path))
+
     def read_json(self, path):
         text = self.read(path)
         return None if text is None else json.loads(text)

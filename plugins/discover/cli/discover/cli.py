@@ -61,7 +61,7 @@ def cmd_validate(a):
     root = getattr(a, "root", "")
     source = Source(repo=parse_repo(a.repo), ref=a.ref, root=root) if a.repo else Source(local=a.path)
     r = validate(source, overlay, adapter, catalogued(entry), frontier_doc)
-    slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog", "table_rows")}
+    slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog", "table_rows", "history")}
     emit(slim, a.json, lambda _: format_report(r))
     return 0 if r["conformant"] else 1
 
@@ -249,7 +249,7 @@ def cmd_prompt(a):
 
 
 def cmd_hub(a):
-    data = hub.build(a.registry, a.out, a.board)
+    data = hub.build(a.registry, a.out, a.board, with_history=a.history)
     print(f"wrote {a.out}: {len(data['projects'])} projects, {len(data['problems'])} problems")
     return 1 if a.strict and data["problems"] else 0
 
@@ -593,6 +593,8 @@ def main(argv=None):
     h.add_argument("--registry", default="registry/projects")
     h.add_argument("--out", default="site/data/projects.json")
     h.add_argument("--board", action="store_true", help="include live board snapshots (needs gh)")
+    h.add_argument("--history", action="store_true",
+                   help="derive each frontier's history from git where the project keeps no history file")
     h.add_argument("--strict", action="store_true", help="exit nonzero on any problem")
     h.set_defaults(func=cmd_hub)
 
