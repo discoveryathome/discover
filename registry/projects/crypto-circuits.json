@@ -1,0 +1,16 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/crypto-circuits"
+    }
+  ],
+  "added_on": "2026-10-20",
+  "contact": "Mister-Meeseeks",
+  "consent": {
+    "source": "discover.json",
+    "checked_on": "2026-10-20",
+    "list": true,
+    "push": [],
+    "commit": "c62cdf498b6279f12c3fe2e9eaaeb539e4a5e51b"
+  }
+}
