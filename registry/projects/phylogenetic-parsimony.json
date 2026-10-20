@@ -1,0 +1,16 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/phylogenetic-parsimony"
+    }
+  ],
+  "added_on": "2026-10-20",
+  "contact": "Mister-Meeseeks",
+  "consent": {
+    "source": "discover.json",
+    "commit": "eeb2d617c726fc945a6d8cd8d3502363861a247c",
+    "checked_on": "2026-10-20",
+    "list": true,
+    "push": []
+  }
+}
