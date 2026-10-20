@@ -208,6 +208,17 @@ grades, and handling nominations meant to burden a maintainer.
 Donors report where sessions stalled (spec §13, question 13). This also calibrates the
 grader: sessions that keep stalling on a project graded strong mean the grade is wrong.
 
+### 11. Hardware-dependent benchmarks
+
+Results that are measurements on particular hardware (applied-butterfly-mult's M2
+timings): per-hardware frontiers (an M2 result and an x86 one aren't the same claim),
+noise and repetition rules for donors' machines, whether results from different donors
+can be pooled, what a progress chart means across machines, and `requires` that can
+exclude a platform ("not an Apple Silicon Mac"), which it can't today. Donors' varied
+hardware will be an asset for replication once there's a protocol for it. Until then,
+launch leads with machine-independent projects, and hardware-bound cards declare
+`requires` so drawn sessions skip what they can't run.
+
 ## Rubric gaps found in testing
 
 - **Stage 1 with little review capacity.** `applied-butterfly-mult` reached Stage 1 on a
@@ -230,6 +241,14 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
   covers (`verification_covers`), shown beside the grade. Found pre-assessing
   `rohanarun/van-der-waerden-refinement`, whose CI checks every parameter margin of a
   conditional bound whose proofs nobody has reviewed.
+- Found 2026-10-20: applied-butterfly-mult's catalogue needs an Apple Silicon Mac for
+  four cards but declared nothing. It was onboarded on 10-17, a day before `requires`
+  existed, and was never revisited; the assess playbook didn't ask; and every check ran on
+  an arm64 Mac, so nothing failed. Fixed: the assess playbook compares what the work needs
+  with what's declared and records `assessor_machine`, `hub-check` warns when a project's
+  summary, frontier or cards name hardware that nothing declares, and the project has a
+  PR (CrocSwap/applied-butterfly-mult#28). New conventions need a pass over existing
+  listings; this one now has a check.
 - The probes agreed across five runs on one repo (spec §13, question 7). More repos and
   the donor-tier model are still needed.
 - Added 2026-10-20, from mapping which problem shapes the hub should support (record

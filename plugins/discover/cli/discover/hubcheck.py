@@ -23,6 +23,9 @@ ASSESSMENT = re.compile(r"^```discover-assessment[ \t]*\n(.*?)^```[ \t]*$", re.S
 STALE_DAYS = 30
 SETTLE_DAYS = 7  # changes newer than this are expected churn on an active project
 LABEL = "hub-check"
+# Words in a project's summary, frontier and cards that tie its work to particular hardware.
+HARDWARE = re.compile(r"\b(Apple Silicon|Apple M[1-9]|M[1-9] (?:Pro|Max|Ultra)|macOS only|CUDA|NVIDIA|ROCm|"
+                      r"GPU|TPU|AVX-?512|AVX2|NEON|SVE|x86-64|AArch64|Windows only|Linux only)\b")
 GRADED = ("orientation", "coordination", "verification", "review", "steering")
 
 
@@ -36,6 +39,17 @@ def parse_assessment(text):
     except ValueError as e:
         return None, [f"discover-assessment block isn't JSON: {e}"]
     return block, schema.check("assessment.schema.json", block)
+
+
+def hardware_hints(report):
+    """Hardware the project's own text names, and whether anything declares it (spec §4):
+    (terms, declared)."""
+    m, f, cat = report.get("manifest") or {}, report.get("frontier") or {}, report.get("catalog") or {}
+    cards = [c for t in cat.get("tracks", []) for c in t.get("tasks", [])]
+    text = " ".join([m.get("summary", ""), f.get("statement", ""), f.get("scope", ""), " ".join(f.get("prerequisites", []))]
+                    + [json.dumps([c.get("question"), c.get("methods"), c.get("first_step")]) for c in cards])
+    terms = list(dict.fromkeys(x for x in HARDWARE.findall(text)))
+    return terms, bool(m.get("requirements")) or any(c.get("requires") for c in cards)
 
 
 def gh_api(path):
@@ -112,6 +126,13 @@ def check(registry_dir, hub_repo, gh=gh_api, today=None):
                 add(slug, "no-license", "warning", "Listed with a launcher but the repo has no LICENSE file",
                     f"Stage {entry['stage']} requires a license (spec §3.3). Ask the maintainer to add one; "
                     f"otherwise the listing drops to catalogued 14 days after this notice.")
+            terms, declared = hardware_hints(report)
+            if terms and not declared:
+                add(slug, "undeclared-hardware", "warning", "The project's work names particular hardware, but nothing declares it",
+                    f"Its summary, frontier or cards mention {', '.join(terms[:6])}, and neither `requirements` in the "
+                    f"manifest nor `requires` on any card says what a donor's machine needs (spec §4). Donors on other "
+                    f"machines can draw work they can't run. Propose the declarations to the maintainer, or put them "
+                    f"in the adapter.")
             head = gh(f"repos/{repo}/commits/HEAD")["sha"]
         except Exception as e:  # network, rate limits, a deleted repo: report, keep going
             add(slug, "check-failed", "warning", "The check couldn't read the project", f"{type(e).__name__}: {e}")

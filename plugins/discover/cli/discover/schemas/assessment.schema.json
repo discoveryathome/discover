@@ -15,6 +15,7 @@
     "rubric": { "type": "string", "description": "Spec version of the rubric, e.g. v0." },
     "assessor": { "type": "string" },
     "probe_model": { "type": "string" },
+    "assessor_machine": { "type": "string", "description": "Architecture and OS the checks and probes ran on, e.g. \"arm64 macOS\". When it's the project's only platform, they can't show whether other machines can do the work." },
     "mode": { "enum": ["hub", "re-assess"], "default": "hub" },
     "self_assessed": { "type": "boolean", "default": false, "description": "The assessor maintains the project or the hub assessing itself (spec §12.4). Such a record counts toward a stage only after an independent rerun agrees." },
     "previous": { "type": "string", "description": "Path of the assessment this one updates, for a re-assessment." },
