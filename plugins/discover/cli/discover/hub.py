@@ -85,15 +85,20 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
         out["frontier"] = {
             "statement": f.get("statement"), "status": f.get("status"),
             "metric": f.get("metric"), "evidence_level": f.get("evidence_level", []),
+            "claim_kind": f.get("claim_kind", []), "external": f.get("external", []),
             "scope": f.get("scope"), "updated_on": f.get("updated_on"),
             "open_assumptions": [a for a in f.get("assumptions", []) if a.get("status", "open") != "closed"],
             "record_url": blob + m["frontier"] if m.get("frontier") else None,
         }
+        if f.get("table") and report.get("table"):
+            out["frontier"]["table"] = {**report["table"], "url": blob + f["table"]["path"],
+                                        "key": f["table"]["key"], "value": f["table"]["value"]}
     if cat:
         out["priority_revision"] = cat.get("priority_revision")
         out["assessed_on"] = cat.get("assessed_on")
         out["tracks"] = [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome"),
-                          "cards": [{"id": c["id"], "question": c["question"], "methods": c.get("methods", [])}
+                          "cards": [{"id": c["id"], "question": c["question"], "methods": c.get("methods", []),
+                                     "claim_kind": c.get("claim_kind", []), "rows": "rows" in c}
                                     for c in t.get("tasks", [])]}
                          for t in cat.get("tracks", [])]
     if board:
@@ -136,15 +141,17 @@ def agent_index(projects, site, hub_repo, generated_at):
                          "open_prs": p["stage"] >= 1 and bool(perms.get("open_prs"))},
             "session_minutes": p.get("session_minutes", 60),
             "requirements": p.get("requirements"),
-            "frontier": ({"statement": f.get("statement"), "open_assumptions": [a.get("id") or a.get("statement")
-                                                                                for a in f.get("open_assumptions", [])]}
+            "frontier": ({"statement": f.get("statement"), "claim_kind": f.get("claim_kind", []),
+                          **({"table": {k: f["table"][k] for k in ("rows", "open")}} if f.get("table") else {}),
+                          "open_assumptions": [a.get("id") or a.get("statement")
+                                               for a in f.get("open_assumptions", [])]}
                          if f else ({"doc": p["frontier_doc"]["url"]} if p.get("frontier_doc") else None)),
             "tracks": [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome")}
                        for t in p.get("tracks", [])],
             "open_handoffs": handoffs, "open_handoffs_count": len(handoffs),
             "live_claims": (p.get("board") or {}).get("live_claims"),
             "review": {k: (p.get("review") or reviewmod.status(None))[k]
-                       for k in ("state", "per_week", "awaiting", "headroom")},
+                       for k in ("state", "per_week", "awaiting", "headroom", "mechanical")},
             "own_picker": p.get("picker", False), "adapter_url": p.get("adapter_url"),
             "entry": p.get("links", {}), "page": f"{site}#/p/{p['slug']}" if site else None,
         }
@@ -216,7 +223,8 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr):
             try:
                 prs, total = reviewmod.fetch_open_prs(entry["repos"][0]["repo"])
                 own = [x["github"] for x in (report.get("manifest") or {}).get("maintainers", []) if x.get("github")]
-                measured = reviewmod.awaiting(prs, total=total, own=own)
+                bots = (((report.get("manifest") or {}).get("review") or {}).get("mechanical") or {}).get("bots", [])
+                measured = reviewmod.awaiting(prs, total=total, own=own, verdict_bots=bots)
             except Exception as e:
                 print(f"{slug}: review queue unavailable ({e})", file=log)
         summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir), measured)

@@ -80,7 +80,7 @@ site/                     the website (static; GitHub Pages), with v0/ playbooks
 registry/projects/        one JSON file per listed project
 discover/, DISCOVERY.md   the hub's own project files: it's listed on itself
 tools/build.py            packs the CLI into one file and renders the playbooks
-examples/                 the reference project mapped onto v0
+examples/                 the reference project mapped onto v0, and a record-table template
 docs/                     background and analysis
 hub.json                  this hub's description (hubs are copyable; see spec §12)
 .claude-plugin/           marketplace manifest

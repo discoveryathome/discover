@@ -232,6 +232,17 @@ grader: sessions that keep stalling on a project graded strong mean the grade is
   conditional bound whose proofs nobody has reviewed.
 - The probes agreed across five runs on one repo (spec §13, question 7). More repos and
   the donor-tier model are still needed.
+- Added 2026-10-20, from mapping which problem shapes the hub should support (record
+  hunting, simulation, benchmarks, observation; spec §3.2, §4, §5, §7): **record tables**,
+  a frontier made of independent cases with a per-row check, which `discover pick` draws
+  rows from (`examples/golomb-rulers/`); **claim kinds** (`exact`, `formal`,
+  `certified`, `argument`, `model`, `measured`, `observational`), shown on the listing,
+  with statements that claim no more than their kind supports; a proven **bound** beside a
+  constructed value; **outside acceptance** (`externally-accepted`, `external[]`); and
+  **mechanical acceptance** (`review.mechanical`), where a stated check's verdict counts as
+  a first response, for claims the check fully establishes. Not yet tested on a real
+  project. Left out on purpose: hidden test sets, which a public check can't run, and
+  benchmarks whose timing depends on the hardware.
 
 ## Launch housekeeping
 

@@ -44,9 +44,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-4c5ba2a0e611.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-b68ff6720faf.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 4c5ba2a0e6115825f6f01ca35b46db64e521491573872d54ffcb9f902b81dee0
+# must print b68ff6720faf04b1f0c3b9aebc272f836b013c641131a29c7fd94f671489a8fb
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -247,7 +247,11 @@ In priority order:
    the person before starting. If your prompt names a task the
    website drew, use it unless the project's current catalogue no longer has it; then
    draw again with the same seed. With focus `audit`, draw from the project's audit or
-   verification track; with `explore`, from its new-approach track.
+   verification track; with `explore`, from its new-approach track. A card that applies
+   to any case of a **record table** (it has `rows`) also draws a row: `discover pick`
+   with your seed names it, with its current value and the command that checks it. The
+   website can't draw rows, so run `discover pick` even when your prompt names the card.
+   Work on that row, and run its check on your result before you report it.
 
 Then check for overlap: use the project's own overlap tool if it has one; otherwise
 search open PRs and the coordination channel for your task's key terms

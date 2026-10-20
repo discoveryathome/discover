@@ -80,8 +80,8 @@
       }
     },
     "verification_profile": {
-      "enum": ["formal-proof", "exact-certificate", "benchmark", "replication", "review-only"],
-      "description": "Strongest kind of evidence the project can produce. Hub filter."
+      "enum": ["formal-proof", "exact-certificate", "simulation", "benchmark", "observational", "replication", "review-only"],
+      "description": "Strongest kind of evidence the project can produce. Hub filter. The frontier record's claim_kind says what its current result claims."
     },
     "hubs": {
       "type": "array",
@@ -124,7 +124,16 @@
       "properties": {
         "per_week": { "type": ["integer", "string"], "minimum": 1, "pattern": "^surge$", "description": "Contributions the maintainers can give a first response to in a week, or \"surge\" for ready for any amount of traffic." },
         "paused": { "type": "boolean", "default": false, "description": "Close the launcher until set back to false. The maintainer's switch for a backlog." },
-        "note": { "type": "string", "description": "Who reviews, and anything donors should know." }
+        "note": { "type": "string", "description": "Who reviews, and anything donors should know." },
+        "mechanical": {
+          "type": "object", "required": ["rule"],
+          "description": "Contributions are accepted by a stated check, not by a person (spec §3.2, Review). The automated verdict counts as a first response.",
+          "properties": {
+            "rule": { "type": "string", "description": "What passes, in plain words, e.g. \"A PR that adds a row whose witness passes check_row and beats the table's value is merged automatically.\"" },
+            "check": { "type": "string", "description": "The workflow file or command that decides." },
+            "bots": { "type": "array", "items": { "type": "string" }, "description": "GitHub logins whose comments carry the verdict, e.g. [\"github-actions[bot]\"]." }
+          }
+        }
       }
     },
     "picker": {

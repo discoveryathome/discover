@@ -11,8 +11,8 @@ const STAGE_HELP = {
 };
 const stageRank = (p) => (typeof p.stage === "number" ? p.stage + 1 : p.stage === "assessed" ? 0 : -1);
 const PROFILES = {
-  "formal-proof": "Formal proof", "exact-certificate": "Exact certificate", benchmark: "Benchmark",
-  replication: "Replication", "review-only": "Expert review",
+  "formal-proof": "Formal proof", "exact-certificate": "Exact certificate", simulation: "Simulation",
+  benchmark: "Benchmark", observational: "Observational", replication: "Replication", "review-only": "Expert review",
 };
 const state = { data: null, q: "", domain: "", profile: "", assessedOnly: false };
 
@@ -48,7 +48,7 @@ function reviewBadge(p) {
 function reviewText(r) {
   if (!r) return "";
   const cap = r.per_week === "surge" ? "Ready for surge traffic" : typeof r.per_week === "number" ? `About ${r.per_week} a week` : "Not declared";
-  return `${esc(cap)}${r.awaiting == null ? "" : ` · ${esc(plural(r.awaiting, "outside contribution"))} awaiting a first response`}${r.paused ? " · <b>paused by its maintainers</b>" : ""}`;
+  return `${esc(cap)}${r.awaiting == null ? "" : ` · ${esc(plural(r.awaiting, "outside contribution"))} awaiting a first response`}${r.paused ? " · <b>paused by its maintainers</b>" : ""}${r.mechanical ? `<br><span class="hint">Accepted by a stated check: ${esc(r.mechanical)}</span>` : ""}`;
 }
 
 function needsText(r) {
@@ -71,8 +71,16 @@ function trackBar(tracks) {
 function metric(f) {
   if (!f?.metric) return "";
   const m = f.metric;
-  return `<div class="metric"><span class="n">${esc(m.name)}</span><span class="v">${esc(m.decimal || m.value)}</span></div>`;
+  const bound = m.bound ? `<span class="muted" style="font-size:13px">proven bound ${esc(m.bound)}${m.bound_source ? ` (${link(m.bound_source, "source")})` : ""}</span>` : "";
+  return `<div class="metric"><span class="n">${esc(m.name)}</span><span class="v">${esc(m.decimal || m.value)}</span>${bound}</div>`;
 }
+
+// What kind of claim a record makes (spec §5), in donors' words.
+const CLAIM_KINDS = {
+  exact: "exact check", formal: "formal proof", certified: "certified numerics", argument: "reviewed argument",
+  model: "within a model", measured: "measured", observational: "observational candidate",
+};
+const claimBadges = (kinds) => (kinds || []).map((k) => `<span class="badge">${esc(CLAIM_KINDS[k] || k)}</span>`).join("");
 
 // --- prompts (same templates and draw as `discover prompt` / `discover pick`) -----
 
@@ -262,7 +270,9 @@ function viewProject(slug) {
         <h2>Current frontier</h2>
         ${metric(f)}
         <p>${esc(f.statement)}</p>
-        <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${(f.evidence_level || []).map((e) => `<span class="badge ok">${esc(e.replace(/-/g, " "))}</span>`).join("")}</div>
+        ${f.table ? `<p class="hint">A table of ${esc(plural(f.table.rows, "case"))}, ${esc(f.table.open)} still open · ${link(f.table.url, "table")}</p>` : ""}
+        <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${claimBadges(f.claim_kind)}${(f.evidence_level || []).map((e) => `<span class="badge ok">${esc(e.replace(/-/g, " "))}</span>`).join("")}</div>
+        ${f.external?.length ? `<p class="hint">Accepted by ${f.external.map((x) => link(x.url, x.authority)).join(", ")}</p>` : ""}
         ${f.scope ? `<details><summary>Scope and conditions</summary><p class="hint">${esc(f.scope)}</p></details>` : ""}
         ${assumptions}
         <p class="hint">Updated ${esc(f.updated_on || "unknown")} · ${link(f.record_url, "record")}</p>
@@ -276,7 +286,7 @@ function viewProject(slug) {
         <p class="hint">How the project splits donated sessions across its tracks${p.priority_revision ? ` (revision ${esc(p.priority_revision)})` : ""}. Open a track to see its tasks.</p>
         ${trackBar(p.tracks)}
         <div class="legend">${p.tracks.map((t, i) => `<div class="legend-row"><span class="sw" style="background:var(--track-${(i % TRACK_COLORS) + 1})"></span>
-          <details><summary>${esc(t.id)}</summary>${t.useful_outcome ? `<p class="hint" style="margin-bottom:6px">${esc(t.useful_outcome)}</p>` : ""}<ul class="qlist">${t.cards.map((c) => `<li><code>${esc(c.id)}</code>: ${esc(c.question)}</li>`).join("")}</ul></details>
+          <details><summary>${esc(t.id)}</summary>${t.useful_outcome ? `<p class="hint" style="margin-bottom:6px">${esc(t.useful_outcome)}</p>` : ""}<ul class="qlist">${t.cards.map((c) => `<li><code>${esc(c.id)}</code>: ${esc(c.question)}${c.rows || c.claim_kind?.length ? `<div class="hint">${[c.rows ? "any open case in the table" : "", ...(c.claim_kind || []).map((k) => CLAIM_KINDS[k] || k)].filter(Boolean).map(esc).join(" · ")}</div>` : ""}</li>`).join("")}</ul></details>
           <span class="w">${esc(t.weight)}%</span></div>`).join("")}</div>
       </section>` : ""}
       ${board}

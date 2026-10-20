@@ -5,6 +5,7 @@ assessment of the five properties (spec §3), never from this check.
 """
 
 from . import schema
+from . import table as tablemod
 from .project import Source, load_manifest
 
 
@@ -43,7 +44,7 @@ def normalize_frontier(raw, adapter=None):
             if "direction" in src:
                 m["direction"] = src["direction"]
             out["metric"] = m
-        elif key == "evidence_level":
+        elif key in ("evidence_level", "claim_kind"):
             out[key] = src  # declared by the adapter, not read from the record
         elif isinstance(src, str) and src in raw:
             out[key] = raw[src]
@@ -139,6 +140,15 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
     if frontier is not None:
         req += [f"frontier {e}" for e in schema.check("frontier.schema.json", frontier)]
         r["frontier"] = frontier
+        tbl = frontier.get("table")
+        if isinstance(tbl, dict) and {"path", "key", "value"} <= tbl.keys():
+            rows, problem = tablemod.load(source, tbl)
+            if problem:
+                req.append(problem)
+            else:
+                req += tablemod.problems(rows, tbl)
+                r["table_rows"] = rows
+                r["table"] = tablemod.summary(rows, tbl)
 
     cat_path = manifest.get("catalog")
     catalog = source.read_json(cat_path) if cat_path else None
@@ -150,6 +160,8 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
         catalog, warns = normalize_catalog(catalog)
         r["warnings"] += warns
         probs = catalog_problems(catalog)
+        if "table_rows" not in r and any("rows" in c for t in catalog.get("tracks", []) for c in t.get("tasks", [])):
+            probs.append("a card draws `rows`, but the frontier record has no readable `table`")
         conv["catalog"] = "; ".join(probs) if probs else True
         r["catalog"] = catalog
     log = manifest.get("priority_log")
@@ -184,6 +196,8 @@ def format_report(r):
     else:
         head = "not conformant: the problems below need fixing, in the repo or the hub's adapter"
     lines = [f"{r['source']}: {head}"]
+    if r.get("table"):
+        lines.append(f"  frontier table: {r['table']['rows']} cases, {r['table']['open']} open")
     if r.get("manifest_origin") is not None:
         lines += [f"  problem: {p}" for p in r["problems"]]
     lines += [f"  warning: {w}" for w in r["warnings"]]

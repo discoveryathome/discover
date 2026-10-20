@@ -54,6 +54,18 @@
           "gpu": { "type": "string" }, "note": { "type": "string" }
         }
         },
+        "claim_kind": {
+          "type": "array", "items": { "enum": ["exact", "formal", "certified", "argument", "model", "measured", "observational"] },
+          "description": "What kind of result this card's work produces, as in the frontier record (spec §5)."
+        },
+        "rows": {
+          "type": "object", "additionalProperties": false,
+          "description": "The card applies to any row of the frontier's table; the picker draws one from the seed (spec §7).",
+          "properties": {
+            "open": { "type": "boolean", "default": true, "description": "Draw only open rows (no bound, or a value that doesn't meet it)." },
+            "where": { "type": "object", "description": "Only rows whose columns equal these values, e.g. {\"t\": 3}. Compared as text." }
+          }
+        },
         "first_experiment": { "type": "string" },
         "bottleneck_link": { "type": "string" },
         "allowed_variations": { "type": "array", "items": { "type": "string" } },

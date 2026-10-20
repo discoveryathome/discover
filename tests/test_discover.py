@@ -521,7 +521,8 @@ class ReviewTests(unittest.TestCase):
         idx = hub.agent_index(ps, "https://s/", "h/h", "now")
         self.assertEqual([p["slug"] for p in idx["projects"]], ["full", "surge", "undeclared"])
         self.assertEqual(schema.check("agent-index.schema.json", idx), [])
-        self.assertEqual(idx["projects"][0]["review"], {"state": "full", "per_week": 2, "awaiting": 9, "headroom": -7})
+        self.assertEqual(idx["projects"][0]["review"], {"state": "full", "per_week": 2, "awaiting": 9, "headroom": -7,
+                                                        "mechanical": None})
         self.assertEqual({p["weight"] for p in idx["projects"]}, {3})  # the draw ignores review load
 
 
@@ -807,3 +808,117 @@ class HubTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+GOLOMB = ROOT / "examples" / "golomb-rulers"
+
+
+class RecordTableTests(unittest.TestCase):
+    """Frontiers made of many cases (spec §5), cards that draw a row (§7), claim kinds,
+    outside acceptance and mechanical review (§3.2)."""
+
+    def test_example_conforms_and_its_checks_pass(self):
+        r = validate(Source(local=GOLOMB))
+        self.assertTrue(r["conformant"], r["problems"])
+        self.assertEqual(r["table"], {"rows": 13, "open": 4})
+        self.assertIn("13 cases, 4 open", format_report(r))
+        self.assertEqual(schema.check("catalog.schema.json", json.loads((GOLOMB / "catalog.json").read_text())), [])
+        out = subprocess.run([sys.executable, "check.py", "--all"], cwd=GOLOMB, capture_output=True, text=True)
+        self.assertEqual(out.returncode, 0, out.stdout)
+
+    def test_parse_formats_and_open_rows(self):
+        from discover import table
+        t = {"path": "x.json", "key": ["n"], "value": "len", "bound": "opt"}
+        rows = table.parse('{"rows": [{"n": 1, "len": 3, "opt": 3}, {"n": 2, "len": 5.0, "opt": 5},'
+                           ' {"n": 3, "len": 9, "opt": 7}, {"n": 4, "len": 11}]}', "json")
+        self.assertEqual([table.is_open(r, t) for r in rows], [False, False, True, True])
+        self.assertEqual(table.parse("n,len\n1,3\n", "csv"), [{"n": "1", "len": "3"}])
+        self.assertEqual(table.parse('{"n": 1}\n\n{"n": 2}\n', "jsonl"), [{"n": "1"}, {"n": "2"}])
+        self.assertEqual(table.fmt_of({"path": "a/b.CSV"}), "csv")
+        with self.assertRaises(ValueError):
+            table.parse('{"cases": []}', "json")
+
+    def test_problems_are_reported(self):
+        with tempfile.TemporaryDirectory() as d:
+            for f in ("discover.json", "frontier.json", "catalog.json", "LICENSE", "check.py"):
+                (Path(d) / f).write_text((GOLOMB / f).read_text())
+            (Path(d) / "rulers.csv").write_text("n,length,optimum,marks\n4,6,6,0 1 4 6\n4,7,6,0 1 4 7\n5,11,,0 1 4 9 11\n")
+            r = validate(Source(local=d))
+            self.assertFalse(r["conformant"])
+            self.assertTrue(any("duplicate keys" in p for p in r["problems"]), r["problems"])
+            (Path(d) / "rulers.csv").unlink()
+            r = validate(Source(local=d))
+            self.assertIn("frontier table not found: rulers.csv", r["problems"])
+            self.assertIn("no readable `table`", r["conventions"]["catalog"])
+
+    def test_pick_draws_an_open_row_reproducibly(self):
+        from discover import table
+        catalog = json.loads((GOLOMB / "catalog.json").read_text())
+        tbl = json.loads((GOLOMB / "frontier.json").read_text())["table"]
+        rows, _ = table.load(Source(local=GOLOMB), tbl)
+        seen = set()
+        for i in range(40):
+            seed = f"{i:032x}"
+            a = pick.pick(catalog, seed, table=tbl, rows=rows)["suggestions"][0]
+            self.assertEqual(a, pick.pick(catalog, seed, table=tbl, rows=rows)["suggestions"][0])
+            self.assertIn(a["row"]["n"], {"11", "12", "13", "14"})  # only open rows
+            self.assertEqual(a["row_check"], ["python3", "check.py", "--n", a["row"]["n"]])
+            self.assertEqual(a["scope_key"], pick.scope_key(a["task_id"], a["method"], a["row"]))
+            seen.add(a["row"]["n"])
+        self.assertEqual(len(seen), 4)
+        card = catalog["tracks"][0]["tasks"][0]
+        card["rows"] = {"open": False, "where": {"n": 4}}
+        self.assertEqual(pick.pick(catalog, "0" * 32, table=tbl, rows=rows)["suggestions"][0]["row"], {"n": "4"})
+        card["rows"] = {"where": {"n": 4}}
+        self.assertEqual(pick.pick(catalog, "0" * 32, table=tbl, rows=rows)["suggestions"][0]["row_note"],
+                         "no row matches this card")
+        # Without the table the card is still drawn, with a note; cards without rows keep their old scope keys.
+        self.assertIn("couldn't be read", pick.pick(catalog, "0" * 32)["suggestions"][0]["row_note"])
+        self.assertEqual(pick.scope_key("t", "m"), pick.digest(["t", "m"])[:32])
+
+    def test_cli_pick_reads_the_table(self):
+        out = subprocess.run([sys.executable, str(ROOT / "plugins" / "discover" / "cli" / "discover.py"), "pick",
+                              str(GOLOMB), "--seed", "0" * 32, "--json"], capture_output=True, text=True)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn(json.loads(out.stdout)["suggestions"][0]["row"]["n"], {"11", "12", "13", "14"})
+
+    def test_claim_kind_external_and_bound(self):
+        f = json.loads((EXAMPLE / "frontier.json").read_text())
+        ok = {**f, "claim_kind": ["exact", "argument"], "evidence_level": ["author-checked", "externally-accepted"],
+              "external": [{"authority": "codetables.de", "url": "https://codetables.de/", "accepted_on": "2026-10-01"}],
+              "metric": {**f.get("metric", {"name": "m", "value": "1"}), "bound": "2", "bound_source": "doi:x"}}
+        self.assertEqual(schema.check("frontier.schema.json", ok), [])
+        self.assertNotEqual(schema.check("frontier.schema.json", {**f, "claim_kind": ["vibes"]}), [])
+        self.assertNotEqual(schema.check("frontier.schema.json", {**f, "external": [{"url": "u"}]}), [])
+        with tempfile.TemporaryDirectory() as d:
+            init.scaffold(d, "T", "S", ["math"], "M", "o/r")
+            fp = Path(d) / json.loads((Path(d) / "discover.json").read_text())["frontier"]
+            fp.write_text(json.dumps({**json.loads(fp.read_text()), "claim_kind": ["model"],
+                                      "external": ok["external"]}))
+            s = hub.project_summary("t", {"repos": [{"repo": "o/r"}]}, validate(Source(local=d)))
+            self.assertEqual(s["frontier"]["claim_kind"], ["model"])
+            self.assertEqual(s["frontier"]["external"][0]["authority"], "codetables.de")
+
+    def test_adapter_declares_claim_kind(self):
+        from discover.validate import normalize_frontier
+        out, _ = normalize_frontier({"status": "s"}, {"statement": "status", "claim_kind": ["measured"]})
+        self.assertEqual(out["claim_kind"], ["measured"])
+
+    def test_mechanical_review(self):
+        from discover import review
+        m = json.loads((GOLOMB / "discover.json").read_text())
+        self.assertEqual(schema.check("manifest.schema.json", m), [])
+        self.assertNotEqual(schema.check("manifest.schema.json", {**m, "review": {"mechanical": {"bots": []}}}), [])
+        pr = ReviewTests().pr(1, commenters=["github-actions[bot]"], days=2)
+        at = datetime(2026, 10, 18, tzinfo=timezone.utc)
+        self.assertEqual(review.awaiting([pr], at=at)["awaiting"], 1)
+        self.assertEqual(review.awaiting([pr], at=at, verdict_bots=["GitHub-Actions[bot]"])["awaiting"], 0)
+        self.assertEqual(review.status(m["review"])["mechanical"], m["review"]["mechanical"]["rule"])
+        s = hub.project_summary("g", {"repos": [{"repo": "example/golomb-rulers"}]}, validate(Source(local=GOLOMB)))
+        self.assertEqual(s["frontier"]["table"]["open"], 4)
+        self.assertTrue(s["tracks"][0]["cards"][0]["rows"])
+        s.update({"listing": "listed", "stage": 0})
+        idx = hub.agent_index([s], "https://x/", "o/h", "t")
+        self.assertEqual(schema.check("agent-index.schema.json", idx), [])
+        self.assertEqual(idx["projects"][0]["frontier"]["table"], {"rows": 13, "open": 4})
+        self.assertTrue(idx["projects"][0]["review"]["mechanical"].startswith("A PR"))

@@ -46,12 +46,14 @@ def _bot(author):
     return not author or author.get("__typename") == "Bot" or (author.get("login") or "").endswith("[bot]")
 
 
-def awaiting(prs, at=None, total=None, own=()):
+def awaiting(prs, at=None, total=None, own=(), verdict_bots=()):
     """Contributions waiting for a first response: open, non-draft PRs from outside the
     project with no review or comment from anyone but their author. `own` is the
-    maintainers' GitHub logins."""
+    maintainers' GitHub logins; `verdict_bots` the bots whose comments carry a mechanical
+    acceptance verdict (manifest `review.mechanical.bots`), which count as a response."""
     at = at or datetime.now(timezone.utc)
     own = {o.lower() for o in own}
+    verdict = {b.lower() for b in verdict_bots}
     waiting = []
     for pr in prs:
         author = pr.get("author") or {}
@@ -60,7 +62,8 @@ def awaiting(prs, at=None, total=None, own=()):
             continue
         others = [n for k in ("reviews", "comments") for n in (pr.get(k) or {}).get("nodes", [])
                   if (n.get("author") or {}).get("login") not in (None, author.get("login"))
-                  and not _bot(n.get("author"))]
+                  and (not _bot(n.get("author"))
+                       or ((n.get("author") or {}).get("login") or "").lower() in verdict)]
         if not others:
             waiting.append(pr)
     oldest = min((parse_time(p["createdAt"]) for p in waiting), default=None)
@@ -80,7 +83,8 @@ def status(declared, measured=None):
     declared = declared or {}
     per_week = declared.get("per_week")
     out = {"per_week": per_week, "paused": bool(declared.get("paused")),
-           "awaiting": None, "oldest_days": None, "headroom": None}
+           "awaiting": None, "oldest_days": None, "headroom": None,
+           "mechanical": (declared.get("mechanical") or {}).get("rule")}
     if measured:
         out["awaiting"], out["oldest_days"] = measured["awaiting"], measured["oldest_days"]
         out["partial"] = measured.get("partial", False)

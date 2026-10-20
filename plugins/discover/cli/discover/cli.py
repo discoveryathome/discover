@@ -61,7 +61,7 @@ def cmd_validate(a):
     root = getattr(a, "root", "")
     source = Source(repo=parse_repo(a.repo), ref=a.ref, root=root) if a.repo else Source(local=a.path)
     r = validate(source, overlay, adapter, catalogued(entry), frontier_doc)
-    slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog")}
+    slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog", "table_rows")}
     emit(slim, a.json, lambda _: format_report(r))
     return 0 if r["conformant"] else 1
 
@@ -95,6 +95,20 @@ def load_catalog(path):
     return manifest, normalize_catalog(catalog)[0]
 
 
+def load_table(path, manifest):
+    """The frontier's record table (spec §5) and its rows, or (None, None)."""
+    from . import table as tablemod
+    source = Source(local=path)
+    frontier = source.read_json(manifest["frontier"]) if manifest.get("frontier") else None
+    tbl = (frontier or {}).get("table")
+    if not tbl:
+        return None, None
+    rows, problem = tablemod.load(source, tbl)
+    if problem:
+        print(f"warning: {problem}", file=sys.stderr)
+    return tbl, rows
+
+
 def live_board(repo, n):
     msgs, bad = boardmod.messages(boardmod.fetch_posts(repo, n))
     for b in bad:
@@ -116,7 +130,8 @@ def cmd_pick(a):
             b = live_board(a.repo or parse_repo(manifest["canonical_repo"]), a.discussions)
         except Exception as e:
             print(f"warning: live board unavailable ({e}); suggestions ignore claims", file=sys.stderr)
-    r = pick.pick(catalog, a.seed, a.track, a.task, b, a.count)
+    table, rows = load_table(a.path, manifest)
+    r = pick.pick(catalog, a.seed, a.track, a.task, b, a.count, table=table, rows=rows)
     r["base"] = git_head(a.path)
     r["priority_revision"] = catalog.get("priority_revision")
     emit(r, a.json, pick.format_pick)
