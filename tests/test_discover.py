@@ -1034,6 +1034,95 @@ class HistoryTests(unittest.TestCase):
         self.assertIsNone(Source(local=GOLOMB).raw_url("f.json"))
 
 
+class VisualTests(unittest.TestCase):
+    """The hero visual (spec §4, Visual)."""
+
+    SVG = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>x()</script></svg>'
+
+    def copy_golomb(self, d, visual=None):
+        for f in ("discover.json", "frontier.json", "catalog.json", "LICENSE", "rulers.csv", "history.jsonl", "README.md"):
+            (Path(d) / f).write_text((GOLOMB / f).read_text())
+        if visual is not None:
+            m = json.loads((GOLOMB / "discover.json").read_text())
+            m["visual"] = visual
+            (Path(d) / "discover.json").write_text(json.dumps(m))
+
+    def test_schema(self):
+        base = json.loads((GOLOMB / "discover.json").read_text())
+        ok = {**base, "visual": {"render": "image", "src": "hero.png", "alt": "a picture"}}
+        self.assertEqual(schema.check("manifest.schema.json", ok), [])
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "visual": {"render": "image", "src": "a.png"}}))
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "visual": {"render": "sparkles"}}))
+        self.assertEqual(schema.check("manifest.schema.json", {**base, "visual": {
+            "render": "bound-gap", "baseline": {"value": "0", "label": "none"}}}), [])
+
+    def test_helpers(self):
+        from discover import visual
+        self.assertTrue(visual.looks_like(b"\x89PNG\r\n\x1a\nrest", "image/png"))
+        self.assertFalse(visual.looks_like(self.SVG, "image/png"))
+        self.assertTrue(visual.looks_like(self.SVG, visual.media_type("x.SVG")))
+        self.assertIsNone(visual.media_type("x.html"))
+        f = {"statement": "s", "metric": {"name": "k", "value": "3"}}
+        self.assertEqual(visual.fill("{title}: {metric} = {value} {other}", "T", f), "T: k = 3 {other}")
+        self.assertEqual(visual.resolve({"visual": {"render": "progress"}}, {"visual": {"render": "records"}}),
+                         ({"render": "progress"}, "project"))
+        self.assertEqual(visual.resolve({}, {"visual": {"render": "records"}})[1], "adapter")
+        self.assertTrue(visual.problems({"render": "records"}, {"frontier": {}}))
+        self.assertTrue(visual.problems({"render": "progress", "prompt": "p"}, {"frontier": {"metric": {"value": "1"}}}))
+
+    def test_validate_warns_on_a_missing_image(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.copy_golomb(d, {"render": "image", "src": "hero.svg", "alt": "a"})
+            r = validate(Source(local=d))
+            self.assertTrue(r["conformant"], r["problems"])
+            self.assertIn("visual: image not found: hero.svg", r["warnings"])
+
+    def hero(self, d, hub_root, adapter_block=None, log=None):
+        import io
+        r = validate(Source(local=d))
+        entry = {"repos": [{"repo": "o/r"}]}
+        out = Path(hub_root) / "site" / "data"
+        return hub.hero("g", entry, r, adapter_block, Source(local=d), hub_root, out, "Golomb",
+                        log or io.StringIO()), out
+
+    def test_hub_copies_a_project_image(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as h:
+            self.copy_golomb(d, {"render": "image", "src": "hero.svg", "alt": "a ruler",
+                                 "prompt": "A ruler; {metric} is {value}"})
+            (Path(d) / "hero.svg").write_bytes(self.SVG)
+            v, out = self.hero(d, h)
+            self.assertEqual((v["type"], v["kind"], v["origin"], v["snapshot"]),
+                             ("image/svg+xml", "illustration", "project", "data/visuals/g.bin"))
+            self.assertEqual(v["prompt"], "A ruler; rows meeting the optimum is 9")
+            self.assertEqual((out / "visuals" / "g.bin").read_bytes(), self.SVG)
+
+    def test_hub_refuses_a_mislabelled_or_escaping_image(self):
+        import io
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as h:
+            self.copy_golomb(d, {"render": "image", "src": "hero.png", "alt": "a"})
+            (Path(d) / "hero.png").write_bytes(self.SVG)
+            log = io.StringIO()
+            self.assertEqual(self.hero(d, h, log=log)[0], None)
+            self.assertIn("isn't the image/png", log.getvalue())
+            self.copy_golomb(d)
+            block = {"visual": {"render": "image", "from": "hub", "src": "../outside.svg", "alt": "a"}}
+            self.assertEqual(self.hero(d, h, block, log)[0], None)
+            self.assertIn("not a file in the hub", log.getvalue())
+            (Path(h) / "visuals").mkdir()
+            (Path(h) / "visuals" / "g.svg").write_bytes(self.SVG)
+            block["visual"]["src"] = "visuals/g.svg"
+            v, _ = self.hero(d, h, block)
+            self.assertEqual((v["origin"], v["live_url"]), ("adapter", None))
+
+    def test_drawn_render_and_fallback(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as h:
+            self.copy_golomb(d, {"render": "bound-gap", "baseline": {"value": "0"}})
+            v, _ = self.hero(d, h)
+            self.assertEqual((v["render"], v["kind"], v["baseline"]), ("bound-gap", "derived", {"value": "0"}))
+            self.copy_golomb(d)
+            self.assertIsNone(self.hero(d, h)[0])
+
+
 class HardwareHintTests(unittest.TestCase):
     def test_undeclared_hardware_is_found_and_declarations_clear_it(self):
         from discover.hubcheck import hardware_hints

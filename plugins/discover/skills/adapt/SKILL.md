@@ -285,6 +285,12 @@ JSON block (https://github.com/discoveryathome/discover/tree/main/spec/schemas/a
   The hub charts a mapped record's `metric` from the file's git history by itself; if the
   project keeps its own log of improvements in JSON Lines with `date` and `value`, add
   `"history": "path"` to the mapping instead.
+- `visual` (top level, optional): the hero picture when the project declares none
+  (spec §4). Prefer what the hub draws from the frontier: `bound-gap` with a `baseline`
+  the project's own text states (where the question started), `progress`, or `records`
+  for a table. Point an `image` at a figure the project already keeps, with its `alt`.
+  A picture the hub makes goes in the hub's `visuals/` with `"from": "hub"` and `kind:
+  "illustration"`, and records its `prompt` if an image model made it.
 - The kind of claim, even without a machine-readable record: say in the adapter's text
   whether the project's results are exact, formal, within a model, measured or
   observational, in the project's own terms, so donors know what a check can show.

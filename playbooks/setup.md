@@ -97,6 +97,13 @@ Then fill in, with the maintainer:
   and `updated` columns so each record is credited. If they keep a log of improvements,
   point `history` at it (spec §5); otherwise the hub derives one from git, without
   credits.
+- **Visual (encouraged):** ask what picture would show the problem and its progress
+  (spec §4, `visual`). Often the hub draws it from the frontier: `progress`,
+  `bound-gap` with a `baseline` where the question started, or `records` for a table. If
+  the result is itself a picture (a packing, a construction), add a script that draws it
+  from the frontier and commit the image beside it, `kind: "witness"`. An image made by
+  an image model records its `prompt`. Don't invent one if nothing fits: the hub falls
+  back to a title card.
 - **Catalogue:** 2–6 tracks with integer weights summing to 100. Always include an
   independent-verification or audit track. For each track, 1–4 cards, each with a
   precise `question`, `starting_points`, `methods`, an `acceptance_gate`, a `first_step`

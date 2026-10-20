@@ -6,6 +6,7 @@ assessment of the five properties (spec §3), never from this check.
 
 from . import schema
 from . import history as historymod
+from . import visual as visualmod
 from . import table as tablemod
 from .project import Source, load_manifest
 
@@ -190,6 +191,12 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
         conv["packages"] = f"none yet under {pk} (fine for a new project)"
     else:
         conv["packages"] = True
+
+    vis = manifest.get("visual")
+    if isinstance(vis, dict):
+        r["warnings"] += visualmod.problems(vis, r)
+        if vis.get("render") == "image" and vis.get("src") and source.exists(vis["src"]) is False:
+            r["warnings"].append(f"visual: image not found: {vis['src']}")
 
     r["license"] = license_file(source)
     if not r["license"]:

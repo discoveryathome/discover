@@ -107,6 +107,24 @@
       "type": "string", "format": "date",
       "description": "Last change to how the project coordinates or reviews; activity measurements count from here."
     },
+    "visual": {
+      "type": "object", "required": ["render"], "additionalProperties": false,
+      "description": "The project's hero picture, on its card and page (spec §4, Visual). Optional: without one the hub draws a chart or a title card from the frontier.",
+      "properties": {
+        "render": { "enum": ["image", "progress", "bound-gap", "records"], "description": "image: a picture the project keeps. progress: the frontier's value over time. bound-gap: the same, against the proven bound and a baseline. records: the record table as a grid of cases, open and settled. The hub draws the last three from the frontier record." },
+        "kind": { "enum": ["witness", "derived", "illustration"], "description": "witness: the picture is the result itself (a packing, a ruler). derived: computed from the frontier (a chart). illustration: conveys the topic only. Defaults: derived for drawn renders, illustration for images." },
+        "src": { "type": "string", "description": "image: path of an SVG, PNG, JPEG, WebP or GIF, at most 1 MB." },
+        "alt": { "type": "string", "description": "What the picture shows, for readers who can't see it. Required for images." },
+        "caption": { "type": "string" },
+        "baseline": {
+          "type": "object", "required": ["value"], "additionalProperties": false,
+          "description": "bound-gap: where the question started, e.g. the bound before the project.",
+          "properties": { "value": { "type": "string" }, "label": { "type": "string" } }
+        },
+        "prompt": { "type": "string", "description": "image: the image-generation prompt it was made from, a template filled from the frontier: {title}, {statement}, {metric}, {value}. Shown beside the picture; regenerate the image when the frontier changes." }
+      },
+      "allOf": [{ "if": { "properties": { "render": { "const": "image" } } }, "then": { "required": ["src", "alt"] } }]
+    },
     "requirements": {
       "type": "object", "additionalProperties": false,
       "description": "What a donor's machine needs (spec §4). Every key optional.",

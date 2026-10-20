@@ -8,6 +8,7 @@ from pathlib import Path
 from . import adapter as adaptermod
 from . import board as boardmod
 from . import history as historymod
+from . import visual as visualmod
 from . import review as reviewmod
 from . import schema
 from .project import Source
@@ -196,8 +197,60 @@ def site_url(registry_dir):
         return None
 
 
+def hero(slug, entry, report, adapter_block, source, hub_root, data_dir, title, log):
+    """The project's declared visual for the site (spec §4, Visual), or None for the hub's
+    default. An image is copied to <data_dir>/visuals/<slug>.bin, where the browser reads it
+    as bytes and shows it as an <img>, so an SVG never runs as a page on the hub's origin."""
+    vis, origin = visualmod.resolve(report.get("manifest"), adapter_block)
+    if not vis:
+        return None
+    probs = visualmod.problems(vis, report)
+    if probs:
+        print(f"{slug}: {'; '.join(probs)}; using the default", file=log)
+        return None
+    render = vis["render"]
+    out = {"render": render, "kind": vis.get("kind") or ("illustration" if render == "image" else "derived"),
+           "origin": origin, **{k: vis[k] for k in ("alt", "caption", "baseline") if vis.get(k)}}
+    if render != "image":
+        return out
+    src, from_hub = vis["src"], vis.get("from") == "hub"
+    media = visualmod.media_type(src)
+    try:
+        if from_hub:
+            p = (Path(hub_root) / src).resolve()
+            if Path(hub_root).resolve() not in p.parents or not p.is_file():
+                raise ValueError(f"not a file in the hub: {src}")
+            data = p.read_bytes()
+            if len(data) > visualmod.MAX_BYTES:
+                raise ValueError(f"{src} is larger than {visualmod.MAX_BYTES:,} bytes")
+        else:
+            data = source.read_bytes(src, visualmod.MAX_BYTES)
+            if data is None:
+                raise ValueError(f"image not found: {src}")
+        if not visualmod.looks_like(data, media):
+            raise ValueError(f"{src} isn't the {media} its name says")
+    except Exception as e:
+        print(f"{slug}: visual unavailable ({e}); using the default", file=log)
+        return None
+    vdir = Path(data_dir) / "visuals"
+    vdir.mkdir(parents=True, exist_ok=True)
+    (vdir / f"{slug}.bin").write_bytes(data)
+    home = entry["repos"][0]
+    out.update({"type": media, "snapshot": f"{Path(data_dir).name}/visuals/{slug}.bin",
+                "live_url": None if from_hub else source.raw_url(src),
+                "url": (f"https://github.com/{HUB_REPO}/blob/main/{src}" if from_hub else
+                        f"https://github.com/{home['repo']}/blob/{home.get('ref', 'HEAD')}/{source._p(src)}")})
+    if vis.get("prompt"):
+        out["prompt"] = visualmod.fill(vis["prompt"], title, report.get("frontier"))
+    return out
+
+
 def build(registry_dir, out_path, with_board=False, log=sys.stderr, with_history=False):
     registry_dir = Path(registry_dir)
+    out_path = Path(out_path)
+    # Images are rewritten each build; a project that drops its visual drops its copy.
+    for old in (out_path.parent / "visuals").glob("*.bin"):
+        old.unlink()
     projects, problems = [], []
     for path in sorted(registry_dir.glob("*.json")):
         slug = path.stem
@@ -257,6 +310,8 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr, with_history
                     "table_url": source.raw_url(tbl["path"]) if report.get("table") else None}
         summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir), measured,
                                   hist, live)
+        summary["visual"] = hero(slug, entry, report, ablock, source, registry_dir.resolve().parent.parent,
+                                 out_path.parent, summary["title"], log)
         if entry.get("assessment"):
             from .hubcheck import parse_assessment
             apath = registry_dir.resolve().parent.parent / entry["assessment"]
@@ -273,7 +328,6 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr, with_history
     data = {"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "hub_repo": HUB_REPO, "projects": projects, "problems": problems,
             "prompts": templates(site_url(registry_dir))}
-    out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     index = agent_index(projects, site_url(registry_dir), HUB_REPO, data["generated_at"])

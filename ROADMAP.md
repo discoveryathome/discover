@@ -219,6 +219,19 @@ hardware will be an asset for replication once there's a protocol for it. Until 
 launch leads with machine-independent projects, and hardware-bound cards declare
 `requires` so drawn sessions skip what they can't run.
 
+### 12. Hero visuals: what's next
+
+The first version (spec §4, `visual`): hub-drawn progress, bound-gap and records
+pictures, a project's own image, and image-model prompts on record. Next:
+
+- **Scenes:** a small declarative format (a viewBox with circles, segments, polygons,
+  points and labels) the hub draws from the project's data, so a geometric result (a
+  packing, a ruler, a point set) is a live `witness` without the project keeping an image.
+- **Stale images:** `hub-check` warns when a `witness` image or a prompt-made one is
+  older than the frontier record, naming the command that regenerates it.
+- **Regenerating prompt-made images:** a hub-work task when the frontier changes, since
+  the build itself calls no image model.
+
 ## Rubric gaps found in testing
 
 - **Stage 1 with little review capacity.** `applied-butterfly-mult` reached Stage 1 on a

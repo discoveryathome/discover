@@ -40,9 +40,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-77c850c65ff5.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f46742aaf83e.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 77c850c65ff54e951b102950d06321751273ba6e9ef1bf28786930fb216802b6
+# must print f46742aaf83e7907e6391e749dc554b37154079e1b1d5d7e6b9d24acc8656062
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -253,6 +253,13 @@ Then fill in, with the maintainer:
   and `updated` columns so each record is credited. If they keep a log of improvements,
   point `history` at it (spec §5); otherwise the hub derives one from git, without
   credits.
+- **Visual (encouraged):** ask what picture would show the problem and its progress
+  (spec §4, `visual`). Often the hub draws it from the frontier: `progress`,
+  `bound-gap` with a `baseline` where the question started, or `records` for a table. If
+  the result is itself a picture (a packing, a construction), add a script that draws it
+  from the frontier and commit the image beside it, `kind: "witness"`. An image made by
+  an image model records its `prompt`. Don't invent one if nothing fits: the hub falls
+  back to a title card.
 - **Catalogue:** 2–6 tracks with integer weights summing to 100. Always include an
   independent-verification or audit track. For each track, 1–4 cards, each with a
   precise `question`, `starting_points`, `methods`, an `acceptance_gate`, a `first_step`
