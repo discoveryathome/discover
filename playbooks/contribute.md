@@ -128,6 +128,15 @@ they reserve nothing, and an expired claim blocks nobody. With the helper:
   search. A failed finite search is a result about the domain searched, not an
   impossibility theorem.
 - Check the clock at each milestone. Stop new work when 25% of the budget remains.
+- **On a method race** (the frontier has a `suite`, spec §5): tune only on instances you
+  generate yourself or the `dev` set, never on the held-out ones. Run under the suite's
+  budget, and compare against the current method and the strongest baseline, not only
+  the starter. With a time budget, run the baseline on your machine beside your method.
+  Report the gain with wins, ties and losses; the maintainers' held-out draw decides.
+- **If you changed the problem** (a different model, objective or constraint set), say
+  so first: it's a new formulation (spec §5), not a better result on the old one. Report
+  it as a proposal, with what it costs (more variables, harder fabrication, a weaker
+  guarantee) beside what it gains.
 
 ## 5. Verify
 

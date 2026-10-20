@@ -40,9 +40,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f46742aaf83e.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-33d0e17a3303.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print f46742aaf83e7907e6391e749dc554b37154079e1b1d5d7e6b9d24acc8656062
+# must print 33d0e17a33037ae4e903a7c7184ecc3d8cb877af74be0dbc2faf8ec9315bd33b
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -253,6 +253,13 @@ Then fill in, with the maintainer:
   and `updated` columns so each record is credited. If they keep a log of improvements,
   point `history` at it (spec §5); otherwise the hub derives one from git, without
   credits.
+- **Records or methods?** Ask whether the project improves a result (a construction, a
+  bound, a best-known object) or a method (an algorithm judged on problems it hasn't
+  seen). For a method, make the frontier a `suite` (spec §5): name baselines by strength
+  and include the strongest the field relies on if at all possible, choose how held-out
+  instances are drawn (a beacon round after the method is frozen is the simplest), and
+  count the budget in work, not seconds. `examples/tsp-heuristics/` is a template. Either
+  way, name the `formulation`, so a later change to the problem shows as one.
 - **Visual (encouraged):** ask what picture would show the problem and its progress
   (spec §4, `visual`). Often the hub draws it from the frontier: `progress`,
   `bound-gap` with a `baseline` where the question started, or `records` for a table. If

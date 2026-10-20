@@ -215,7 +215,9 @@ timings): per-hardware frontiers (an M2 result and an x86 one aren't the same cl
 noise and repetition rules for donors' machines, whether results from different donors
 can be pooled, what a progress chart means across machines, and `requires` that can
 exclude a platform ("not an Apple Silicon Mac"), which it can't today. Donors' varied
-hardware will be an asset for replication once there's a protocol for it. Until then,
+hardware will be an asset for replication once there's a protocol for it. Suites (spec
+§5) give a first one: count the budget in work where possible, and with a time budget
+pair a method with its baseline on the same machine and compare the relative gain. Until then,
 launch leads with machine-independent projects, and hardware-bound cards declare
 `requires` so drawn sessions skip what they can't run.
 
@@ -231,6 +233,23 @@ pictures, a project's own image, and image-model prompts on record. Next:
   older than the frontier record, naming the command that regenerates it.
 - **Regenerating prompt-made images:** a hub-work task when the frontier changes, since
   the build itself calls no image model.
+
+### 13. Method races: what's next
+
+Evaluation suites and formulations (spec §5) are the first version, from pilots where
+the useful results were methods that generalize, not records. Next:
+
+- **Trade-off frontiers:** a frontier of designs no other beats on every objective (mass
+  against manufacturability, nominal performance against robustness), as a table with
+  several value columns, drawn as a trade-off curve.
+- **A plateau signal:** how long since the frontier last moved, per project and
+  formulation, shown on the page and fed to steering. Pilots found quick first gains,
+  then plateaus; a stall is a reason to change the formulation or the family of problems,
+  not to search longer.
+- **Draw tooling:** `discover draw` to fetch and check a beacon round, and a check that
+  each `drawn` row's round is later than its method's commit.
+- **Live suites:** the page recomputes the comparison from the results file at load, as
+  it does for record tables.
 
 ## Rubric gaps found in testing
 

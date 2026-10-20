@@ -1,8 +1,9 @@
 """A project's hero visual (spec §4, Visual): its picture on the card and the page.
 
 Declared in the manifest, or by the hub's adapter when the project declares none. The hub
-draws `progress`, `bound-gap` and `records` itself from the frontier; an `image` is a file
-the project (or the hub) keeps, copied into the site at build time and never inlined.
+draws `progress`, `bound-gap`, `records` and `suite` itself from the frontier; an `image`
+is a file the project (or the hub) keeps, copied into the site at build time and never
+inlined.
 """
 
 import re
@@ -53,6 +54,8 @@ def problems(visual, report):
     """Why a declared visual can't be drawn as declared (shown as warnings; the hub falls back)."""
     out, render = [], visual.get("render")
     f = report.get("frontier") or {}
+    if render == "suite" and not report.get("suite"):
+        out.append("visual: `suite` needs a readable frontier suite")
     if render == "records" and not report.get("table"):
         out.append("visual: `records` needs a readable frontier table")
     if render in ("progress", "bound-gap") and not (f.get("metric") or {}).get("value"):

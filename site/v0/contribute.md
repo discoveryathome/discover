@@ -44,9 +44,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f46742aaf83e.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-33d0e17a3303.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print f46742aaf83e7907e6391e749dc554b37154079e1b1d5d7e6b9d24acc8656062
+# must print 33d0e17a33037ae4e903a7c7184ecc3d8cb877af74be0dbc2faf8ec9315bd33b
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -284,6 +284,15 @@ they reserve nothing, and an expired claim blocks nobody. With the helper:
   search. A failed finite search is a result about the domain searched, not an
   impossibility theorem.
 - Check the clock at each milestone. Stop new work when 25% of the budget remains.
+- **On a method race** (the frontier has a `suite`, spec §5): tune only on instances you
+  generate yourself or the `dev` set, never on the held-out ones. Run under the suite's
+  budget, and compare against the current method and the strongest baseline, not only
+  the starter. With a time budget, run the baseline on your machine beside your method.
+  Report the gain with wins, ties and losses; the maintainers' held-out draw decides.
+- **If you changed the problem** (a different model, objective or constraint set), say
+  so first: it's a new formulation (spec §5), not a better result on the old one. Report
+  it as a proposal, with what it costs (more variables, harder fabrication, a weaker
+  guarantee) beside what it gains.
 
 ## 5. Verify
 
