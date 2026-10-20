@@ -43,9 +43,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-b68ff6720faf.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-d0e9ce87016c.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print b68ff6720faf04b1f0c3b9aebc272f836b013c641131a29c7fd94f671489a8fb
+# must print d0e9ce87016c42aea0082fa171e29992d9c84a70ca1de0f0713e660fd57e1ea4
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -271,7 +271,7 @@ from the schemas. Then fill them in from steps 2–4:
 - **`README.md`**: the question in plain words, the current best known result with its
   source, how to run the check, and a pointer to `AGENTS.md`.
 - **`AGENTS.md`**: the entry point for agents, pointing to `DISCOVERY.md`.
-- **`DISCOVERY.md`**: the problem, the frontier and its sources, the bottleneck, the
+- **`DISCOVERY.md`** (or `autoresearch.md`, if the person prefers that name): the problem, the frontier and its sources, the bottleneck, the
   tracks, the settled questions, what evidence is expected, how review works (or that it
   awaits a maintainer), and credit.
 - **`discover/frontier.json`**: the best known result, its `scope`, `evidence_level`

@@ -259,7 +259,7 @@ from the schemas. Then fill them in from steps 2–4:
 - **`README.md`**: the question in plain words, the current best known result with its
   source, how to run the check, and a pointer to `AGENTS.md`.
 - **`AGENTS.md`**: the entry point for agents, pointing to `DISCOVERY.md`.
-- **`DISCOVERY.md`**: the problem, the frontier and its sources, the bottleneck, the
+- **`DISCOVERY.md`** (or `autoresearch.md`, if the person prefers that name): the problem, the frontier and its sources, the bottleneck, the
   tracks, the settled questions, what evidence is expected, how review works (or that it
   awaits a maintainer), and credit.
 - **`discover/frontier.json`**: the best known result, its `scope`, `evidence_level`

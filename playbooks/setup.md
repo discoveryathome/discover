@@ -67,7 +67,10 @@ discover init . --title "..." --summary "..." --domains math,algorithms \
 
 Without the helper, write the same files by hand from the schemas: `discover.json`, a
 `DISCOVERY.md` entry doc, `discover/frontier.json`, `discover/catalog.json`,
-`discover/priority-log.md`, and an `AGENTS.md` that points to `DISCOVERY.md`.
+`discover/priority-log.md`, and an `AGENTS.md` that points to the entry doc. If the repo
+already has an `autoresearch.md` (or `AUTORESEARCH.md`, `auto-research.md`), that's the
+entry doc: keep it and don't add a `DISCOVERY.md` beside it. `discover init` does this by
+itself.
 
 **Already has its own conventions** (an AGENTS.md, a task list, a results file): don't
 move anything. Write `discover.json` pointing `entry`, `frontier`, `catalog`,

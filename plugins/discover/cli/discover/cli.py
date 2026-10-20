@@ -76,7 +76,7 @@ def cmd_screen(a):
 def cmd_init(a):
     repo = parse_repo(a.repo)
     r = init.scaffold(a.path, a.title, a.summary, [d.strip() for d in a.domains.split(",")],
-                      a.maintainer, repo, a.github, a.minutes, a.profile)
+                      a.maintainer, repo, a.github, a.minutes, a.profile, a.entry)
     for c in r["created"]:
         print(f"created {c}")
     for s in r["skipped"]:
@@ -505,7 +505,10 @@ def main(argv=None):
     i.add_argument("--repo", required=True, help="canonical owner/name")
     i.add_argument("--minutes", type=int, default=60)
     i.add_argument("--profile", default="review-only",
-                   choices=["formal-proof", "exact-certificate", "benchmark", "replication", "review-only"])
+                   choices=["formal-proof", "exact-certificate", "simulation", "benchmark", "observational",
+                            "replication", "review-only"])
+    i.add_argument("--entry", help="the project entry doc (default: an existing DISCOVERY.md or "
+                                   "autoresearch.md, else a new DISCOVERY.md)")
     i.set_defaults(func=cmd_init)
 
     k = sub.add_parser("pick", help="suggest tasks from the local catalogue")

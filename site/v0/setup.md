@@ -40,9 +40,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-b68ff6720faf.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-d0e9ce87016c.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print b68ff6720faf04b1f0c3b9aebc272f836b013c641131a29c7fd94f671489a8fb
+# must print d0e9ce87016c42aea0082fa171e29992d9c84a70ca1de0f0713e660fd57e1ea4
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -223,7 +223,10 @@ discover init . --title "..." --summary "..." --domains math,algorithms \
 
 Without the helper, write the same files by hand from the schemas: `discover.json`, a
 `DISCOVERY.md` entry doc, `discover/frontier.json`, `discover/catalog.json`,
-`discover/priority-log.md`, and an `AGENTS.md` that points to `DISCOVERY.md`.
+`discover/priority-log.md`, and an `AGENTS.md` that points to the entry doc. If the repo
+already has an `autoresearch.md` (or `AUTORESEARCH.md`, `auto-research.md`), that's the
+entry doc: keep it and don't add a `DISCOVERY.md` beside it. `discover init` does this by
+itself.
 
 **Already has its own conventions** (an AGENTS.md, a task list, a results file): don't
 move anything. Write `discover.json` pointing `entry`, `frontier`, `catalog`,

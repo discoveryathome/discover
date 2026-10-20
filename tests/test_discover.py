@@ -922,3 +922,41 @@ class RecordTableTests(unittest.TestCase):
         self.assertEqual(schema.check("agent-index.schema.json", idx), [])
         self.assertEqual(idx["projects"][0]["frontier"]["table"], {"rows": 13, "open": 4})
         self.assertTrue(idx["projects"][0]["review"]["mechanical"].startswith("A PR"))
+
+
+class EntryDocTests(unittest.TestCase):
+    """DISCOVERY.md is recommended; an existing autoresearch.md, in any of its spellings, is
+    an equal entry doc (spec §2)."""
+
+    def test_init_keeps_an_existing_entry_doc(self):
+        for name in ("autoresearch.md", "AUTORESEARCH.md", "auto-research.md", "DISCOVERY.md"):
+            with self.subTest(name), tempfile.TemporaryDirectory() as d:
+                (Path(d) / name).write_text("# Our brief\n", encoding="utf-8")
+                r = init.scaffold(d, "T", "S", ["math"], "M", "o/r")
+                self.assertEqual(r["entry_doc"], name)
+                self.assertEqual(json.loads((Path(d) / "discover.json").read_text())["entry"]["project"], name)
+                self.assertEqual(sorted(p.name for p in Path(d).glob("*.md")), sorted(["AGENTS.md", name]))
+                self.assertIn(f"]({name})", (Path(d) / "AGENTS.md").read_text())
+                self.assertTrue(any(s.startswith(f"{name} (exists") for s in r["skipped"]))
+                self.assertEqual((Path(d) / name).read_text(), "# Our brief\n")
+                self.assertTrue(validate(Source(local=d))["conformant"])
+
+    def test_init_default_and_explicit_entry(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(init.scaffold(d, "T", "S", ["math"], "M", "o/r")["entry_doc"], "DISCOVERY.md")
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "autoresearch.md").write_text("x", encoding="utf-8")
+            r = init.scaffold(d, "T", "S", ["math"], "M", "o/r", entry="docs/AGENT_BRIEF.md")
+            self.assertEqual(r["entry_doc"], "docs/AGENT_BRIEF.md")
+            self.assertTrue((Path(d) / "docs" / "AGENT_BRIEF.md").exists())
+
+    def test_screen_treats_entry_docs_as_agent_files(self):
+        from discover import screen
+        with tempfile.TemporaryDirectory() as d:
+            for rel in ("AUTORESEARCH.md", "auto-research.md", "docs/brief.md", "docs/other.md"):
+                (Path(d) / rel).parent.mkdir(parents=True, exist_ok=True)
+                (Path(d) / rel).write_text("zero​width\n", encoding="utf-8")
+            (Path(d) / "discover.json").write_text(json.dumps({"entry": {"project": "docs/brief.md"}}))
+            got = {f["path"]: f["severity"] for f in screen.screen(d) if f["kind"] == "hidden-text"}
+        self.assertEqual(got, {"AUTORESEARCH.md": "warn", "auto-research.md": "warn",
+                               "docs/brief.md": "warn", "docs/other.md": "info"})
