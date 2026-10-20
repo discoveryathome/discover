@@ -1,0 +1,24 @@
+{
+  "repos": [
+    {
+      "repo": "rohanarun/Super-1"
+    }
+  ],
+  "added_on": "2026-10-19",
+  "adapter": "adapters/super-1.md",
+  "assessment": "assessments/super-1/2026-10-19-claude.md",
+  "stage": "assessed",
+  "grades": {
+    "orientation": "adequate",
+    "coordination": "weak",
+    "verification": "adequate",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "pending: the project's maintainer agreed to a listing in conversation with the hub maintainer; not yet recorded",
+    "list": false,
+    "push": []
+  },
+  "featured": false
+}
