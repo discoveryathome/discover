@@ -55,9 +55,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-77c850c65ff5.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f46742aaf83e.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 77c850c65ff54e951b102950d06321751273ba6e9ef1bf28786930fb216802b6
+# must print f46742aaf83e7907e6391e749dc554b37154079e1b1d5d7e6b9d24acc8656062
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -297,6 +297,12 @@ JSON block (https://github.com/discoveryathome/discover/tree/main/spec/schemas/a
   The hub charts a mapped record's `metric` from the file's git history by itself; if the
   project keeps its own log of improvements in JSON Lines with `date` and `value`, add
   `"history": "path"` to the mapping instead.
+- `visual` (top level, optional): the hero picture when the project declares none
+  (spec §4). Prefer what the hub draws from the frontier: `bound-gap` with a `baseline`
+  the project's own text states (where the question started), `progress`, or `records`
+  for a table. Point an `image` at a figure the project already keeps, with its `alt`.
+  A picture the hub makes goes in the hub's `visuals/` with `"from": "hub"` and `kind:
+  "illustration"`, and records its `prompt` if an image model made it.
 - The kind of claim, even without a machine-readable record: say in the adapter's text
   whether the project's results are exact, formal, within a model, measured or
   observational, in the project's own terms, so donors know what a check can show.

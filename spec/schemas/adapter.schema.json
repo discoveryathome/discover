@@ -27,6 +27,25 @@
         "note": { "type": "string", "description": "How to read it, in the project's own terms." }
       }
     },
+    "visual": {
+      "type": "object", "required": ["render"], "additionalProperties": false,
+      "description": "The hero picture on the project's card and page, used when its manifest declares none (spec §4, Visual).",
+      "properties": {
+        "render": { "enum": ["image", "progress", "bound-gap", "records"], "description": "image: a picture the project keeps. progress: the frontier's value over time. bound-gap: the same, against the proven bound and a baseline. records: the record table as a grid of cases, open and settled. The hub draws the last three from the frontier record." },
+        "kind": { "enum": ["witness", "derived", "illustration"], "description": "witness: the picture is the result itself (a packing, a ruler). derived: computed from the frontier (a chart). illustration: conveys the topic only. Defaults: derived for drawn renders, illustration for images." },
+        "src": { "type": "string", "description": "image: path of an SVG, PNG, JPEG, WebP or GIF, at most 1 MB." },
+        "alt": { "type": "string", "description": "What the picture shows, for readers who can't see it. Required for images." },
+        "caption": { "type": "string" },
+        "baseline": {
+          "type": "object", "required": ["value"], "additionalProperties": false,
+          "description": "bound-gap: where the question started, e.g. the bound before the project.",
+          "properties": { "value": { "type": "string" }, "label": { "type": "string" } }
+        },
+        "prompt": { "type": "string", "description": "image: the image-generation prompt it was made from, a template filled from the frontier: {title}, {statement}, {metric}, {value}. Shown beside the picture; regenerate the image when the frontier changes." },
+        "from": { "enum": ["project", "hub"], "description": "Where src lives: the project's repository (default), or the hub's, e.g. visuals/<project-id>.png, for a picture the hub made." }
+      },
+      "allOf": [{ "if": { "properties": { "render": { "const": "image" } } }, "then": { "required": ["src", "alt"] } }]
+    },
     "frontier_adapter": { "type": "object", "description": "Maps the repo's own results record onto frontier fields: {v0_field: raw_field}, plus metric, a declared evidence_level and claim_kind, and history (a path in the repo), and optionally select {list, key, current} to read the entry a registry's current field names." }
   }
 }

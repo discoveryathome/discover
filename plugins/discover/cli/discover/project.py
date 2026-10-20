@@ -62,6 +62,26 @@ class Source:
                 return None
             raise
 
+    def read_bytes(self, path, limit):
+        """File bytes, or None if it doesn't exist; ValueError if larger than limit."""
+        path = self._p(path)
+        if self.local:
+            p = self.local / path
+            if not p.is_file():
+                return None
+            data = p.read_bytes()
+        else:
+            try:
+                with urllib.request.urlopen(RAW.format(repo=self.repo, ref=self.ref, path=path), timeout=30) as r:
+                    data = r.read(limit + 1)
+            except urllib.error.HTTPError as e:
+                if e.code == 404:
+                    return None
+                raise
+        if len(data) > limit:
+            raise ValueError(f"{path} is larger than {limit:,} bytes")
+        return data
+
     def exists(self, path):
         if self.local:
             full = self.local / self._p(path)
