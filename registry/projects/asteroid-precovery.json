@@ -1,0 +1,15 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/asteroid-precovery"
+    }
+  ],
+  "added_on": "2026-10-20",
+  "consent": {
+    "source": "discover.json",
+    "commit": "1f92397b2c227ea6fab475af9d20c3f1b3519415",
+    "checked_on": "2026-10-20",
+    "list": true,
+    "push": []
+  }
+}
