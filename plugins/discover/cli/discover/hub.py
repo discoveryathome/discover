@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import adapter as adaptermod
 from . import board as boardmod
+from . import demo as demomod
 from . import history as historymod
 from . import visual as visualmod
 from . import review as reviewmod
@@ -208,6 +209,58 @@ def site_url(registry_dir):
         return None
 
 
+def copy_image(src, from_hub, source, hub_root, data_dir, name):
+    """Copy an image into <data_dir>/visuals/<name>.bin after checking its size and that its
+    bytes are the type its name says: (media type, path the site reads it from)."""
+    media = visualmod.media_type(src)
+    if from_hub:
+        p = (Path(hub_root) / src).resolve()
+        if Path(hub_root).resolve() not in p.parents or not p.is_file():
+            raise ValueError(f"not a file in the hub: {src}")
+        data = p.read_bytes()
+        if len(data) > visualmod.MAX_BYTES:
+            raise ValueError(f"{src} is larger than {visualmod.MAX_BYTES:,} bytes")
+    else:
+        data = source.read_bytes(src, visualmod.MAX_BYTES)
+        if data is None:
+            raise ValueError(f"image not found: {src}")
+    if not visualmod.looks_like(data, media):
+        raise ValueError(f"{src} isn't the {media} its name says")
+    vdir = Path(data_dir) / "visuals"
+    vdir.mkdir(parents=True, exist_ok=True)
+    (vdir / f"{name}.bin").write_bytes(data)
+    return media, f"{Path(data_dir).name}/visuals/{name}.bin"
+
+
+def demos(slug, entry, report, adapter_block, source, hub_root, data_dir, log):
+    """The project's demos for the site (spec §4, Demos): links, never hosted. Each says what
+    it reads and whether that data predates the frontier; a thumbnail is copied like a
+    hero image."""
+    m = report.get("manifest")
+    declared, origin = demomod.resolve(m, adapter_block)
+    home = entry["repos"][0]
+    blob = f"https://github.com/{home['repo']}/blob/{home.get('ref', 'HEAD')}/"
+    out = []
+    for i, d in enumerate(declared):
+        probs = demomod.problems([d])
+        if probs:
+            print(f"{slug}: {'; '.join(probs)}; not listed", file=log)
+            continue
+        item = {"title": d["title"], "url": d["url"], "kind": d.get("kind"), "origin": origin,
+                **{k: d[k] for k in ("note", "alt") if d.get(k)},
+                "reads": [{"path": p, "url": blob + source._p(p)} for p in (d.get("reads") or [])[:demomod.MAX_READS]],
+                "source_url": blob + source._p(d["source"]) if d.get("source") else None,
+                **demomod.freshness(d, m, report.get("frontier"), source)}
+        if d.get("image"):
+            try:
+                media, snapshot = copy_image(d["image"], False, source, hub_root, data_dir, f"{slug}-demo-{i}")
+                item["image"] = {"type": media, "snapshot": snapshot}
+            except Exception as e:
+                print(f"{slug}: demo {d['title']!r} thumbnail unavailable ({e})", file=log)
+        out.append(item)
+    return out
+
+
 def hero(slug, entry, report, adapter_block, source, hub_root, data_dir, title, log):
     """The project's declared visual for the site (spec §4, Visual), or None for the hub's
     default. An image is copied to <data_dir>/visuals/<slug>.bin, where the browser reads it
@@ -225,29 +278,13 @@ def hero(slug, entry, report, adapter_block, source, hub_root, data_dir, title, 
     if render != "image":
         return out
     src, from_hub = vis["src"], vis.get("from") == "hub"
-    media = visualmod.media_type(src)
     try:
-        if from_hub:
-            p = (Path(hub_root) / src).resolve()
-            if Path(hub_root).resolve() not in p.parents or not p.is_file():
-                raise ValueError(f"not a file in the hub: {src}")
-            data = p.read_bytes()
-            if len(data) > visualmod.MAX_BYTES:
-                raise ValueError(f"{src} is larger than {visualmod.MAX_BYTES:,} bytes")
-        else:
-            data = source.read_bytes(src, visualmod.MAX_BYTES)
-            if data is None:
-                raise ValueError(f"image not found: {src}")
-        if not visualmod.looks_like(data, media):
-            raise ValueError(f"{src} isn't the {media} its name says")
+        media, snapshot = copy_image(src, from_hub, source, hub_root, data_dir, slug)
     except Exception as e:
         print(f"{slug}: visual unavailable ({e}); using the default", file=log)
         return None
-    vdir = Path(data_dir) / "visuals"
-    vdir.mkdir(parents=True, exist_ok=True)
-    (vdir / f"{slug}.bin").write_bytes(data)
     home = entry["repos"][0]
-    out.update({"type": media, "snapshot": f"{Path(data_dir).name}/visuals/{slug}.bin",
+    out.update({"type": media, "snapshot": snapshot,
                 "live_url": None if from_hub else source.raw_url(src),
                 "url": (f"https://github.com/{HUB_REPO}/blob/main/{src}" if from_hub else
                         f"https://github.com/{home['repo']}/blob/{home.get('ref', 'HEAD')}/{source._p(src)}")})
@@ -259,7 +296,7 @@ def hero(slug, entry, report, adapter_block, source, hub_root, data_dir, title, 
 def build(registry_dir, out_path, with_board=False, log=sys.stderr, with_history=False):
     registry_dir = Path(registry_dir)
     out_path = Path(out_path)
-    # Images are rewritten each build; a project that drops its visual drops its copy.
+    # Images are rewritten each build; a project that drops its visual or demo drops its copy.
     for old in (out_path.parent / "visuals").glob("*.bin"):
         old.unlink()
     projects, problems = [], []
@@ -323,6 +360,8 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr, with_history
                                   hist, live)
         summary["visual"] = hero(slug, entry, report, ablock, source, registry_dir.resolve().parent.parent,
                                  out_path.parent, summary["title"], log)
+        summary["demos"] = demos(slug, entry, report, ablock, source, registry_dir.resolve().parent.parent,
+                                 out_path.parent, log)
         if entry.get("assessment"):
             from .hubcheck import parse_assessment
             apath = registry_dir.resolve().parent.parent / entry["assessment"]

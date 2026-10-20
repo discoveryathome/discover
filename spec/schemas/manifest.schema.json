@@ -107,6 +107,23 @@
       "type": "string", "format": "date",
       "description": "Last change to how the project coordinates or reviews; activity measurements count from here."
     },
+    "demos": {
+      "type": "array", "maxItems": 4,
+      "description": "Pages the project hosts for exploring its results (spec §4, Demos). Optional: the hub links to them and labels them as the project's, not checked by the hub.",
+      "items": {
+        "type": "object", "required": ["title", "url"], "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string", "pattern": "^https://", "description": "Where the project hosts it, e.g. its GitHub Pages site. The hub links to it and never serves it." },
+          "kind": { "enum": ["replay", "dashboard", "explorer"], "description": "replay: decisions replayed against data that was hidden from them. dashboard: the current state at a glance. explorer: browse the data or results." },
+          "reads": { "type": "array", "maxItems": 5, "items": { "type": "string" }, "description": "Repo paths of the data it shows. Listing the frontier record, table or suite results says it shows the checked result; otherwise the page says when its data predates the frontier." },
+          "source": { "type": "string", "description": "Repo path of the demo's code." },
+          "image": { "type": "string", "description": "A thumbnail: SVG, PNG, JPEG, WebP or GIF, at most 1 MB." },
+          "alt": { "type": "string", "description": "What the thumbnail shows." },
+          "note": { "type": "string", "description": "What it shows and doesn't claim, in a sentence." }
+        }
+      }
+    },
     "visual": {
       "type": "object", "required": ["render"], "additionalProperties": false,
       "description": "The project's hero picture, on its card and page (spec §4, Visual). Optional: without one the hub draws a chart or a title card from the frontier.",

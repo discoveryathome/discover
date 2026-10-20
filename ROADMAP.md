@@ -251,6 +251,18 @@ the useful results were methods that generalize, not records. Next:
 - **Live suites:** the page recomputes the comparison from the results file at load, as
   it does for record tables.
 
+### 14. Demos: what's next
+
+Projects build replays and dashboards on their own; the first version (spec §4,
+`demos`) links and labels them. Next:
+
+- **Hub-drawn replays:** a screening replay (methods choosing from a pool whose results
+  were hidden, hits revealed as the budget is spent) is a method race with a budget
+  axis. Draw it from a suite's results with a budget slider, so it shows checked data.
+- **Reachability:** `hub-check` warns when a demo's URL stops answering.
+- **Deployed version:** a demo can publish the commit it was built from (a
+  `demo.json` beside it), so the page can say exactly which result it shows.
+
 ## Rubric gaps found in testing
 
 - **Stage 1 with little review capacity.** `applied-butterfly-mult` reached Stage 1 on a

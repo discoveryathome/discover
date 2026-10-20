@@ -6,6 +6,7 @@ assessment of the five properties (spec §3), never from this check.
 
 from . import schema
 from . import history as historymod
+from . import demo as demomod
 from . import visual as visualmod
 from . import suite as suitemod
 from . import table as tablemod
@@ -207,6 +208,14 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
         r["warnings"] += visualmod.problems(vis, r)
         if vis.get("render") == "image" and vis.get("src") and source.exists(vis["src"]) is False:
             r["warnings"].append(f"visual: image not found: {vis['src']}")
+
+    ds = manifest.get("demos")
+    if isinstance(ds, list):
+        r["warnings"] += demomod.problems(ds)
+        for d in ds:
+            for path in [*(d.get("reads") or []), *[d[k] for k in ("image", "source") if d.get(k)]]:
+                if source.exists(path) is False:
+                    r["warnings"].append(f"demo {d.get('title')!r}: not found: {path}")
 
     r["license"] = license_file(source)
     if not r["license"]:

@@ -197,7 +197,7 @@ function projectCard(p) {
   const handoffs = p.board?.open_handoffs?.length;
   return `<article class="card">
     ${heroFigure(p, p.frontier, true)}
-    <div class="row">${stageBadge(p)}${reviewBadge(p)}</div>
+    <div class="row">${stageBadge(p)}${reviewBadge(p)}${p.demos?.length ? `<span class="badge" title="The project hosts ${esc(plural(p.demos.length, "page"))} for exploring its results">${p.demos.length > 1 ? `${p.demos.length} demos` : "Demo"}</span>` : ""}</div>
     <h3><a class="stretch" href="#/p/${encodeURIComponent(p.slug)}">${esc(p.title)}</a></h3>
     <p class="summary">${esc(p.summary)}</p>
     ${metric(p.frontier)}
@@ -507,6 +507,12 @@ async function imageUrl(url, type, upstream) {
   return (blobUrls[key] = URL.createObjectURL(new Blob([bytes], { type })));
 }
 function showImages(root, live = false) {
+  root.querySelectorAll("img[data-demo]").forEach(async (img) => {
+    const [slug, i] = img.dataset.demo.split("|");
+    const t = state.data.projects.find((x) => x.slug === slug)?.demos?.[i]?.image;
+    if (!t?.snapshot) return;
+    try { img.src = await imageUrl(t.snapshot, t.type, false); img.hidden = false; } catch { /* no thumbnail */ }
+  });
   root.querySelectorAll("img[data-visual]").forEach(async (img) => {
     const p = state.data.projects.find((x) => x.slug === img.dataset.visual), v = p?.visual;
     if (!v?.snapshot) return;
@@ -515,6 +521,27 @@ function showImages(root, live = false) {
       try { img.src = await imageUrl(v.live_url, v.type, true); img.hidden = false; } catch { /* the build's copy stays */ }
     }
   });
+}
+
+// Demos are the project's own pages: linked, never served from the hub, and labelled so.
+const DEMO_KINDS = { replay: "Replay", dashboard: "Dashboard", explorer: "Explorer" };
+function demoData(d, f) {
+  if (d.reads_record) return "Shows the checked frontier record, as of its last deployment.";
+  if (d.stale) return `Its data was last changed ${d.data_on}, before the frontier was updated (${f?.updated_on}); it may show an earlier result.`;
+  if (d.data_on) return `Its data was last changed ${d.data_on}.`;
+  return d.reads?.length ? "" : "Doesn't say what data it shows.";
+}
+function demosPanel(p) {
+  if (!p.demos?.length) return "";
+  return `<section class="panel" id="demos-panel"><h2>Explore</h2>
+    <p class="hint">Pages the project built and hosts. They run on the project's site, and the hub hasn't checked what they show.</p>
+    <ul class="demos">${p.demos.map((d, i) => `<li class="demo">
+      ${d.image ? `<div class="thumb"><img data-demo="${esc(p.slug)}|${i}" alt="${esc(d.alt || "")}" hidden></div>` : ""}
+      <div><div class="row">${d.kind ? `<span class="badge">${esc(DEMO_KINDS[d.kind] || d.kind)}</span>` : ""}${d.stale ? '<span class="badge warn">Older than the frontier</span>' : ""}</div>
+        <h3>${link(d.url, `${d.title} ↗`)}</h3>
+        ${d.note ? `<p class="hint">${esc(d.note)}</p>` : ""}
+        <p class="hint">${esc(demoData(d, p.frontier))}${d.reads?.length ? ` Reads ${d.reads.map((r) => link(r.url, r.path)).join(", ")}.` : ""}${d.source_url ? ` ${link(d.source_url, "Source")}.` : ""}</p></div>
+    </li>`).join("")}</ul></section>`;
 }
 
 function historySection(p, f) {
@@ -632,6 +659,7 @@ function viewProject(slug) {
     <div class="side">${p.listing === "nominated" ? nominatedPanel(p) : p.review?.paused ? pausedPanel() : launcher(p)}</div>
     <div class="main">
       <section class="panel hero-panel" id="hero-panel">${heroFigure(p, f, false)}</section>
+      ${demosPanel(p)}
       ${f ? `<section class="panel" id="frontier-panel">${frontierInner(p, f, null)}</section>
       ${f.table ? `<section class="panel" id="records-panel">${recordsInner(p, f.table, f.table.rows_snapshot || [], null)}</section>` : ""}` : p.frontier_doc ? `<section class="panel">
         <h2>Current result</h2>

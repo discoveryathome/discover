@@ -1,5 +1,6 @@
 import filecmp
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -1115,6 +1116,73 @@ class SuiteTests(unittest.TestCase):
         from discover import history
         entries, _ = history.parse('{"date": "2026-10-01", "value": "1", "formulation": "a"}', "h.jsonl")
         self.assertEqual(history.points_from_file(entries)[0]["formulation"], "a")
+
+
+class DemoTests(unittest.TestCase):
+    """Project demos (spec §4, Demos): linked, labelled, never served."""
+
+    PNG = b"\x89PNG\r\n\x1a\n" + b"0" * 16
+
+    def golomb(self, d, demos):
+        VisualTests.copy_golomb(None, d)
+        m = json.loads((GOLOMB / "discover.json").read_text())
+        m["demos"] = demos
+        (Path(d) / "discover.json").write_text(json.dumps(m))
+
+    def test_schema(self):
+        base = json.loads((GOLOMB / "discover.json").read_text())
+        ok = {"title": "Replay", "url": "https://o.github.io/r/", "kind": "replay", "reads": ["data/x.csv"]}
+        self.assertEqual(schema.check("manifest.schema.json", {**base, "demos": [ok]}), [])
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "demos": [{**ok, "url": "http://x"}]}))
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "demos": [{"url": "https://x"}]}))
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "demos": [ok] * 5}))
+
+    def test_validate_warns_on_missing_files(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.golomb(d, [{"title": "Replay", "url": "https://o.github.io/r/", "reads": ["data/x.csv"]}])
+            r = validate(Source(local=d))
+            self.assertTrue(r["conformant"], r["problems"])
+            self.assertIn("demo 'Replay': not found: data/x.csv", r["warnings"])
+
+    def git(self, d, date, *paths):
+        env = {**os.environ, "GIT_COMMITTER_DATE": f"{date}T12:00:00", "GIT_AUTHOR_DATE": f"{date}T12:00:00"}
+        run = lambda *a: subprocess.run(["git", "-C", d, *a], check=True, capture_output=True, env=env)
+        if not (Path(d) / ".git").exists():
+            run("init", "-q"); run("config", "user.email", "t@t"); run("config", "user.name", "t")
+        run("add", *paths); run("commit", "-qm", "x")
+
+    def build(self, d, h):
+        import io
+        r = validate(Source(local=d))
+        log = io.StringIO()
+        out = hub.demos("g", {"repos": [{"repo": "o/r"}]}, r, None, Source(local=d), h,
+                        Path(h) / "site" / "data", log)
+        return out, log.getvalue()
+
+    def test_hub_says_what_a_demo_reads(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as h:
+            self.golomb(d, [
+                {"title": "Record", "url": "https://o.github.io/r/", "reads": ["rulers.csv"], "image": "t.png"},
+                {"title": "Old", "url": "https://o.github.io/r/old", "kind": "replay", "reads": ["old.csv"]},
+                {"title": "Bad", "url": "javascript:alert(1)"}])
+            (Path(d) / "t.png").write_bytes(self.PNG)
+            (Path(d) / "old.csv").write_text("a\n1\n")
+            self.git(d, "2026-01-02", ".")
+            out, log = self.build(d, h)
+            self.assertEqual([x["title"] for x in out], ["Record", "Old"])
+            self.assertIn("not listed", log)
+            self.assertTrue(out[0]["reads_record"])
+            self.assertEqual(out[0]["image"]["snapshot"], "data/visuals/g-demo-0.bin")
+            self.assertEqual((Path(h) / "site/data/visuals/g-demo-0.bin").read_bytes(), self.PNG)
+            # The frontier was updated 2026-10-19, after old.csv last changed.
+            self.assertEqual((out[1]["reads_record"], out[1]["data_on"], out[1]["stale"]), (False, "2026-01-02", True))
+            self.assertEqual(out[1]["reads"][0]["url"], "https://github.com/o/r/blob/HEAD/old.csv")
+
+    def test_adapter_declares_demos_when_the_manifest_has_none(self):
+        from discover import demo
+        a = {"demos": [{"title": "A", "url": "https://x"}]}
+        self.assertEqual(demo.resolve({}, a), (a["demos"], "adapter"))
+        self.assertEqual(demo.resolve({"demos": []}, a), ([], "project"))
 
 
 class VisualTests(unittest.TestCase):
