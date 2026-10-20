@@ -5,14 +5,17 @@ import json
 import re
 import secrets
 
+from . import table as tablemod
+
 
 def digest(value):
     return hashlib.sha256(json.dumps(value, separators=(",", ":"), sort_keys=True).encode()).hexdigest()
 
 
-def scope_key(task_id, method):
-    # Seed and base commit are excluded on purpose: they don't change the question.
-    return digest([task_id, method])[:32]
+def scope_key(task_id, method, row=None):
+    # Seed and base commit are excluded on purpose: they don't change the question. A
+    # table row does, so a card drawn on a row includes the row's key.
+    return digest([task_id, method] + ([row] if row is not None else []))[:32]
 
 
 def card_weight(card_id, board):
@@ -53,7 +56,9 @@ def unmet(requires, here):
     return out
 
 
-def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3, here=None):
+def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3, here=None,
+         table=None, rows=None):
+    """`table` and `rows` are the frontier's record table (spec §5), for cards that draw a row."""
     seed = (seed or secrets.token_hex(16)).lower()
     if not re.fullmatch(r"[0-9a-f]{32}", seed):
         raise ValueError("seed must be exactly 32 hexadecimal digits")
@@ -93,9 +98,26 @@ def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3, h
     suggestions = []
     for card in cards:
         method = card["methods"][draw(f"method:{card['id']}") % len(card["methods"])]
+        row = None
         s = {"task_id": card["id"], "question": card["question"], "method": method,
-             "scope_key": scope_key(card["id"], method), "first_step": card.get("first_step"),
-             "acceptance_gate": card.get("acceptance_gate")}
+             "first_step": card.get("first_step"), "acceptance_gate": card.get("acceptance_gate")}
+        if card.get("claim_kind"):
+            s["claim_kind"] = card["claim_kind"]
+        if "rows" in card:
+            pool_rows = tablemod.eligible(rows, table, card["rows"]) if rows is not None and table else []
+            if pool_rows:
+                chosen = pool_rows[draw(f"row:{card['id']}") % len(pool_rows)]
+                row = tablemod.key_of(chosen, table)
+                s["row"] = row
+                s["row_value"] = chosen.get(table["value"])
+                if table.get("bound") and chosen.get(table["bound"]):
+                    s["row_bound"] = chosen[table["bound"]]
+                s["row_check"] = tablemod.check_command(table, chosen)
+                s["rows_eligible"] = len(pool_rows)
+            else:
+                s["row_note"] = ("no row matches this card" if rows is not None and table
+                                 else "this card draws a row of the frontier table, which couldn't be read")
+        s["scope_key"] = scope_key(card["id"], method, row)
         if card.get("requires"):
             # The draw doesn't depend on the machine, so it stays reproducible; a session
             # takes the next suggestion when this one can't be served here.
@@ -135,6 +157,14 @@ def format_pick(r):
         elif s.get("requires"):
             lines.append(f"    requires: {json.dumps(s['requires'])}")
         lines.append(f"    question: {s['question']}")
+        if s.get("row"):
+            bound = f", bound {s['row_bound']}" if s.get("row_bound") else ""
+            lines.append(f"    row: {json.dumps(s['row'])} (value {s['row_value']}{bound}; "
+                         f"one of {s['rows_eligible']} eligible)")
+            if s.get("row_check"):
+                lines.append(f"    check this row: {' '.join(s['row_check'])}")
+        elif s.get("row_note"):
+            lines.append(f"    row: {s['row_note']}")
         lines.append(f"    method: {s['method']}")
         if s.get("first_step"):
             lines.append(f"    first step: {' '.join(s['first_step']['command'])}  → expect {s['first_step']['expected']}")

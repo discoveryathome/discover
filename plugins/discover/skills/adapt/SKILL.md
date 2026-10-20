@@ -279,7 +279,12 @@ JSON block (https://github.com/discoveryathome/discover/tree/main/spec/schemas/a
 - `frontier_adapter` only if the results record is JSON in another shape. If the current
   entry sits inside a list (a registry whose `current` field names one of its `results`),
   add `"select": {"list": "results", "key": "id", "current": "current"}` and map fields
-  from the selected entry.
+  from the selected entry. You may declare `evidence_level` and `claim_kind` (spec §5)
+  in it, but only what the project's own text supports: a result the repo calls a
+  simulation is `model`, whatever its headline says.
+- The kind of claim, even without a machine-readable record: say in the adapter's text
+  whether the project's results are exact, formal, within a model, measured or
+  observational, in the project's own terms, so donors know what a check can show.
 
 ## 4. Check it
 

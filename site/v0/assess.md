@@ -71,9 +71,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-4c5ba2a0e611.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-b68ff6720faf.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 4c5ba2a0e6115825f6f01ca35b46db64e521491573872d54ffcb9f902b81dee0
+# must print b68ff6720faf04b1f0c3b9aebc272f836b013c641131a29c7fd94f671489a8fb
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -257,7 +257,13 @@ Coordination, not Orientation.
   cases), `formal proof` (of the claim, or of each listed step), or `reviewed argument`
   (recorded independent reviews of each step). A theorem whose check covers only
   computation grades at most adequate (spec §3.2, Coverage); list the steps nobody has
-  checked, since they make good verify cards.
+  checked, since they make good verify cards. If the frontier is a **record table**,
+  also run `check_row` on three rows drawn from your seed (`discover pick --task` on a
+  `rows` card gives them; otherwise take rows at random) and confirm each check
+  recomputes the row's object, not just its score. Read the record's `claim_kind` and
+  check the statement claims no more than that kind supports: a `model` result names
+  its model and version, a `measured` one its hardware and tolerance, an
+  `observational` one says candidates. Say where it overreaches.
 - **Review (property 4):** from GitHub data, for contributions opened in the last 14
   days (or since `process_changed_on`). Contributions are PRs from accounts other than
   the maintainers and bots; report maintainers' own PRs as context only. Measure the
@@ -271,6 +277,10 @@ Coordination, not Orientation.
   separately (a ledger, say), also report the share of the window's merged
   contributions with no recorded review outcome, and when the frontier last changed.
   These are reported beside the grade and don't set it.
+  If the manifest declares `review.mechanical`, the stated check's verdict (the
+  automated merge, or a declared bot's comment on a failed PR) is a first response.
+  Confirm the workflow exists and runs the check the rule names. It counts as review
+  only for `exact`, `formal` or `certified` claims; for others it's intake (above).
 - **Steering (property 5):** where priorities are stated, when they were last revised
   and why, and whether feedback gets read.
 

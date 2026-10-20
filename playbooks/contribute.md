@@ -91,7 +91,11 @@ In priority order:
    the person before starting. If your prompt names a task the
    website drew, use it unless the project's current catalogue no longer has it; then
    draw again with the same seed. With focus `audit`, draw from the project's audit or
-   verification track; with `explore`, from its new-approach track.
+   verification track; with `explore`, from its new-approach track. A card that applies
+   to any case of a **record table** (it has `rows`) also draws a row: `discover pick`
+   with your seed names it, with its current value and the command that checks it. The
+   website can't draw rows, so run `discover pick` even when your prompt names the card.
+   Work on that row, and run its check on your result before you report it.
 
 Then check for overlap: use the project's own overlap tool if it has one; otherwise
 search open PRs and the coordination channel for your task's key terms

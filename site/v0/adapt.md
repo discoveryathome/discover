@@ -55,9 +55,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-4c5ba2a0e611.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-b68ff6720faf.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 4c5ba2a0e6115825f6f01ca35b46db64e521491573872d54ffcb9f902b81dee0
+# must print b68ff6720faf04b1f0c3b9aebc272f836b013c641131a29c7fd94f671489a8fb
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -291,7 +291,12 @@ JSON block (https://github.com/discoveryathome/discover/tree/main/spec/schemas/a
 - `frontier_adapter` only if the results record is JSON in another shape. If the current
   entry sits inside a list (a registry whose `current` field names one of its `results`),
   add `"select": {"list": "results", "key": "id", "current": "current"}` and map fields
-  from the selected entry.
+  from the selected entry. You may declare `evidence_level` and `claim_kind` (spec §5)
+  in it, but only what the project's own text supports: a result the repo calls a
+  simulation is `model`, whatever its headline says.
+- The kind of claim, even without a machine-readable record: say in the adapter's text
+  whether the project's results are exact, formal, within a model, measured or
+  observational, in the project's own terms, so donors know what a check can show.
 
 ## 4. Check it
 

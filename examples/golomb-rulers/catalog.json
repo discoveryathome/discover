@@ -1,0 +1,24 @@
+{
+  "schema": "discover-catalog/v0",
+  "priority_revision": 1,
+  "assessed_on": "2026-10-19",
+  "tracks": [
+    {
+      "id": "shorten-rulers", "weight": 100,
+      "useful_outcome": "A shorter ruler for an open row, merged when check.py passes.",
+      "tasks": [
+        {
+          "id": "shorten-open-row",
+          "question": "Find a shorter Golomb ruler for the drawn row.",
+          "starting_points": ["rulers.csv", "check.py"],
+          "methods": ["local search over marks", "modular constructions (Singer, Bose)", "constraint solver"],
+          "acceptance_gate": "check.py --n N passes and the length is below the row's current length.",
+          "first_step": { "command": ["python3", "check.py", "--all"], "expected": "every row ok" },
+          "bottleneck_link": "frontier.json",
+          "claim_kind": ["exact"],
+          "rows": { "open": true }
+        }
+      ]
+    }
+  ]
+}

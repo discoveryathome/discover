@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://discoveryathome.org/schema/v0/frontier.schema.json",
-  "title": "Frontier record: the single authoritative accepted result",
+  "title": "Frontier record: the single authoritative accepted result, or a table of them",
   "type": "object",
   "required": ["schema", "statement", "status", "evidence_level", "scope", "review", "updated_on"],
   "properties": {
@@ -10,8 +10,25 @@
     "status": { "type": "string", "description": "Free-text status line for humans." },
     "evidence_level": {
       "type": "array", "minItems": 1, "uniqueItems": true,
-      "items": { "enum": ["author-checked", "independently-checked", "maintainer-reviewed", "formally-verified"] },
+      "items": { "enum": ["author-checked", "independently-checked", "maintainer-reviewed", "formally-verified", "externally-accepted"] },
       "description": "Every level that applies; not a ladder."
+    },
+    "claim_kind": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "enum": ["exact", "formal", "certified", "argument", "model", "measured", "observational"] },
+      "description": "What kind of claim the statement is, and so what a check of it can establish (spec §5). Every kind that applies."
+    },
+    "external": {
+      "type": "array", "description": "Outside authorities that keep this field's records and accepted the result (evidence level `externally-accepted`).",
+      "items": {
+        "type": "object", "required": ["authority", "url"],
+        "properties": {
+          "authority": { "type": "string", "description": "Who keeps the record: a records table, archive or catalogue." },
+          "url": { "type": "string", "description": "Where the authority shows the accepted result." },
+          "ref": { "type": "string", "description": "The authority's identifier for it, if any." },
+          "accepted_on": { "type": "string", "format": "date" }
+        }
+      }
     },
     "metric": {
       "type": "object", "required": ["name", "value"],
@@ -19,7 +36,24 @@
         "name": { "type": "string" },
         "value": { "type": "string", "description": "Exact representation, e.g. a rational." },
         "decimal": { "type": "string" },
-        "direction": { "enum": ["higher-is-better", "lower-is-better"] }
+        "direction": { "enum": ["higher-is-better", "lower-is-better"] },
+        "bound": { "type": "string", "description": "The best proven bound on the other side, exact representation: no value can beat it. When the value meets it, the question is settled." },
+        "bound_source": { "type": "string", "description": "Where the bound is proved: a path, DOI or URL." }
+      }
+    },
+    "table": {
+      "type": "object", "required": ["path", "key", "value"],
+      "description": "A frontier made of many independent cases, one row each (spec §5, record tables). `statement` describes the family.",
+      "properties": {
+        "path": { "type": "string", "description": "The table file, from the repo root." },
+        "format": { "enum": ["json", "jsonl", "csv"], "description": "Default: from the extension. JSON is an array of objects, or an object with a `rows` array." },
+        "key": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Columns that identify a case, e.g. [\"v\", \"k\", \"t\"]; unique per row." },
+        "value": { "type": "string", "description": "Column holding the case's best value so far." },
+        "direction": { "enum": ["higher-is-better", "lower-is-better"] },
+        "bound": { "type": "string", "description": "Column holding the best proven bound on the other side, where known. A row is open while it has no bound or its value doesn't meet it." },
+        "object": { "type": "string", "description": "Column holding the path of the case's witness, the object a check recomputes." },
+        "check_row": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Argv that checks one row, run from the repo root; {column} is replaced by the row's value in that column." },
+        "check_row_minutes": { "type": "integer", "minimum": 0, "description": "Expected runtime of check_row on a typical row." }
       }
     },
     "scope": { "type": "string", "description": "Conditions under which the statement holds." },

@@ -1,0 +1,22 @@
+{
+  "schema": "discover/v0",
+  "title": "Golomb Rulers (example)",
+  "summary": "An example record-table project: for each number of marks, find a shorter ruler on which every pair of marks is a different distance apart.",
+  "domains": ["mathematics"],
+  "license": "CC0-1.0",
+  "maintainers": [{ "name": "Example Maintainer" }],
+  "canonical_repo": "https://github.com/example/golomb-rulers",
+  "entry": { "agents": "README.md", "project": "README.md" },
+  "frontier": "frontier.json",
+  "catalog": "catalog.json",
+  "credit": { "policy": "Each row of rulers.csv credits whoever found its ruler, in its commit and the release notes.", "kinds": ["contributors-file"] },
+  "review": {
+    "per_week": "surge",
+    "mechanical": {
+      "rule": "A PR that changes one row of rulers.csv to a shorter ruler that passes check.py is merged automatically.",
+      "check": ".github/workflows/accept.yml",
+      "bots": ["github-actions[bot]"]
+    }
+  },
+  "verification_profile": "exact-certificate"
+}

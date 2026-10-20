@@ -1,0 +1,23 @@
+{
+  "schema": "discover-frontier/v0",
+  "statement": "For each n in rulers.csv, the row's marks are a Golomb ruler with n marks and the stated length: the shortest known in this table.",
+  "status": "Rows 2-10 meet the proven optimum; rows 11-14 hold greedy rulers and are open.",
+  "evidence_level": ["author-checked", "independently-checked"],
+  "claim_kind": ["exact"],
+  "scope": "Example data. The optimum column is the proven minimum length for n marks, so a row whose length equals it is settled.",
+  "metric": { "name": "rows meeting the optimum", "value": "9", "direction": "higher-is-better" },
+  "table": {
+    "path": "rulers.csv",
+    "key": ["n"],
+    "value": "length",
+    "direction": "lower-is-better",
+    "bound": "optimum",
+    "check_row": ["python3", "check.py", "--n", "{n}"],
+    "check_row_minutes": 1
+  },
+  "reproduce": "python3 check.py --all",
+  "reproduce_minutes": 1,
+  "prerequisites": ["Python 3.9+"],
+  "review": "README.md",
+  "updated_on": "2026-10-19"
+}

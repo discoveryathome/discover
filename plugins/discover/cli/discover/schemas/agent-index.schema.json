@@ -59,7 +59,8 @@
               "state": { "enum": ["surge", "undeclared", "declared", "room", "full"] },
               "per_week": { "type": ["integer", "string", "null"] },
               "awaiting": { "type": ["integer", "null"] },
-              "headroom": { "type": ["integer", "null"] }
+              "headroom": { "type": ["integer", "null"] },
+              "mechanical": { "type": ["string", "null"], "description": "The rule by which a stated check accepts contributions, when one does (manifest review.mechanical)." }
             }
           },
           "own_picker": { "type": "boolean" },
