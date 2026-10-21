@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/phylogenetic-parsimony"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/phylogenetic-parsimony/2026-10-21-claude.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "adequate",
+    "coordination": "adequate",
+    "verification": "strong",
+    "review": "unknown",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "eeb2d617c726fc945a6d8cd8d3502363861a247c",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "CONTRIBUTORS.md and THIRD_PARTY.md; credit methods, data, verification and agent assistance; authorship by agreement.",
+    "kinds": ["contributors-file", "citation", "acknowledgement"]
+  },
+  "featured": false
+}
