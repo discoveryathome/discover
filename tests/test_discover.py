@@ -1118,6 +1118,70 @@ class SuiteTests(unittest.TestCase):
         self.assertEqual(history.points_from_file(entries)[0]["formulation"], "a")
 
 
+class PilotTests(unittest.TestCase):
+    """Pilot records (spec §3.6)."""
+
+    BLOCK = {"schema": "discover-pilot/v0", "project": "g", "repo": "o/r", "commit": "abcdef1",
+             "piloted_on": "2026-10-20", "mode": "light", "runner": "t", "self_piloted": True, "budget_minutes": 30,
+             "sessions": [{"id": "s1", "fresh": True, "model": "m", "minutes": 30, "first_result_minutes": 4,
+                           "outcome": "progress", "beats_strongest": True, "measures_ok": None},
+                          {"id": "s2", "fresh": True, "inherits": "s1", "outcome": "no-progress"}],
+             "criteria": {"first_step": {"rating": "good", "evidence": "ran as written"},
+                          "inheritance": {"rating": "fair", "evidence": "s2 reproduced s1, no further gain"}},
+             "bottleneck": "search", "verdict": "fast-follow", "next": "a second inheriting wave"}
+
+    def record(self, block):
+        return "# Pilot\n\nNotes.\n\n```discover-pilot\n" + json.dumps(block, indent=2) + "\n```\n"
+
+    def test_parse(self):
+        from discover.hubcheck import parse_pilot
+        self.assertEqual(parse_pilot(self.record(self.BLOCK)), (self.BLOCK, []))
+        self.assertTrue(parse_pilot(self.record({**self.BLOCK, "verdict": "amazing"}))[1])
+        bad = {**self.BLOCK, "criteria": {"vibes": {"rating": "good"}}}
+        self.assertTrue(parse_pilot(self.record(bad))[1])
+        self.assertTrue(parse_pilot("no block")[1])
+
+    def test_validate_command(self):
+        import contextlib, io
+        with tempfile.TemporaryDirectory() as d:
+            good, bad = Path(d) / "good.md", Path(d) / "bad.md"
+            good.write_text(self.record(self.BLOCK))
+            bad.write_text(self.record({**self.BLOCK, "sessions": []}))
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(main(["validate", "--pilot", str(good)]), 0)
+                self.assertEqual(main(["validate", "--pilot", str(bad)]), 1)
+            self.assertIn("verdict fast-follow", out.getvalue())
+
+    def test_hub_shows_the_pilot_and_hub_check_flags_a_bad_one(self):
+        import io
+        from datetime import date
+        from discover import hubcheck
+        with tempfile.TemporaryDirectory() as d:
+            hub_root = Path(d) / "hub"
+            reg = hub_root / "registry" / "projects"
+            reg.mkdir(parents=True)
+            (hub_root / "assessments" / "g").mkdir(parents=True)
+            (hub_root / "assessments" / "g" / "p.md").write_text(self.record(self.BLOCK))
+            entry = {"repos": [{"repo": "o/r"}], "added_on": "2026-10-20", "pilot": "assessments/g/p.md",
+                     "consent": {"source": "application", "list": True}}
+            (reg / "g.json").write_text(json.dumps(entry))
+            real = hub.Source.from_entry
+            hub.Source.from_entry = classmethod(lambda cls, e: cls(local=GOLOMB))
+            try:
+                out = Path(d) / "site" / "data" / "projects.json"
+                hub.build(reg, out, log=io.StringIO())
+                pilot = json.loads(out.read_text(encoding="utf-8"))["projects"][0]["pilot"]
+                self.assertEqual((pilot["verdict"], pilot["sessions"], pilot["fresh"], pilot["progress"]),
+                                 ("fast-follow", 2, 2, 1))
+                self.assertEqual(pilot["url"], "https://github.com/discoveryathome/discover/blob/main/assessments/g/p.md")
+                (hub_root / "assessments" / "g" / "p.md").write_text(self.record({**self.BLOCK, "mode": "huge"}))
+                found = hubcheck.check(reg, "h/h", lambda path: {"sha": "b" * 10} if "/commits/" in path else {},
+                                       date(2026, 10, 21))
+            finally:
+                hub.Source.from_entry = real
+            self.assertIn("pilot-invalid", {f["kind"] for f in found}, found)
+
+
 class MeasureTests(unittest.TestCase):
     """Measures beside the objective, bottleneck and contribution kinds (spec §4, §5, §7)."""
 

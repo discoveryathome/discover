@@ -46,6 +46,13 @@ def git_head(path="."):
 # --- commands ---------------------------------------------------------------
 
 def cmd_validate(a):
+    if a.pilot:
+        from .hubcheck import parse_pilot
+        block, problems = parse_pilot(Path(a.pilot).read_text(encoding="utf-8"))
+        emit({"valid": not problems, "problems": problems, "verdict": (block or {}).get("verdict")}, a.json,
+             lambda r: "pilot record valid: verdict " + r["verdict"] if r["valid"]
+             else "pilot record invalid:\n" + "\n".join(f"  {x}" for x in r["problems"]))
+        return 0 if not problems else 1
     overlay = adapter = frontier_doc = None
     entry = {}
     if a.registry_entry:
@@ -487,6 +494,7 @@ def main(argv=None):
     v.add_argument("--repo", help="validate a GitHub repo (owner/name) instead of a local path")
     v.add_argument("--ref", default="HEAD")
     v.add_argument("--registry-entry", help="apply a registry entry's overlay/adapter")
+    v.add_argument("--pilot", help="check a pilot record's discover-pilot block instead (spec §3.6)")
     v.add_argument("--json", action="store_true")
     v.set_defaults(func=cmd_validate)
 

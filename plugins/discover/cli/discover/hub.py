@@ -378,6 +378,18 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr, with_history
             ablock = parse_assessment(apath.read_text(encoding="utf-8"))[0] if apath.exists() else None
             summary["self_assessed"] = bool((ablock or {}).get("self_assessed"))
             summary["verification_covers"] = (ablock or {}).get("verification_covers")
+        if entry.get("pilot"):
+            from .hubcheck import parse_pilot
+            ppath = registry_dir.resolve().parent.parent / entry["pilot"]
+            pblock, perrs = parse_pilot(ppath.read_text(encoding="utf-8")) if ppath.exists() else (None, ["missing"])
+            if pblock and not perrs:
+                summary["pilot"] = {
+                    "verdict": pblock["verdict"], "on": pblock["piloted_on"], "mode": pblock["mode"],
+                    "self_piloted": pblock.get("self_piloted", False), "bottleneck": pblock.get("bottleneck"),
+                    "sessions": len(pblock["sessions"]),
+                    "fresh": sum(1 for x in pblock["sessions"] if x["fresh"]),
+                    "progress": sum(1 for x in pblock["sessions"] if x["outcome"] == "progress"),
+                    "url": f"https://github.com/{HUB_REPO}/blob/main/{entry['pilot']}"}
         if fdoc and report.get("manifest_origin") == "adapter":
             home = entry["repos"][0]
             summary["frontier_doc"] = {"url": f"https://github.com/{home['repo']}/blob/HEAD/{fdoc['path']}",

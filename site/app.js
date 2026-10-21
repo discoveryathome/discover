@@ -722,12 +722,17 @@ function viewProject(slug) {
       ${board}
       <section class="panel">
         <h2>About</h2>
-        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd>${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}${p.listing === "nominated" ? "" : `<dt>Review</dt><dd>${reviewText(p.review)}</dd>`}${p.requirements ? `<dt>Needs</dt><dd>${esc(needsText(p.requirements))}</dd>` : ""}</dl>
+        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd>${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}${p.listing === "nominated" ? "" : `<dt>Review</dt><dd>${reviewText(p.review)}</dd>`}${p.requirements ? `<dt>Needs</dt><dd>${esc(needsText(p.requirements))}</dd>` : ""}${p.pilot ? `<dt>Pilot</dt><dd>${esc(pilotText(p.pilot))} · ${link(p.pilot.url, "record")}</dd>` : ""}</dl>
         <ul class="links">${links}</ul>
       </section>
     </div>
   </div>`;
 }
+
+// A pilot (spec §3.6): fresh sessions run before listing, and what they showed.
+const VERDICTS = { launch: "ready for donors", "fast-follow": "nearly ready", incubate: "research incubator",
+  reformulate: "the benchmark needs work first", defer: "deferred", demo: "a demo: explore known results" };
+const pilotText = (x) => `${VERDICTS[x.verdict] || x.verdict}: ${x.progress} of ${plural(x.sessions, "session")} made checked progress${x.fresh < x.sessions ? ` (${x.fresh} fresh)` : ""}, ${x.on}${x.self_piloted ? ", run by the project" : ""}`;
 
 const PROPS = ["orientation", "coordination", "verification", "review", "steering"];
 const stageText = (st) => (st === undefined || st === null ? "not assessed" : STAGES[st] || String(st));

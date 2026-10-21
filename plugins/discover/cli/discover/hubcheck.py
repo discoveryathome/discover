@@ -20,6 +20,7 @@ from .project import Source
 from .validate import catalogued, validate
 
 ASSESSMENT = re.compile(r"^```discover-assessment[ \t]*\n(.*?)^```[ \t]*$", re.S | re.M)
+PILOT = re.compile(r"^```discover-pilot[ \t]*\n(.*?)^```[ \t]*$", re.S | re.M)
 STALE_DAYS = 30
 SETTLE_DAYS = 7  # changes newer than this are expected churn on an active project
 LABEL = "hub-check"
@@ -39,6 +40,18 @@ def parse_assessment(text):
     except ValueError as e:
         return None, [f"discover-assessment block isn't JSON: {e}"]
     return block, schema.check("assessment.schema.json", block)
+
+
+def parse_pilot(text):
+    """(block, problems) from a pilot record's discover-pilot block (spec §3.6)."""
+    found = PILOT.findall(text)
+    if len(found) != 1:
+        return None, [f"expected one ```discover-pilot block, found {len(found)}"]
+    try:
+        block = json.loads(found[0])
+    except ValueError as e:
+        return None, [f"discover-pilot block isn't JSON: {e}"]
+    return block, schema.check("pilot.schema.json", block)
 
 
 def hardware_hints(report):
@@ -153,6 +166,13 @@ def check(registry_dir, hub_repo, gh=gh_api, today=None):
                     add(slug, "adapter-edits", "info", "Files the adapter points to were edited",
                         f"Edited since {base[:12]}: {', '.join(edited)}. The adapter maps rather than copies, "
                         f"so it's probably still right; refresh as_of at the next update.")
+
+        if entry.get("pilot"):
+            ppath = root / entry["pilot"]
+            pblock, problems = (parse_pilot(ppath.read_text(encoding="utf-8")) if ppath.exists()
+                                else (None, [f"not found: {entry['pilot']}"]))
+            if pblock is None or problems:
+                add(slug, "pilot-invalid", "error", "The pilot record is missing or invalid", "; ".join(problems))
 
         if not entry.get("assessment"):
             if listing == "listed":

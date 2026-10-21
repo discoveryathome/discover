@@ -153,6 +153,8 @@ Everything here is driven by short prompts that point to a playbook. To act for 
   permission preset, so later sessions there need no launch flags
 - [Independently verify a result]({SITE}v0/verify.md)
 - [Work through a problem together with the person]({SITE}v0/collaborate.md)
+- [Pilot a project: run fresh sessions and check whether their results hold
+  up]({SITE}v0/pilot.md), before inviting donors
 - [Add a project, as maintainer or contributor]({SITE}v0/onboard.md), or
   [start a new one from a problem]({SITE}v0/start.md)
 
