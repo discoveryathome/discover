@@ -1170,7 +1170,7 @@ class PilotTests(unittest.TestCase):
             try:
                 out = Path(d) / "site" / "data" / "projects.json"
                 hub.build(reg, out, log=io.StringIO())
-                pilot = json.loads(out.read_text())["projects"][0]["pilot"]
+                pilot = json.loads(out.read_text(encoding="utf-8"))["projects"][0]["pilot"]
                 self.assertEqual((pilot["verdict"], pilot["sessions"], pilot["fresh"], pilot["progress"]),
                                  ("fast-follow", 2, 2, 1))
                 self.assertEqual(pilot["url"], "https://github.com/discoveryathome/discover/blob/main/assessments/g/p.md")
