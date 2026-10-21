@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/binary-linear-codes"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/binary-linear-codes/2026-10-21-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "strong",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "9253085023804e9f11538b481a60e7eed4ae6778",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Preserve literature authors for published and derived constructions. Credit accepted original contributions and independent verification by contributor name and artifact; no automatic coauthorship promise.",
+    "kinds": ["contributors-file", "citation", "acknowledgement"]
+  },
+  "featured": false
+}
