@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/asteroid-precovery"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/asteroid-precovery/2026-10-21-claude.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "adequate",
+    "coordination": "weak",
+    "verification": "strong",
+    "review": "unknown",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "1f92397b2c227ea6fab475af9d20c3f1b3519415",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "CONTRIBUTING.md; credit original observations, archives and catalogues. Contributors and reviewers are named only with consent.",
+    "kinds": ["contributors-file", "acknowledgement", "citation"]
+  },
+  "featured": false
+}
