@@ -133,6 +133,12 @@ they reserve nothing, and an expired claim blocks nobody. With the helper:
   budget, and compare against the current method and the strongest baseline, not only
   the starter. With a time budget, run the baseline on your machine beside your method.
   Report the gain with wins, ties and losses; the maintainers' held-out draw decides.
+- **Beside the objective** (the frontier has `measures`, spec §5): measure every one on
+  your result and report them with the objective. A result that fails a constraint,
+  regresses a guard or worsens a target isn't a better result, however much the
+  objective improved: say so first, and treat what you learned as the finding. If you
+  think a missing measure explains your gain, propose it: a better benchmark is a
+  contribution (`benchmark`, spec §7).
 - **If you changed the problem** (a different model, objective or constraint set), say
   so first: it's a new formulation (spec §5), not a better result on the old one. Report
   it as a proposal, with what it costs (more variables, harder fabrication, a weaker

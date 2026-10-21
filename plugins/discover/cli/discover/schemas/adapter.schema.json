@@ -27,6 +27,14 @@
         "note": { "type": "string", "description": "How to read it, in the project's own terms." }
       }
     },
+    "bottleneck": {
+      "type": "object", "required": ["kind"], "additionalProperties": false,
+      "description": "What most limits the project's progress, when its manifest doesn't say (spec §4, Bottleneck).",
+      "properties": {
+        "kind": { "enum": ["search", "evaluation", "evidence"] },
+        "note": { "type": "string" }
+      }
+    },
     "demos": {
       "type": "array", "maxItems": 4,
       "description": "Demos the project hosts, listed when its manifest declares none (spec §4, Demos).",

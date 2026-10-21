@@ -80,6 +80,50 @@ const CLAIM_KINDS = {
   exact: "exact check", formal: "formal proof", certified: "certified numerics", argument: "reviewed argument",
   model: "within a model", measured: "measured", observational: "observational candidate",
 };
+// Measures beside the objective (spec §5): what the score stands for, and what it mustn't break.
+const MEASURE_ROLES = { constraint: "Constraint", guard: "Guard", target: "Target" };
+const MEASURE_STATUS = {
+  pass: ["Meets it", "ok"], fail: ["Fails it", "warn"], held: ["Held", "ok"], regressed: ["Got worse", "warn"],
+  better: ["Better", "ok"], same: ["No clear change", ""], worse: ["Worse", "warn"], unreported: ["Not reported", ""],
+};
+const BAD_MEASURES = ["fail", "regressed", "worse"];
+function measureRow(x, repo) {
+  const [label, cls] = MEASURE_STATUS[x.status] || [x.status, ""];
+  const u = x.unit ? ` ${x.unit}` : "";
+  const nums = x.how === "suite"
+    ? `${x.wins}–${x.ties}–${x.losses} against ${x.against} on ${plural(x.instances, "instance")}, mean ${pct(x.mean_gain)}, p = ${pval(x.p)}`
+    : [x.value != null ? `${x.value}${u}` : "", x.limit != null ? `limit ${x.limit}${u}` : "", x.baseline != null ? `baseline ${x.baseline}${u}` : "",
+       x.tolerance ? `tolerance ${x.tolerance}` : ""].filter(Boolean).join(" · ");
+  return `<tr><td><span class="badge">${esc(MEASURE_ROLES[x.role] || x.role)}</span></td>
+    <td><b>${esc(x.name)}</b>${x.statement ? `<div class="hint">${esc(x.statement)}</div>` : ""}</td>
+    <td><span class="badge ${cls}">${esc(label)}</span></td>
+    <td class="mono">${esc(nums)}${x.how === "stated" ? '<span class="hint">stated by the project</span>' : ""}${x.source ? ` ${sourceLink(x.source, repo)}` : ""}</td></tr>`;
+}
+function measuresSection(p, f) {
+  const ms = f.measures;
+  if (!ms?.length) return "";
+  const bad = ms.filter((x) => BAD_MEASURES.includes(x.status));
+  return `<div><h3 style="margin-bottom:6px">Beside the objective</h3>
+    <p class="hint">${bad.length ? `<b>${esc(plural(bad.length, "measure"))} went the wrong way.</b> A better score here isn't by itself a better result.` : "What the objective stands for, and what it mustn't break, measured on the current result."}</p>
+    <div class="scroll"><table class="records measures">${ms.map((x) => measureRow(x, p.repo)).join("")}</table></div></div>`;
+}
+function measureFlag(f) {
+  const ms = f?.measures || [];
+  const flag = ms.some((x) => x.status === "fail") ? "Fails a constraint" : ms.some((x) => x.status === "regressed") ? "A guard got worse"
+    : ms.some((x) => x.status === "worse") ? "Target got worse" : "";
+  return flag ? `<span class="badge warn" title="The objective improved, but a measure beside it went the wrong way">${flag}</span>` : "";
+}
+
+// What most limits progress (spec §4), so donors know what a session can do.
+const BOTTLENECKS = {
+  search: ["Better search moves it", "The objective is the right one; finding better results is the hard part."],
+  evaluation: ["Needs a better benchmark", "Results are easy to improve, but the benchmark doesn't yet track what matters. The useful work is improving it."],
+  evidence: ["Needs new data", "Progress depends on data or experiments that don't exist yet."],
+};
+const bottleneckBadge = (b) => (b && BOTTLENECKS[b.kind] ? `<span class="badge" title="${esc(BOTTLENECKS[b.kind][1] + (b.note ? ` ${b.note}` : ""))}">${esc(BOTTLENECKS[b.kind][0])}</span>` : "");
+const CONTRIBUTES = { record: "a better result", method: "a method, tested on held-out instances", benchmark: "a better benchmark",
+  evidence: "data or validation", measurement: "a physical measurement" };
+
 const claimBadges = (kinds) => (kinds || []).map((k) => `<span class="badge">${esc(CLAIM_KINDS[k] || k)}</span>`).join("");
 
 // --- prompts (same templates and draw as `discover prompt` / `discover pick`) -----
@@ -197,7 +241,7 @@ function projectCard(p) {
   const handoffs = p.board?.open_handoffs?.length;
   return `<article class="card">
     ${heroFigure(p, p.frontier, true)}
-    <div class="row">${stageBadge(p)}${reviewBadge(p)}${p.demos?.length ? `<span class="badge" title="The project hosts ${esc(plural(p.demos.length, "page"))} for exploring its results">${p.demos.length > 1 ? `${p.demos.length} demos` : "Demo"}</span>` : ""}</div>
+    <div class="row">${stageBadge(p)}${reviewBadge(p)}${measureFlag(p.frontier)}${bottleneckBadge(p.bottleneck)}${p.demos?.length ? `<span class="badge" title="The project hosts ${esc(plural(p.demos.length, "page"))} for exploring its results">${p.demos.length > 1 ? `${p.demos.length} demos` : "Demo"}</span>` : ""}</div>
     <h3><a class="stretch" href="#/p/${encodeURIComponent(p.slug)}">${esc(p.title)}</a></h3>
     <p class="summary">${esc(p.summary)}</p>
     ${metric(p.frontier)}
@@ -569,6 +613,7 @@ function frontierInner(p, f, origin) {
     ${f.external?.length ? `<p class="hint">Accepted by ${f.external.map((x) => link(x.url, x.authority)).join(", ")}</p>` : ""}
     ${f.scope ? `<details><summary>Scope and conditions</summary><p class="hint">${esc(f.scope)}</p></details>` : ""}
     ${assumptions}
+    ${measuresSection(p, f)}
     ${f.suite ? suiteSection(p, f.suite) : ""}
     ${historySection(p, f)}
     <p class="hint">Updated ${esc(f.updated_on || "unknown")} · ${link(f.record_url, "record")}${where ? ` · ${where}` : ""}</p>`;
@@ -653,7 +698,7 @@ function viewProject(slug) {
     <div class="crumbs"><a href="#/">Explore</a> <span class="muted">/ ${esc(p.repo)}</span></div>
     <h1>${esc(p.title)}</h1>
     <p class="lede">${esc(p.summary)}</p>
-    <div class="row">${stageBadge(p)}${reviewBadge(p)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}<span class="muted" style="font-size:13px">${esc(p.domains.join(" · "))}</span></div>
+    <div class="row">${stageBadge(p)}${reviewBadge(p)}${measureFlag(f)}${bottleneckBadge(p.bottleneck)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}<span class="muted" style="font-size:13px">${esc(p.domains.join(" · "))}</span></div>
   </div>
   <div class="layout">
     <div class="side">${p.listing === "nominated" ? nominatedPanel(p) : p.review?.paused ? pausedPanel() : launcher(p)}</div>
@@ -671,7 +716,7 @@ function viewProject(slug) {
         <p class="hint">How the project splits donated sessions across its tracks${p.priority_revision ? ` (revision ${esc(p.priority_revision)})` : ""}. Open a track to see its tasks.</p>
         ${trackBar(p.tracks)}
         <div class="legend">${p.tracks.map((t, i) => `<div class="legend-row"><span class="sw" style="background:var(--track-${(i % TRACK_COLORS) + 1})"></span>
-          <details><summary>${esc(t.id)}</summary>${t.useful_outcome ? `<p class="hint" style="margin-bottom:6px">${esc(t.useful_outcome)}</p>` : ""}<ul class="qlist">${t.cards.map((c) => `<li><code>${esc(c.id)}</code>: ${esc(c.question)}${c.rows || c.claim_kind?.length ? `<div class="hint">${[c.rows ? "any open case in the table" : "", ...(c.claim_kind || []).map((k) => CLAIM_KINDS[k] || k)].filter(Boolean).map(esc).join(" · ")}</div>` : ""}</li>`).join("")}</ul></details>
+          <details><summary>${esc(t.id)}</summary>${t.useful_outcome ? `<p class="hint" style="margin-bottom:6px">${esc(t.useful_outcome)}</p>` : ""}<ul class="qlist">${t.cards.map((c) => `<li><code>${esc(c.id)}</code>: ${esc(c.question)}${c.rows || c.claim_kind?.length || c.contributes ? `<div class="hint">${[c.contributes ? `adds ${CONTRIBUTES[c.contributes] || c.contributes}` : "", c.rows ? "any open case in the table" : "", ...(c.claim_kind || []).map((k) => CLAIM_KINDS[k] || k)].filter(Boolean).map(esc).join(" · ")}</div>` : ""}</li>`).join("")}</ul></details>
           <span class="w">${esc(t.weight)}%</span></div>`).join("")}</div>
       </section>` : ""}
       ${board}

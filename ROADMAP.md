@@ -263,6 +263,27 @@ Projects build replays and dashboards on their own; the first version (spec §4,
 - **Deployed version:** a demo can publish the commit it was built from (a
   `demo.json` beside it), so the page can say exactly which result it shows.
 
+### 15. What the score stands for: what's next
+
+Measures, bottleneck and contribution kinds (spec §4, §5, §7) are the first version,
+from ~30 pilots where agents improved objectives faster than results. Next:
+
+- **Inherited progress:** per project, the share of contributors who advanced a
+  frontier someone else set, time to first accepted contribution, and time since the
+  frontier last moved. Stage 2 should need the first: a second wave advancing an
+  inherited frontier was the strongest evidence any pilot gave.
+- **Trials:** a standard validation trial before a project is featured (three fresh
+  agents independently, then a wave inheriting the best result; frozen baseline,
+  declared evidence standard, fixed budget), run with `discover trial` and recorded
+  under `assessments/`, in place of same-agent rehearsals.
+- **Tiers and promises:** gallery tiers (launch, fast-follow, research incubator, demo)
+  with a one-line `promise` of what a session can deliver, and new donors routed to
+  `search` projects with recent progress.
+- **Measures in history:** history entries carry measures, so a chart shows a target
+  falling while the objective rises.
+- **Domain review:** a `medicine` project shows no ranking until a named domain reviewer
+  has accepted its constraints.
+
 ## Rubric gaps found in testing
 
 - **Stage 1 with little review capacity.** `applied-butterfly-mult` reached Stage 1 on a

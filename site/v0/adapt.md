@@ -55,9 +55,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-945a15ea7d35.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-60e2cf4f85bf.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 945a15ea7d35cf7b2494b5a9095ef2a427e24a45770152048dfe172b2e5aec5d
+# must print 60e2cf4f85bf6cf61b03b4200c7caed9260af42208b0ceebc452dc2d043766a3
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -303,6 +303,14 @@ JSON block (https://github.com/discoveryathome/discover/tree/main/spec/schemas/a
   for a table. Point an `image` at a figure the project already keeps, with its `alt`.
   A picture the hub makes goes in the hub's `visuals/` with `"from": "hub"` and `kind:
   "illustration"`, and records its `prompt` if an image model made it.
+- `bottleneck` (top level, optional): what most limits progress, `search`, `evaluation`
+  or `evidence` (spec §4), when the project doesn't say, with a `note` in the project's
+  own terms. Base it on what the project's text and results show, e.g. a benchmark its
+  authors call provisional is `evaluation`.
+- `demos` (top level, optional): pages the project already hosts for exploring its
+  results (spec §4, Demos), when its manifest lists none. Only list a page that's live at
+  an https address the project publishes, with `reads` naming the data it shows. Don't
+  build one for the project.
 - The kind of claim, even without a machine-readable record: say in the adapter's text
   whether the project's results are exact, formal, within a model, measured or
   observational, in the project's own terms, so donors know what a check can show.

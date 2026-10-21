@@ -61,6 +61,30 @@
         "updated": { "type": "string", "description": "Column with the date (YYYY-MM-DD) the case's value last changed." }
       }
     },
+    "measures": {
+      "type": "array",
+      "description": "What else is measured on the current result, beside the objective (spec §5, Measures): constraints it must meet, guards that mustn't get worse, and targets the objective stands in for. The page shows them with the objective.",
+      "items": {
+        "type": "object", "required": ["name", "role"], "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "description": "e.g. \"reference alignment accuracy\", \"spinal cord max dose\", \"nonzero coefficients\"." },
+          "role": { "enum": ["constraint", "guard", "target"], "description": "constraint: the result must meet it, or it isn't valid. guard: mustn't get worse than the baseline beyond `tolerance`. target: what the objective stands in for, reported beside it." },
+          "statement": { "type": "string", "description": "What it measures and why it matters, in a sentence." },
+          "value": { "type": "string", "description": "The current result's value." },
+          "baseline": { "type": "string", "description": "guard, target: the value before the project's change, or the baseline method's." },
+          "limit": { "type": "string", "description": "constraint: the value it must meet; `direction` says which side passes." },
+          "direction": { "enum": ["higher-is-better", "lower-is-better"], "description": "Default: higher-is-better." },
+          "tolerance": { "type": "string", "description": "guard: how much worse than the baseline still holds, in its units. Default 0." },
+          "unit": { "type": "string" },
+          "column": { "type": "string", "description": "A column of the suite's results holding this measure per run; compared instance by instance with the baseline named by `against`, like the objective." },
+          "against": { "type": "string", "description": "column: the baseline method compared with. Default: the strongest declared baseline." },
+          "status": { "enum": ["pass", "fail", "held", "regressed", "better", "same", "worse"], "description": "The project's statement of the result, for a measure the hub can't compute from numbers, e.g. a robustness test." },
+          "command": { "type": "array", "items": { "type": "string" }, "description": "Argv that recomputes it, run from the repo root." },
+          "source": { "type": "string", "description": "Where it was measured: a path, PR, DOI or URL." },
+          "note": { "type": "string" }
+        }
+      }
+    },
     "formulation": {
       "type": "object", "required": ["id"],
       "description": "The exact problem the record answers (spec §5, Formulations). A changed model, objective or constraint set is a new formulation: its results start a new series and aren't compared with the old one's.",
