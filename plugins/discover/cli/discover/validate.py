@@ -6,6 +6,7 @@ assessment of the five properties (spec §3), never from this check.
 
 from . import schema
 from . import history as historymod
+from . import measures as measuremod
 from . import demo as demomod
 from . import visual as visualmod
 from . import suite as suitemod
@@ -153,7 +154,7 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
                 req += tablemod.problems(rows, tbl)
                 r["table_rows"] = rows
                 r["table"] = tablemod.summary(rows, tbl)
-        st = frontier.get("suite")
+        st, suite_rows = frontier.get("suite"), None
         if isinstance(st, dict) and {"path", "current", "baselines"} <= st.keys():
             rows, problem = suitemod.load(source, st)
             if problem:
@@ -162,6 +163,11 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
                 req += suitemod.problems(rows, st)
                 r["warnings"] += suitemod.warnings(rows, st)
                 r["suite"] = suitemod.summary(rows, st)
+                suite_rows = rows
+        ms = [m for m in frontier.get("measures") or [] if isinstance(m, dict)]
+        r["measures"] = measuremod.evaluate(ms, suite_rows, st if suite_rows is not None else None)
+        r["warnings"] += measuremod.warnings(ms, r["measures"], manifest.get("domains"),
+                                             bool(frontier.get("metric") or frontier.get("suite")))
         hpath = frontier.get("history")
         if isinstance(hpath, str):
             text = source.read(hpath)

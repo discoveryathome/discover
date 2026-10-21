@@ -1118,6 +1118,80 @@ class SuiteTests(unittest.TestCase):
         self.assertEqual(history.points_from_file(entries)[0]["formulation"], "a")
 
 
+class MeasureTests(unittest.TestCase):
+    """Measures beside the objective, bottleneck and contribution kinds (spec §4, §5, §7)."""
+
+    SUITE = {"current": "m", "direction": "lower-is-better",
+             "baselines": [{"method": "s", "strength": "starter"}, {"method": "p", "strength": "published"}]}
+
+    def test_schemas(self):
+        f = json.loads((TSP / "frontier.json").read_text())
+        ok = {**f, "measures": [{"name": "accuracy", "role": "target", "column": "acc"},
+                                {"name": "max dose", "role": "constraint", "value": "44", "limit": "45",
+                                 "direction": "lower-is-better", "unit": "Gy"}]}
+        self.assertEqual(schema.check("frontier.schema.json", ok), [])
+        self.assertTrue(schema.check("frontier.schema.json", {**f, "measures": [{"name": "x", "role": "hope"}]}))
+        m = json.loads((TSP / "discover.json").read_text())
+        self.assertEqual(m["bottleneck"]["kind"], "search")
+        self.assertEqual(schema.check("manifest.schema.json", m), [])
+        self.assertTrue(schema.check("manifest.schema.json", {**m, "bottleneck": {"kind": "luck"}}))
+        self.assertEqual(schema.check("catalog.schema.json", json.loads((TSP / "catalog.json").read_text())), [])
+
+    def test_numbers(self):
+        from discover.measures import assess
+        self.assertEqual(assess({"role": "target", "value": "0.81", "baseline": "0.84"})["status"], "worse")
+        self.assertEqual(assess({"role": "target", "value": "2", "baseline": "3", "direction": "lower-is-better"})["status"], "better")
+        self.assertEqual(assess({"role": "guard", "value": "101", "baseline": "100", "direction": "lower-is-better",
+                                 "tolerance": "2"})["status"], "held")
+        self.assertEqual(assess({"role": "guard", "value": "123", "baseline": "100", "direction": "lower-is-better"})["status"],
+                         "regressed")
+        self.assertEqual(assess({"role": "constraint", "value": "46", "limit": "45", "direction": "lower-is-better"})["status"],
+                         "fail")
+        self.assertEqual(assess({"role": "constraint", "value": "45", "limit": "45", "direction": "lower-is-better"})["status"],
+                         "pass")
+        self.assertEqual(assess({"role": "constraint", "status": "pass"}), {"status": "pass", "how": "stated"})
+        self.assertEqual(assess({"role": "target"})["status"], "unreported")
+
+    def test_a_suite_column_is_compared_like_the_objective(self):
+        # The objective improves on every instance while the target falls on most: the
+        # alignment pilot's pattern.
+        from discover import measures
+        rows = [{"method": m, "instance": str(i), "value": str(v), "acc": str(a)}
+                for i in range(12) for m, v, a in (("m", 90, 0.70 if i > 2 else 0.9), ("s", 100, 0.6), ("p", 95, 0.8))]
+        out = measures.evaluate([{"name": "accuracy", "role": "target", "column": "acc"},
+                                 {"name": "accuracy floor", "role": "guard", "column": "acc", "against": "s"}],
+                                rows, self.SUITE)
+        self.assertEqual((out[0]["status"], out[0]["against"], out[0]["wins"], out[0]["losses"]), ("worse", "p", 3, 9))
+        self.assertEqual(out[1]["status"], "held")
+
+    def test_warnings(self):
+        from discover import measures
+        ms = [{"name": "dvh", "role": "constraint", "status": "fail"},
+              {"name": "acc", "role": "target", "value": "1", "baseline": "2", "status": "better"}]
+        w = measures.warnings(ms, measures.evaluate(ms), ["medicine"], True)
+        self.assertTrue(any("fails this constraint" in x for x in w))
+        self.assertTrue(any("stated 'better', but the numbers say 'worse'" in x for x in w))
+        self.assertFalse(any("declares no guard or target" in x for x in w))
+        self.assertTrue(any("declares no guard or target" in x for x in measures.warnings([], [], ["life-sciences"], True)))
+        self.assertEqual(measures.warnings([], [], ["mathematics"], True), [])
+
+    def test_validate_and_hub_carry_measures(self):
+        with tempfile.TemporaryDirectory() as d:
+            for f in TSP.iterdir():
+                if f.is_file():
+                    (Path(d) / f.name).write_bytes(f.read_bytes())
+            fr = json.loads((TSP / "frontier.json").read_text())
+            fr["measures"] = [{"name": "tours valid", "role": "constraint", "status": "pass"}]
+            (Path(d) / "frontier.json").write_text(json.dumps(fr))
+            r = validate(Source(local=d))
+            self.assertTrue(r["conformant"], r["problems"])
+            entry = {"repos": [{"repo": "o/r"}]}
+            out = hub.project_summary("t", entry, r)
+            self.assertEqual(out["frontier"]["measures"][0]["status"], "pass")
+            self.assertEqual(out["bottleneck"]["kind"], "search")
+            self.assertEqual(out["tracks"][1]["cards"][0]["contributes"], "benchmark")
+
+
 class DemoTests(unittest.TestCase):
     """Project demos (spec §4, Demos): linked, labelled, never served."""
 

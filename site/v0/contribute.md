@@ -44,9 +44,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-945a15ea7d35.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-60e2cf4f85bf.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 945a15ea7d35cf7b2494b5a9095ef2a427e24a45770152048dfe172b2e5aec5d
+# must print 60e2cf4f85bf6cf61b03b4200c7caed9260af42208b0ceebc452dc2d043766a3
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -289,6 +289,12 @@ they reserve nothing, and an expired claim blocks nobody. With the helper:
   budget, and compare against the current method and the strongest baseline, not only
   the starter. With a time budget, run the baseline on your machine beside your method.
   Report the gain with wins, ties and losses; the maintainers' held-out draw decides.
+- **Beside the objective** (the frontier has `measures`, spec §5): measure every one on
+  your result and report them with the objective. A result that fails a constraint,
+  regresses a guard or worsens a target isn't a better result, however much the
+  objective improved: say so first, and treat what you learned as the finding. If you
+  think a missing measure explains your gain, propose it: a better benchmark is a
+  contribution (`benchmark`, spec §7).
 - **If you changed the problem** (a different model, objective or constraint set), say
   so first: it's a new formulation (spec §5), not a better result on the old one. Report
   it as a proposal, with what it costs (more variables, harder fabrication, a weaker

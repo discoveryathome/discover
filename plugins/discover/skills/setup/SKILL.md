@@ -248,6 +248,17 @@ Then fill in, with the maintainer:
   instances are drawn (a beacon round after the method is frozen is the simplest), and
   count the budget in work, not seconds. `examples/tsp-heuristics/` is a template. Either
   way, name the `formulation`, so a later change to the problem shows as one.
+- **What the score stands for:** ask what a better objective could break or miss, and
+  declare it in `measures` (spec §5): `constraint`s a valid result must meet (better
+  still, enforced by the evaluator), `guard`s that mustn't get worse, and a `target`, the
+  quantity the objective stands in for, where one can be measured. In medicine and the
+  life sciences, don't list a project without a guard or target unless the maintainers
+  accept the warning. If nobody yet knows what the target is, say so.
+- **Bottleneck:** ask what most limits progress now (spec §4, `bottleneck`): `search`,
+  `evaluation` (the benchmark doesn't yet track what matters) or `evidence` (needed data
+  doesn't exist yet), with a `note` on what would move it. Give each catalogue card a
+  `contributes` (spec §7): a project stuck on evaluation or evidence needs `benchmark`
+  or `evidence` cards, not only `record` ones.
 - **Visual (encouraged):** ask what picture would show the problem and its progress
   (spec §4, `visual`). Often the hub draws it from the frontier: `progress`,
   `bound-gap` with a `baseline` where the question started, or `records` for a table. If
@@ -255,6 +266,11 @@ Then fill in, with the maintainer:
   from the frontier and commit the image beside it, `kind: "witness"`. An image made by
   an image model records its `prompt`. Don't invent one if nothing fits: the hub falls
   back to a title card.
+- **Demos (optional):** if the project hosts a page for exploring its results (a replay,
+  a dashboard, a data browser), list it in `demos` with its `url`, `kind`, the `reads`
+  it shows and a thumbnail (spec §4, Demos). Have it read the frontier record or its
+  results file where it can, so it shows the checked result, and give it a `note` saying
+  what it doesn't claim.
 - **Catalogue:** 2–6 tracks with integer weights summing to 100. Always include an
   independent-verification or audit track. For each track, 1–4 cards, each with a
   precise `question`, `starting_points`, `methods`, an `acceptance_gate`, a `first_step`

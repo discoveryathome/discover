@@ -68,13 +68,13 @@ def _num(s):
     return x if math.isfinite(x) else None
 
 
-def _means(rows, method, by_machine):
-    """{pair key: mean value over seeds} for one method."""
+def _means(rows, method, by_machine, column="value"):
+    """{pair key: mean of `column` over seeds} for one method."""
     acc = {}
     for r in rows:
         if r.get("method") != method:
             continue
-        v = _num(r.get("value", ""))
+        v = _num(r.get(column, ""))
         if v is None:
             continue
         key = (r.get("instance"), r.get("machine", "") if by_machine else "")
@@ -92,12 +92,13 @@ def sign_test(wins, losses):
     return min(1.0, 2 * tail)
 
 
-def compare(rows, suite, method, baseline):
+def compare(rows, suite, method, baseline, column="value", direction=None):
     """The method against one baseline on the instances both ran: relative gains (positive
-    is better for the method), wins, ties, losses and a sign test."""
+    is better for the method), wins, ties, losses and a sign test. `column` and `direction`
+    compare another measure than the objective (spec §5, Measures)."""
     by_machine = timed(suite)
-    m, b = _means(rows, method, by_machine), _means(rows, baseline, by_machine)
-    lower = suite.get("direction", "lower-is-better") == "lower-is-better"
+    m, b = _means(rows, method, by_machine, column), _means(rows, baseline, by_machine, column)
+    lower = (direction or suite.get("direction", "lower-is-better")) == "lower-is-better"
     gains, wins, ties, losses = [], 0, 0, 0
     for key in sorted(set(m) & set(b), key=str):
         diff = (b[key] - m[key]) if lower else (m[key] - b[key])

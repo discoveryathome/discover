@@ -87,6 +87,7 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
         "permissions": m.get("permissions", {}),
         "review": reviewmod.status(m.get("review"), measured),
         "requirements": m.get("requirements"),
+        "bottleneck": m.get("bottleneck"),
         "frontier": None, "tracks": [], "board": None,
     }
     if f:
@@ -112,6 +113,8 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
                 **report["suite"], "url": blob + st["path"], "held_out": st.get("instances"),
                 **{k: st[k] for k in ("objective", "direction", "budget", "evaluate") if st.get(k)},
             }
+        if report.get("measures"):
+            out["frontier"]["measures"] = report["measures"]
         if f.get("formulation"):
             fm = f["formulation"]
             out["frontier"]["formulation"] = {**fm, **({"doc_url": blob + fm["doc"]} if fm.get("doc") else {})}
@@ -124,7 +127,8 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
         out["assessed_on"] = cat.get("assessed_on")
         out["tracks"] = [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome"),
                           "cards": [{"id": c["id"], "question": c["question"], "methods": c.get("methods", []),
-                                     "claim_kind": c.get("claim_kind", []), "rows": "rows" in c}
+                                     "claim_kind": c.get("claim_kind", []), "rows": "rows" in c,
+                                     **({"contributes": c["contributes"]} if c.get("contributes") else {})}
                                     for c in t.get("tasks", [])]}
                          for t in cat.get("tracks", [])]
     if board:
@@ -167,14 +171,18 @@ def agent_index(projects, site, hub_repo, generated_at):
                          "open_prs": p["stage"] >= 1 and bool(perms.get("open_prs"))},
             "session_minutes": p.get("session_minutes", 60),
             "requirements": p.get("requirements"),
+            "bottleneck": (p.get("bottleneck") or {}).get("kind"),
             "frontier": ({"statement": f.get("statement"), "claim_kind": f.get("claim_kind", []),
                           **({"table": {k: f["table"][k] for k in ("rows", "open")}} if f.get("table") else {}),
                           **({"suite": {k: f["suite"][k] for k in ("current", "instances", "strongest_beaten", "has_mature")}}
                              if f.get("suite") else {}),
+                          **({"measures": [{k: x[k] for k in ("name", "role", "status") if k in x}
+                                           for x in f["measures"]]} if f.get("measures") else {}),
                           "open_assumptions": [a.get("id") or a.get("statement")
                                                for a in f.get("open_assumptions", [])]}
                          if f else ({"doc": p["frontier_doc"]["url"]} if p.get("frontier_doc") else None)),
-            "tracks": [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome")}
+            "tracks": [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome"),
+                        "contributes": sorted({c["contributes"] for c in t.get("cards", []) if c.get("contributes")})}
                        for t in p.get("tracks", [])],
             "open_handoffs": handoffs, "open_handoffs_count": len(handoffs),
             "live_claims": (p.get("board") or {}).get("live_claims"),
@@ -358,6 +366,8 @@ def build(registry_dir, out_path, with_board=False, log=sys.stderr, with_history
                     "table_url": source.raw_url(tbl["path"]) if report.get("table") else None}
         summary = project_summary(slug, entry, report, board, listing, site_url(registry_dir), measured,
                                   hist, live)
+        if not summary["bottleneck"] and isinstance((ablock or {}).get("bottleneck"), dict):
+            summary["bottleneck"] = {**ablock["bottleneck"], "from": "adapter"}
         summary["visual"] = hero(slug, entry, report, ablock, source, registry_dir.resolve().parent.parent,
                                  out_path.parent, summary["title"], log)
         summary["demos"] = demos(slug, entry, report, ablock, source, registry_dir.resolve().parent.parent,
