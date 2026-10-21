@@ -203,8 +203,8 @@ only run with context the setup didn't write down, gains that vanish against a s
 simple method, scores that rise while the result gets worse.
 
 Ask first: it runs the project's code, takes about an hour, and uses the maintainer's
-inference. If they'd rather not, say what it would have checked, and note that the hub
-runs its own before featuring the project.
+inference. If they'd rather not, say what it would have checked, and that the hub may run
+its own.
 
 Go through the verdict with them (spec §3.6). Fix what the setup can fix: steps that
 didn't run, cards nobody could act on, measures to declare. If it's `reformulate`,

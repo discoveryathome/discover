@@ -17,7 +17,7 @@ The criteria and verdicts are spec §3.6: https://github.com/discoveryathome/dis
   then one that inherits its result. Usually the maintainer's own project, often a draft
   that isn't pushed yet. The record is the maintainer's to keep or share
   (`self_piloted: true`).
-- **Full** (the hub's trial before featuring a project): three fresh sessions
+- **Full** (the hub's trial, for example while considering a project for featuring): three fresh sessions
   independently, then a wave of one or two inheriting the best checked result. The
   number that matters most is how many sessions advanced a frontier someone else set.
 

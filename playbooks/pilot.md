@@ -1,6 +1,6 @@
 ---
 name: pilot
-description: Pilot a Discovery@Home project before donors are invited - run fresh donated sessions against a frozen frontier, check every result yourself against the strongest baseline and the project's measures, and judge whether the problem suits donated sessions. Use when the user says "pilot my project", "test whether agents can make progress on <repo>", "run a trial of <project>", when the setup playbook reaches its pilot step, or when a hub maintainer runs a project's trial before featuring it. Arguments - repo (owner/name, URL or a local path), mode (light or full), minutes per session.
+description: Pilot a Discovery@Home project before donors are invited - run fresh donated sessions against a frozen frontier, check every result yourself against the strongest baseline and the project's measures, and judge whether the problem suits donated sessions. Use when the user says "pilot my project", "test whether agents can make progress on <repo>", "run a trial of <project>", when the setup playbook reaches its pilot step, or when a hub maintainer runs a project's trial. Arguments - repo (owner/name, URL or a local path), mode (light or full), minutes per session.
 ---
 
 # Pilot a project
@@ -22,7 +22,7 @@ The criteria and verdicts are spec §3.6: {{SPEC_URL}}. Read it first.
   then one that inherits its result. Usually the maintainer's own project, often a draft
   that isn't pushed yet. The record is the maintainer's to keep or share
   (`self_piloted: true`).
-- **Full** (the hub's trial before featuring a project): three fresh sessions
+- **Full** (the hub's trial, for example while considering a project for featuring): three fresh sessions
   independently, then a wave of one or two inheriting the best checked result. The
   number that matters most is how many sessions advanced a frontier someone else set.
 

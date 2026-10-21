@@ -273,8 +273,7 @@ from ~30 pilots where agents improved objectives faster than results. Next:
   frontier last moved. Stage 2 should need the first: a second wave advancing an
   inherited frontier was the strongest evidence any pilot gave.
 - **Trials:** the pilot playbook's full mode (spec §3.6) is the trial. Next: run it on
-  the candidate cohort, show pilot verdicts in the gallery, and have intake require one
-  before a project is featured.
+  the candidate cohort, and show pilot verdicts in the gallery.
 - **Tiers and promises:** gallery tiers (launch, fast-follow, research incubator, demo)
   with a one-line `promise` of what a session can deliver, and new donors routed to
   `search` projects with recent progress.

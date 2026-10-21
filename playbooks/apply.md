@@ -31,7 +31,7 @@ becomes a full listing only if they add a consent record to their repo.
   suggest the setup playbook to add one the maintainer chooses.
 - For an application, if the person ran a **pilot** (the setup playbook's pilot step,
   {{SITE}}v0/pilot.md), mention its verdict in the notes; they can add the record to
-  the registry PR. The hub runs its own before featuring a project.
+  the registry PR. The hub may run its own.
 - For a nomination, check the project hasn't opted out (`"list": false` in its
   `discover.json` or `.github/discover-hubs.json`). If it has, stop.
 
