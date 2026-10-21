@@ -1118,6 +1118,47 @@ class SuiteTests(unittest.TestCase):
         self.assertEqual(history.points_from_file(entries)[0]["formulation"], "a")
 
 
+class SignalsTests(unittest.TestCase):
+    """The curation sweep's signals (playbooks/curate.md)."""
+
+    def test_signals(self):
+        from datetime import date
+        from discover import signals
+        today = date(2027, 3, 1)
+        p = {"slug": "x", "listing": "listed", "stage": 1, "featured": True, "self_assessed": True,
+             "assessment": "assessments/x/2026-10-01-a.md", "conformant": True,
+             "pilot": {"verdict": "reformulate", "on": "2026-10-20"},
+             "frontier": {"updated_on": "2026-10-01", "history": {"points": [{"date": "2026-09-01"}]},
+                          "measures": [{"name": "acc", "status": "worse"}, {"name": "dose", "status": "pass"}]},
+             "review": {"state": "full", "awaiting": 9, "per_week": 3},
+             "demos": [{"title": "Replay", "stale": True}]}
+        kinds = [x["signal"] for x in signals.for_project(p, today)]
+        self.assertEqual(kinds, ["self-assessed", "assessment-old", "featured-verdict", "plateau", "measures",
+                                 "review-full", "demo-stale"])
+        self.assertIn("acc", signals.for_project(p, today)[4]["detail"])
+        quiet = {"slug": "y", "listing": "listed", "stage": 1, "conformant": True,
+                 "assessment": "assessments/y/2027-02-20-a.md", "frontier": {"updated_on": "2027-02-01"}}
+        self.assertEqual(signals.for_project(quiet, today), [])
+        nom = {"slug": "z", "listing": "nominated", "stage": "assessed", "added_on": "2026-10-01", "conformant": True}
+        self.assertEqual([x["signal"] for x in signals.for_project(nom, today)], ["nomination-old"])
+        self.assertEqual([x["signal"] for x in signals.for_project({**quiet, "featured": True}, today)],
+                         ["featured-unpiloted"])
+
+    def test_command(self):
+        import contextlib, io
+        with tempfile.TemporaryDirectory() as d:
+            data = Path(d) / "projects.json"
+            data.write_text(json.dumps({"generated_at": "t", "problems": [{"slug": "b", "errors": ["bad"]}],
+                                        "projects": [{"slug": "x", "listing": "listed", "stage": None, "conformant": True}]}))
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(main(["signals", "--data", str(data), "--today", "2027-01-01"]), 0)
+            self.assertIn("unassessed", out.getvalue())
+            self.assertIn("b: skipped by the build: bad", out.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                main(["prompt", "--action", "curate"])
+            self.assertIn("v0/curate.md", out.getvalue())
+
+
 class PilotTests(unittest.TestCase):
     """Pilot records (spec §3.6)."""
 
