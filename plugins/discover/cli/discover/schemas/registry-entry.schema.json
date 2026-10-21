@@ -32,6 +32,7 @@
     },
     "process_changed_on": { "type": "string", "format": "date", "description": "As in the manifest, for repos listed through an adapter." },
     "assessment": { "type": "string", "description": "Path of the latest assessment record, e.g. assessments/<id>/<date>-<assessor>.md." },
+    "pilot": { "type": "string", "description": "Path of the latest pilot record, e.g. assessments/<id>/<date>-<runner>-pilot.md (spec §3.6)." },
     "stage": { "enum": ["assessed", 0, 1, 2], "description": "The stage computed in that assessment (spec §3.3), copied here when a hub maintainer merges it. Absent: not yet assessed." },
     "grades": { "$ref": "#/$defs/grades" },
     "intake": { "type": "string", "description": "URL of the hub issue the entry came from." },

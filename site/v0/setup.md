@@ -40,9 +40,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-60e2cf4f85bf.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-ce7bf7ee6132.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 60e2cf4f85bf6cf61b03b4200c7caed9260af42208b0ceebc452dc2d043766a3
+# must print ce7bf7ee613239fc468fb08e23765305781278ed71c22a117b13569bfd5794f8
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -348,7 +348,27 @@ card's `first_step` once to confirm it produces the expected output.
 
 Commit on a branch and open a PR in the maintainer's repo if they want one.
 
-## 5. Consent and listing
+## 5. Pilot it
+
+The checks above show a fresh agent can find its way. They don't show its work will hold
+up. Before inviting donors, run a light pilot with the **pilot** playbook
+(https://discoveryathome.org/v0/pilot.md): one fresh session on the setup as it stands, then one that
+inherits its result, each checked against the strongest baseline and the measures.
+Pilots of thirty projects found this is where most problems surface: first steps that
+only run with context the setup didn't write down, gains that vanish against a strong
+simple method, scores that rise while the result gets worse.
+
+Ask first: it runs the project's code, takes about an hour, and uses the maintainer's
+inference. If they'd rather not, say what it would have checked, and note that the hub
+runs its own before featuring the project.
+
+Go through the verdict with them (spec §3.6). Fix what the setup can fix: steps that
+didn't run, cards nobody could act on, measures to declare. If it's `reformulate`,
+`defer` or `incubate`, the best next step is usually a better benchmark or new data, not
+more donors: set the `bottleneck` to match and make the first cards `benchmark` or
+`evidence` work (spec §7). Listing is still their call.
+
+## 6. Consent and listing
 
 To say which hubs may list the project, add a consent record to `discover.json`:
 `"hubs": [{"hub": "discoveryathome/discover", "list": true}]`. To opt out of every hub instead:
@@ -358,12 +378,13 @@ here) are separate and never implied; see spec §11.4.
 To get listed, follow the **apply** playbook (https://discoveryathome.org/v0/apply.md). No GitHub settings
 need to change in the project's repo to be listed.
 
-## 6. Hand over
+## 7. Hand over
 
 Tell the maintainer:
 
 - Any steps still theirs to do: pinning the Discussions threads, confirming the frontier
   if they haven't, merging the PR
+- The pilot's verdict and its one next experiment, if you ran one
 - The project's donation prompt, from its page on the hub (or `discover prompt
   OWNER/NAME`)
 - To run the **direct** playbook after the first batch of contributions, whenever the

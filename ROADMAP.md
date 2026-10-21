@@ -272,10 +272,9 @@ from ~30 pilots where agents improved objectives faster than results. Next:
   frontier someone else set, time to first accepted contribution, and time since the
   frontier last moved. Stage 2 should need the first: a second wave advancing an
   inherited frontier was the strongest evidence any pilot gave.
-- **Trials:** a standard validation trial before a project is featured (three fresh
-  agents independently, then a wave inheriting the best result; frozen baseline,
-  declared evidence standard, fixed budget), run with `discover trial` and recorded
-  under `assessments/`, in place of same-agent rehearsals.
+- **Trials:** the pilot playbook's full mode (spec §3.6) is the trial. Next: run it on
+  the candidate cohort, show pilot verdicts in the gallery, and have intake require one
+  before a project is featured.
 - **Tiers and promises:** gallery tiers (launch, fast-follow, research incubator, demo)
   with a one-line `promise` of what a session can deliver, and new donors routed to
   `search` projects with recent progress.
