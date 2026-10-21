@@ -1,0 +1,31 @@
+{
+  "repos": [
+    {
+      "repo": "rohanarun/quasi-rh-hillclimb"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "adapter": "adapters/quasi-rh-hillclimb.md",
+  "assessment": "assessments/quasi-rh-hillclimb/2026-10-21-claude.md",
+  "pilot": "assessments/quasi-rh-hillclimb/2026-10-21-claude-pilot.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "adequate",
+    "review": "unknown",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "hub maintainer's report: the project's maintainer asked to be listed and featured (2026-10-21). No record in the repository yet.",
+    "commit": "0d536c793f5236904f0454fcc7d867354667183c",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Useful contributions stay credited in CONTRIBUTORS.md even when superseded; contributors name the work they build on and disclose AI assistance (CONTRIBUTING.md, \"Credit and AI disclosure\").",
+    "kinds": ["contributors-file", "acknowledgement"]
+  },
+  "featured": false
+}
