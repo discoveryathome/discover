@@ -1,0 +1,34 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/miller-rabin"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/miller-rabin/2026-10-21-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "adequate",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "d2bd5167a42b8256f1362640dc149057920e5db9",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Original idea: Geoffrey Irving, credited first in README.md, DISCOVERY.md and any write-up. Contributors whose accepted work changes the frontier are offered co-authorship on a resulting write-up, at the maintainer's discretion; every accepted contribution is listed in CONTRIBUTORS.md and in discover/ledger.md. Code is Apache-2.0; text and proofs are CC BY 4.0.",
+    "kinds": [
+      "co-authorship",
+      "acknowledgement",
+      "contributors-file"
+    ]
+  },
+  "featured": false
+}
