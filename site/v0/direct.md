@@ -28,9 +28,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-ce7bf7ee6132.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-2d5c5e74db73.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print ce7bf7ee613239fc468fb08e23765305781278ed71c22a117b13569bfd5794f8
+# must print 2d5c5e74db73f0f4346ce4320ea367094a6396674aeb9fc5662a65b847dbf886
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`

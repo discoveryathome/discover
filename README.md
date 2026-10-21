@@ -143,7 +143,11 @@ this hub, or your own copy of it (a community hub, an organization's internal hu
    run, writing its report to the run summary. To let it open, update and close one issue
    per finding, set the repository variable `HUB_CHECK_ISSUES` to `true`. Run it locally
    with `discover hub-check`.
-6. **Later, for push to projects** (spec §11.4): a bot account or GitHub App token
+6. **Applications and upkeep:** review each registry PR with the intake playbook
+   (`discover prompt OWNER/REPO --action intake`), and run the curate playbook weekly
+   (`discover prompt --action curate`). Both propose changes as hub PRs for a maintainer
+   to merge.
+7. **Later, for push to projects** (spec §11.4): a bot account or GitHub App token
    stored as a secret, since a workflow's built-in token can't write to other repos.
 
 Tooling talks to a hub other than the canonical one with `--hub OWNER/REPO` or

@@ -39,8 +39,21 @@ ACTIONS = {
     "direct": "Fetch {site}v0/direct.md (for example with curl) and follow it to review priorities for my project {repo_url}. Propose one revision; ask before merging or posting.",
     "adapt": "Fetch {site}v0/adapt.md (for example with curl) and follow it in local mode to write the hub's adapter for {repo_url}. Read-only toward that project: never post to it or contact its maintainers.",
     "pilot": "Fetch {site}v0/pilot.md (for example with curl) and follow it to pilot {repo_url}: run fresh donated sessions against it and judge whether their results hold up. Ask before running the project's code. Never post to the project or contact its maintainers.",
+    "intake": "Fetch {site}v0/intake.md (for example with curl) and follow it to review the hub application or nomination for {repo_url}. Recommend; don't merge. Never post to that project or contact its maintainers.",
     "assess": "Fetch {site}v0/assess.md (for example with curl) and follow it to assess {repo_url} for the hub. Read-only toward that project: never post to it or contact its maintainers.",
 }
+
+# The hub's periodic curation sweep (playbooks/curate.md): no repository, the whole registry.
+CURATE = (
+    "Fetch {site}v0/curate.md (for example with curl) and follow it to run the hub's curation sweep. "
+    "Propose fixes as hub PRs; don't merge, change settings, or contact any project."
+)
+
+
+def curate_prompt(site=None):
+    from . import SITE
+    return CURATE.format(site=site or SITE)
+
 
 # Onboarding a project: one prompt, two words swapped (spec §11.5). The page and the CLI
 # fill in role and goal; onboard.md routes to setup, apply and assess.
