@@ -41,9 +41,9 @@ def for_project(p, today):
         add("assessment-old", f"assessed {age} days ago")
     pilot = p.get("pilot")
     if p.get("featured") and not pilot:
-        add("featured-unpiloted", "featured without a pilot record (spec §3.6)")
+        add("featured-unpiloted", "featured; no pilot record yet")
     elif p.get("featured") and pilot and pilot.get("verdict") != "launch":
-        add("featured-verdict", f"featured, but the pilot's verdict is {pilot.get('verdict')}")
+        add("featured-verdict", f"featured; the latest pilot's verdict is {pilot.get('verdict')}")
     if pilot and (_days(pilot.get("on"), today) or 0) > PILOT_STALE_DAYS:
         add("pilot-old", f"piloted {pilot.get('on')}")
     points = (f.get("history") or {}).get("points") or []

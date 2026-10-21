@@ -1,19 +1,18 @@
 ---
 name: curate
-description: Run the Discovery@Home hub's periodic curation sweep, as hub work - read a fresh build, look at every listing's signals (stalled frontiers, review over capacity, measures going the wrong way, stale or self-assessed records, featured projects without a current pilot, adapter drift), and propose the fixes as hub PRs and one report for a hub maintainer. Use when the user says "curate the hub", "run the weekly sweep", "what needs attention on the hub", or pastes a Discovery@Home curate prompt. Arguments - scope (all, or a project id), minutes.
+description: Run the Discovery@Home hub's periodic curation sweep, as hub work - read a fresh build, look at every listing's signals (stalled frontiers, review over capacity, measures going the wrong way, stale or self-assessed records, the evidence behind featured projects, adapter drift), and propose the fixes as hub PRs and one report for a hub maintainer. Use when the user says "curate the hub", "run the weekly sweep", "what needs attention on the hub", or pastes a Discovery@Home curate prompt. Arguments - scope (all, or a project id), minutes.
 ---
 <!-- Generated from playbooks/curate.md by tools/build.py. Edit the source, not this file. -->
 
 # Curate the hub
 
 Listings go stale. A frontier stops moving, a maintainer's review queue fills up, a
-repo reorganizes under its adapter, a project that earned featuring years ago no longer
-deserves it. Each is small, and together they decide whether donors can trust the
-gallery. Curation is the regular look that catches them, and turns each into a
+repo reorganizes under its adapter, a featured project's evidence gets old. Each is
+small, and together they decide whether donors can trust the gallery. Curation is the regular look that catches them, and turns each into a
 proposal a hub maintainer can accept in a minute.
 
 The spec is at https://github.com/discoveryathome/discover/blob/main/spec/v0.md: stage changes and notice periods §3.3, re-assessment §3.4,
-pilots and featuring §3.6, push and first contact §11.4, keeping listings current §12.6.
+pilots §3.6, push and first contact §11.4, keeping listings current §12.6.
 
 ## Hard rules
 
@@ -195,7 +194,7 @@ The signals mean:
 | `plateau` | A frontier that hasn't moved in 90 days. Not a fault: a stall is a reason to change the formulation or the problem family, not to send more sessions. Suggest the maintainers run the direct playbook, and check the bottleneck still fits |
 | `measures` | The current result fails a constraint, regresses a guard or worsens a target. The listing shouldn't present it as a better result; suggest the maintainers look |
 | `review-full`, `paused` | More awaiting first response than the declared capacity. §3.3: the maintainers get an urgent notice; the hub doesn't throttle them |
-| `featured-unpiloted`, `featured-verdict`, `pilot-old` | Featuring needs a current `launch` pilot (§3.6). Re-pilot, or propose unfeaturing |
+| `featured-unpiloted`, `featured-verdict`, `pilot-old` | Context for a hub maintainer's editorial call on featuring, not a rule. A re-pilot gives them current evidence |
 | `demo-stale` | A demo shows data older than the frontier |
 | `nomination-old` | Nothing to do: the hub never re-contacts. Note it only |
 
@@ -221,9 +220,9 @@ For each finding worth acting on, the smallest fix, as a hub PR or a draft:
 - **Refresh an adapter** (adapt playbook, update mode) when its paths moved.
 - **Re-pilot** (pilot playbook, full mode) a featured project whose pilot is old or
   whose formulation changed since.
-- **Featuring:** propose `featured: false` for a project that no longer meets §3.6, with
-  the reason in the PR. Propose `featured: true` only with the evidence for every
-  condition.
+- **Featuring** is editorial: don't open PRs changing it. In the report, list featured
+  projects whose evidence looks thin or old, and projects that look like candidates, with
+  what you saw.
 - **Notices** for maintainers (review over capacity, measures going the wrong way, a
   plateau): a hub issue naming the project, which is the pull channel (§11.4), or a
   drafted issue on their repo if their record grants `notices` push and a hub maintainer

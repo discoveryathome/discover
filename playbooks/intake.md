@@ -10,7 +10,7 @@ stated terms. Intake is where the hub decides whether it can make that promise, 
 strong a promise it is. You prepare the decision; a hub maintainer makes it.
 
 The spec is at {{SPEC_URL}}: listing gates §3.3, assessment §3.4, suitability and
-featuring §3.6, consent and first contact §11.4, nominations §11.5.
+pilots §3.6, consent and first contact §11.4, nominations §11.5.
 
 ## Hard rules
 
@@ -62,7 +62,8 @@ with its evidence.
 7. **Fit:** projects involving human subjects, restricted data, wet-lab work or dual-use
    risk need screening this playbook can't do. Say so, and recommend holding for a hub
    maintainer's judgment. A medical or clinical project can be listed for research, but
-   isn't featured or ranked until a named domain reviewer accepts its constraints (§3.6).
+   say so: featuring or ranking it before a domain reviewer has looked at its constraints
+   is a risk for a hub maintainer to weigh.
 
 A failed gate the applicant can fix (a missing license or credit policy) is a **hold**
 with the exact fix, not a decline.
@@ -77,11 +78,11 @@ stage only once an independent rerun agrees (§12.4), so say that in the recomme
 
 ## 4. Pilot it
 
-A listing at Stage 0 or 1 doesn't need a pilot. Featuring does, and a pilot is the best
-evidence of what to promise donors, so run one when there's budget:
+A listing doesn't need a pilot, but a pilot is the best evidence of what to promise
+donors, so run one when there's budget:
 
 - If the applicant attached a self-run pilot record, read it, and note it's `self_piloted`.
-- Otherwise, or before recommending `featured`, follow the **pilot** playbook
+- Otherwise, follow the **pilot** playbook
   ({{SITE}}v0/pilot.md) in full mode (or light mode, if the budget allows only that).
 
 Use the verdict to set expectations (§3.6): `reformulate`, `defer` and `incubate` are
@@ -101,8 +102,9 @@ One of:
 - **Decline:** opted out, out of scope, or unsafe to list. Give the reason the applicant
   will read.
 
-Recommend `featured` only when §3.6's featuring conditions all hold, and say which
-evidence meets each one.
+Featuring is a hub maintainer's editorial call. If you think the project is a candidate,
+say so, with the evidence that bears on it: the stage and whether it's independently
+assessed, the pilot and its verdict, and anything a domain reviewer should look at.
 
 Write the recommendation as a comment on the registry PR (with permission to post), or
 leave it ready to paste:
