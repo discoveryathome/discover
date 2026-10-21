@@ -282,6 +282,71 @@ from ~30 pilots where agents improved objectives faster than results. Next:
 - **Domain review:** a `medicine` project shows no ranking until a named domain reviewer
   has accepted its constraints.
 
+### 16. Beyond the agent: hardware, people and experts
+
+The protocol assumes a donation is an agent session on an ordinary PC. Four of the nine
+listings are held back by something a donated agent doesn't have: Super-1 by GPU time
+for training, asteroid-precovery by an astrometry reviewer, covering-design by review of
+its two record proposals, quasi-rh-hillclimb by expert review or Lean proofs of H1–H5.
+Pilots already name these as `evaluation` and `evidence` bottlenecks. Other projects
+will need people for the measurement itself (tasters for an espresso optimization,
+raters for a perceptual judgment) or physical access (an instrument, licensed data).
+
+The plan treats a donation as **an agent plus what its person can offer**, and the
+agent's job as shrinking each human contribution to the part only a person can do. The
+resources fall on a spectrum, and the break that matters is how a result is checked:
+
+| Resource | Example | Checked by |
+|---|---|---|
+| Ordinary compute | most cards today | rerunning it |
+| Specialized compute | a 24 GB GPU, large memory | rerunning it on similar hardware |
+| Access | licensed data, an archive, an instrument | provenance, and a rerun by someone with access |
+| Human perception | tasting, preference ratings, "does this look right" | **new samples**: blinding, calibration items, agreement between raters |
+| Expert judgment | proof review, astrometry sign-off | **trust in a named reviewer**, not reproduction |
+
+Proposed:
+
+- **`needs` on cards**, extending `requires`: hardware (`gpu_vram_gb`), people
+  (`{human: "taster", minutes: 15, n: 3}`), expertise (`{expert: "astrometry"}`) and
+  physical access (`{physical: "espresso machine and grinder"}`). The pilot criterion
+  `home_feasible` becomes "who can do this", not only yes or no.
+- **An offer in the donation prompt**: `discover prompt --offer
+  gpu:24gb,attention:20min,expertise:astrometry`, and on the site's donate form.
+  `discover pick` and the cross-hub draw (§12.2) match cards to what's offered; with no
+  offer, nothing changes. The donor's own agent is the interface to its person: for a
+  taste test it writes the blinded, randomized protocol, tells the person exactly what to
+  prepare, collects structured scores and analyzes them.
+- **A `panel` verification profile** for human measurements: a preregistered protocol,
+  blinding and randomization done by the agent, repeated calibration items, raw scores
+  published, and replication meaning an independent panel, not a rerun. Human scores
+  enter `measures` as noisy measurements, under the same asymmetric burden.
+- **Expert review as declared capacity**: `review` gains who reviews and in what field
+  (`reviewers: [{github, field}]`, named by the project). A **review-debt signal** in
+  `discover signals`: proposals waiting on review longer than the project's declared
+  pace (covering-design's 272 and 678 are the first case). And a contribution kind for
+  making review cheaper: review packets, splitting a claim into small steps that can be
+  checked separately, and turning steps into machine checks (Lean, exact replay), so an
+  expert signs off only on what nothing else can check. Expert attention is the hub's
+  scarcest resource; donated sessions should spend themselves to save it.
+
+Out of scope on purpose:
+
+- **Certifying experts.** Projects name their reviewers; the hub reports evidence such
+  as review latency, as with featuring.
+- **Agents recruiting people.** A donor's agent may ask its own person to taste
+  something; it never contacts anyone else (the same principle as §11.4).
+- **Human-subjects work beyond the trivial.** Rating coffee is fine; anything medical,
+  involving personal data or more than minimal risk is out unless the project shows its
+  own ethics review. `validate` warns, as it does for a medicine frontier without guards.
+- **A marketplace.** Matching `needs` to an offer is enough: no payment, scheduling or
+  reputation system.
+
+First steps, which need no new protocol: the review-debt signal, and `requires` tags on
+the existing cards that need a GPU or an expert. Then `needs` and the offer, tested on
+Super-1 (GPU) and asteroid-precovery (an expert), and the `panel` profile with a small
+taste-test project before any project depends on it. Specialized compute is the easy
+end, a higher hardware bar on a rerunnable result; items 11 and 16 meet there.
+
 ## Rubric gaps found in testing
 
 - **Stage 1 with little review capacity.** `applied-butterfly-mult` reached Stage 1 on a
