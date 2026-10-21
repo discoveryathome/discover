@@ -1,0 +1,33 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/crypto-circuits"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/crypto-circuits/2026-10-21-claude.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "adequate",
+    "coordination": "weak",
+    "verification": "adequate",
+    "review": "unknown",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "0cb2af3fb11a7ac07629132cbd2c657c5e3a4ac6",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Preserve published authors, source commits and hashes. Credit reproduction, code, search and review separately; no automatic coauthorship.",
+    "kinds": [
+      "citation",
+      "acknowledgement"
+    ]
+  },
+  "featured": false
+}
