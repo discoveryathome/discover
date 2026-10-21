@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/ibp-reduction"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/ibp-reduction/2026-10-21-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "strong",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "458e26082635714c56508fc7dcfd21efe0dbd0b2",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Credit substantive work and independent verification in CONTRIBUTORS.md; publication authorship by explicit agreement. Documentation CC BY 4.0.",
+    "kinds": ["contributors-file", "acknowledgement", "citation"]
+  },
+  "featured": false
+}
