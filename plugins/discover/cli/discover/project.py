@@ -88,8 +88,12 @@ class Source:
             return any(self.local.glob(self._p(path))) if "*" in path else full.exists()
         if "*" in path:
             return None  # unknown remotely without a tree listing
-        if self.read(path) is not None:
-            return True
+        try:
+            with urllib.request.urlopen(RAW.format(repo=self.repo, ref=self.ref, path=self._p(path)), timeout=30):
+                return True  # any file, text or binary: only its presence matters here
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                raise
         return self._is_dir(path)
 
     def _is_dir(self, path):
