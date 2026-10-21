@@ -6,8 +6,8 @@
   ],
   "added_on": "2026-10-19",
   "adapter": "adapters/super-1.md",
-  "assessment": "assessments/super-1/2026-10-19-claude.md",
-  "stage": "assessed",
+  "assessment": "assessments/super-1/2026-10-21-claude-reassess.md",
+  "stage": 0,
   "grades": {
     "orientation": "adequate",
     "coordination": "weak",
@@ -16,9 +16,18 @@
     "steering": "adequate"
   },
   "consent": {
-    "source": "pending: the project's maintainer agreed to a listing in conversation with the hub maintainer; not yet recorded",
-    "list": false,
+    "source": "hub maintainer's report: the project's maintainer agreed to listing in conversation with the hub maintainer (Mister-Meeseeks); confirmed for listing 2026-10-21. No record in the repository yet.",
+    "commit": "6f13c725b95765e94555acc70fc08a8b1a724aba",
+    "checked_on": "2026-10-21",
+    "list": true,
     "push": []
+  },
+  "credit": {
+    "policy": "Useful contributions stay credited in CONTRIBUTORS.md, including ones later superseded or not merged; contributors add themselves in their PR and disclose substantial AI assistance (CONTRIBUTING.md, \"Credit and AI disclosure\").",
+    "kinds": [
+      "contributors-file",
+      "acknowledgement"
+    ]
   },
   "featured": false
 }

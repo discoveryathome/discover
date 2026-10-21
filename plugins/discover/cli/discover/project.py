@@ -88,7 +88,24 @@ class Source:
             return any(self.local.glob(self._p(path))) if "*" in path else full.exists()
         if "*" in path:
             return None  # unknown remotely without a tree listing
-        return self.read(path) is not None
+        if self.read(path) is not None:
+            return True
+        return self._is_dir(path)
+
+    def _is_dir(self, path):
+        """Remotely, a directory has no raw URL: ask the contents API. None if it can't say."""
+        url = f"https://api.github.com/repos/{self.repo}/contents/{self._p(path)}?ref={self.ref}"
+        req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json"})
+        token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+        if token:
+            req.add_header("Authorization", f"Bearer {token}")
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return isinstance(json.loads(r.read().decode("utf-8")), list)
+        except urllib.error.HTTPError as e:
+            return False if e.code == 404 else None
+        except (urllib.error.URLError, OSError, ValueError):
+            return None
 
     def last_modified(self, path):
         """Date (YYYY-MM-DD) of the last commit touching path, or None."""
