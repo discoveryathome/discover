@@ -66,6 +66,12 @@ write:
    Duplicate work points to narrower scopes or better coordination; it doesn't by
    itself prove a route is exhausted.
 
+**A stalled track** (no frontier progress across several batches, or sessions converging
+on the same local optimum) usually needs a different question, not more sessions on the
+same one. Consider a **reframe** track (`"focus": ["reframe"]`, spec §7): cards that ask
+why the current approach is stuck and what representation, search move, encoding or
+constraint could change, starting from the best current result.
+
 Promote good *Open next questions* and handoffs into cards where they're central.
 Package questions never enter the catalogue automatically.
 

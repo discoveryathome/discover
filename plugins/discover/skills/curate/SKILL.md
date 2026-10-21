@@ -191,7 +191,7 @@ The signals mean:
 |---|---|
 | `not-conformant`, a project skipped by the build | What broke, and whether the project or its adapter needs the fix |
 | `unassessed`, `assessment-old`, `self-assessed` | A (re-)assessment or an independent rerun (the assess and verify playbooks) |
-| `plateau` | A frontier that hasn't moved in 90 days. Not a fault: a stall is a reason to change the formulation or the problem family, not to send more sessions. Suggest the maintainers run the direct playbook, and check the bottleneck still fits |
+| `plateau` | A frontier that hasn't moved in 90 days. Not a fault: a stall is a reason to change the formulation or the problem family, not to send more sessions. Suggest the maintainers run the direct playbook, perhaps adding a `reframe` track (spec §7), and check the bottleneck still fits |
 | `measures` | The current result fails a constraint, regresses a guard or worsens a target. The listing shouldn't present it as a better result; suggest the maintainers look |
 | `review-full`, `paused` | More awaiting first response than the declared capacity. §3.3: the maintainers get an urgent notice; the hub doesn't throttle them |
 | `featured-unpiloted`, `featured-verdict`, `pilot-old` | Context for a hub maintainer's editorial call on featuring, not a rule. A re-pilot gives them current evidence |

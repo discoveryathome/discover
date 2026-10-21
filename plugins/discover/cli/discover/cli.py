@@ -147,7 +147,7 @@ def cmd_pick(a):
         except Exception as e:
             print(f"warning: live board unavailable ({e}); suggestions ignore claims", file=sys.stderr)
     table, rows = load_table(a.path, manifest)
-    r = pick.pick(catalog, a.seed, a.track, a.task, b, a.count, table=table, rows=rows)
+    r = pick.pick(catalog, a.seed, a.track, a.task, b, a.count, table=table, rows=rows, focus=a.focus)
     r["base"] = git_head(a.path)
     r["priority_revision"] = catalog.get("priority_revision")
     emit(r, a.json, pick.format_pick)
@@ -543,6 +543,8 @@ def main(argv=None):
     k.add_argument("--track")
     k.add_argument("--task")
     k.add_argument("--count", type=int, default=3)
+    k.add_argument("--focus", choices=list(prompt.FOCUS), default="project",
+                   help="draw from the tracks that declare this focus (spec §7)")
     k.add_argument("--live", action="store_true", help="read claims/handoffs from Discussions via gh")
     k.add_argument("--repo", help="override canonical repo for --live")
     k.add_argument("--discussions", type=int, default=50)

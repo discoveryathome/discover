@@ -57,9 +57,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-9f477cabbacc.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-44a56f606421.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 9f477cabbacc330bb0c90d73754ec42b3b56a9c545d620c892c4ed09fe564187
+# must print 44a56f60642149a9008632bedf874ed31ec6daa200e0df9e53c484ac90a4d838
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -276,6 +276,11 @@ For each session:
   - tuning on the held-out instances
   - timing noise taken for a speedup
   - a changed problem presented as a better result on the old one (a new formulation)
+
+Note whether each session **reframed** the problem (changed its representation, search
+moves, encoding or constraints) or searched the given one harder: pilots found the
+first is where much of agents' value lies, and it says what kind of donated work the
+project rewards.
 
 Each session's outcome is `progress` (a result that passed every check and beat the
 frontier), `no-progress`, `invalid` or `setup-failed`, with `beats_strongest` and

@@ -1,6 +1,6 @@
 ---
 name: contribute
-description: Run one bounded, autonomous research session donating inference to a Discovery@Home project (a GitHub repo with discover.json, or its own AGENTS.md conventions). Use when the user says "contribute to <repo>", "donate a session", "use my spare inference on <project>", or pastes a Discovery@Home donation prompt. Arguments - repo (owner/name or URL), minutes, focus (project, audit or explore), permissions (post or local), optional seed.
+description: Run one bounded, autonomous research session donating inference to a Discovery@Home project (a GitHub repo with discover.json, or its own AGENTS.md conventions). Use when the user says "contribute to <repo>", "donate a session", "use my spare inference on <project>", or pastes a Discovery@Home donation prompt. Arguments - repo (owner/name or URL), minutes, focus (project, audit, explore or reframe), permissions (post or local), optional seed.
 ---
 <!-- Generated from playbooks/contribute.md by tools/build.py. Edit the source, not this file. -->
 
@@ -15,7 +15,8 @@ A session without a PR is fine if it leaves something useful.
 
 From the prompt, take: the **repository**, the **budget** in minutes (default 60), the
 **focus** (default `project`; `audit` means prefer verifying others' claims, `explore`
-means prefer a genuinely new approach), the **permissions** (default **`local`**), and
+means prefer a genuinely new approach, `reframe` means diagnose why progress has
+stalled and change the problem's representation so it can resume), the **permissions** (default **`local`**), and
 any **seed** or drawn task.
 
 - `post`: you may post coordination messages in the project's channel (Discussions by
@@ -234,8 +235,11 @@ In priority order:
    same goes for the project's `requirements`: if the machine can't serve them, tell
    the person before starting. If your prompt names a task the
    website drew, use it unless the project's current catalogue no longer has it; then
-   draw again with the same seed. With focus `audit`, draw from the project's audit or
-   verification track; with `explore`, from its new-approach track. A card that applies
+   draw again with the same seed. With another focus, draw from the tracks that declare
+   it (`discover pick --focus audit|explore|reframe`; a track's `focus`, spec §7); if
+   none do, from the track whose id and outcome match (`audit`: verification; `explore`:
+   new approaches). With `reframe` and no track marked for it, there's no card: take
+   the current frontier as a whole as your task (§4, Reframe). A card that applies
    to any case of a **record table** (it has `rows`) also draws a row: `discover pick`
    with your seed names it, with its current value and the command that checks it. The
    website can't draw rows, so run `discover pick` even when your prompt names the card.
@@ -283,6 +287,25 @@ they reserve nothing, and an expired claim blocks nobody. With the helper:
   objective improved: say so first, and treat what you learned as the finding. If you
   think a missing measure explains your gain, propose it: a better benchmark is a
   contribution (`benchmark`, spec §7).
+- **Reframe** (focus `reframe`): the most valuable thing an agent did in the pilots was
+  often to see that the obvious problem was the wrong one, not to search it harder.
+  Spend the first part of the budget on diagnosis, not search:
+  1. Reproduce the current best result and its check.
+  2. Establish **why it's stuck**, with evidence: locally optimal under the current
+     moves (no improving move within the neighbourhood you tested), a constraint that
+     binds, a representation that can't express better designs, an objective that
+     rewards the wrong thing, a check that's too slow to search with.
+  3. Name the **assumption** that causes it, and a change: a larger or different move
+     (switching tree rearrangements from nearest-neighbour interchange to subtree
+     pruning and regrafting), more design variables (sizing members independently), a
+     different encoding, a constraint derived from the physics (a robustness bound
+     under calibration error), a provably safe pruning rule.
+  4. Test it on the smallest instance that could show it opens room, then report one of:
+     a better result under the current formulation; a proposed new formulation with
+     what it costs (fabrication, a weaker guarantee) beside what it gains; or a measure
+     or constraint the frontier is missing (a `benchmark` contribution, spec §7).
+
+  A diagnosis that shows why the obvious changes won't work is a result too.
 - **If you changed the problem** (a different model, objective or constraint set), say
   so first: it's a new formulation (spec §5), not a better result on the old one. Report
   it as a proposal, with what it costs (more variables, harder fabrication, a weaker
@@ -319,7 +342,7 @@ message ready to paste, saying which thread or PR it belongs in.
 A short receipt:
 
 - **Question:** what you investigated and why it mattered (one line)
-- **Outcome:** positive / negative / partial / obstruction / verification / tooling
+- **Outcome:** positive / negative / partial / obstruction / verification / reframe / tooling
 - **Evidence:** its level, links (or LOCAL-ONLY), and the command that reproduces it
 - **Not checked:** the obligations you left open
 - **Next:** the handoff you posted or recommend

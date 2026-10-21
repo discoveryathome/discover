@@ -6,6 +6,7 @@ FOCUS = {
     "project": "Choose useful work according to the repository's current priorities, preferring an open handoff on the drawn track.",
     "audit": "Prioritize independent verification and auditing of pending or accepted claims.",
     "explore": "Prioritize exploring a genuinely new approach, priced against a favorable best case first.",
+    "reframe": "Start from the current best result, not a new search: establish why progress has stalled, then propose and test a change to the representation, search moves, encoding or constraints that opens room. A changed problem is a proposal for a new formulation, reported with its costs.",
 }
 
 PERMISSIONS = {

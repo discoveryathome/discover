@@ -19,6 +19,10 @@
           "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
           "weight": { "type": "integer", "minimum": 1 },
           "useful_outcome": { "type": "string" },
+          "focus": {
+            "type": "array", "uniqueItems": true, "items": { "enum": ["audit", "explore", "reframe"] },
+            "description": "Session focuses this track serves (spec §7): a session with that focus draws from these tracks."
+          },
           "tasks": { "type": "array", "items": { "$ref": "#/$defs/card" } }
         }
       }
