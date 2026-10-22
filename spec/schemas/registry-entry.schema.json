@@ -70,7 +70,15 @@
       "type": "object", "required": ["policy"],
       "properties": { "policy": { "type": "string" }, "kinds": { "type": "array", "items": { "type": "string" } } }
     },
-    "featured": { "type": "boolean", "default": false }
+    "featured": { "type": "boolean", "default": false },
+    "unlisted": {
+      "type": "object", "required": ["on"], "additionalProperties": false,
+      "description": "Present when a hub maintainer has taken the project off the hub's browsing surfaces (spec §12.6). Its page and launcher stay at their address, but it isn't shown on the explore page or drawn for donors who let the hub choose. Editorial, like featured.",
+      "properties": {
+        "on": { "type": "string", "format": "date" },
+        "reason": { "type": "string", "description": "Why, in a sentence, shown on the project's page." }
+      }
+    }
   },
   "$defs": {
     "grade": { "enum": ["strong", "adequate", "weak", "unknown"] },

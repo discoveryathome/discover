@@ -72,7 +72,8 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
         "conformant": report["conformant"], "manifest_origin": report.get("manifest_origin"),
         "warnings": report["warnings"], "problems": report["problems"],
         "conventions": report["conventions"],
-        "featured": entry.get("featured", False), "added_on": entry.get("added_on"),
+        "featured": entry.get("featured", False), "unlisted": entry.get("unlisted"),
+        "added_on": entry.get("added_on"),
         "links": {k: blob + v for k, v in (m.get("entry") or {}).items()},
         # Only link Discussions when the project says it coordinates there.
         "discussions": ({"all": f"https://github.com/{repo}/discussions",
@@ -150,13 +151,19 @@ def launchable(p):
             and not (p.get("review") or {}).get("paused"))
 
 
+def browsable(p):
+    """Shown on the explore page and drawn for donors who let the hub choose: not unlisted.
+    An unlisted project keeps its page and launcher (spec §12.6)."""
+    return not p.get("unlisted")
+
+
 def agent_index(projects, site, hub_repo, generated_at):
     """agents.json: the hub's projects for an agent choosing one on a donor's behalf
     (schema agent-index.schema.json). Compact and stable; projects.json is the site's own."""
     from .pick import STAGE_WEIGHT, project_weight
     out = []
     for p in projects:
-        if not launchable(p):
+        if not launchable(p) or not browsable(p):
             continue
         perms = p.get("permissions") or {}
         handoffs = (p.get("board") or {}).get("open_handoffs", [])

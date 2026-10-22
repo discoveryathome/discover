@@ -526,6 +526,18 @@ class ReviewTests(unittest.TestCase):
                                                         "mechanical": None})
         self.assertEqual({p["weight"] for p in idx["projects"]}, {3})  # the draw ignores review load
 
+    def test_agent_index_leaves_out_unlisted_projects(self):
+        base = {"repo": "o/r", "url": "https://github.com/o/r", "title": "T", "summary": "S", "domains": ["x"],
+                "listing": "listed", "conformant": True, "permissions": {}, "tracks": [], "stage": 1}
+        ps = [{**base, "slug": "shown"}, {**base, "slug": "hidden", "unlisted": {"on": "2026-10-21"}}]
+        idx = hub.agent_index(ps, "https://s/", "h/h", "now")
+        self.assertEqual([p["slug"] for p in idx["projects"]], ["shown"])
+
+    def test_registry_entry_accepts_unlisted(self):
+        e = {"repos": [{"repo": "o/r"}], "added_on": "2026-10-21"}
+        self.assertEqual(schema.check("registry-entry.schema.json", {**e, "unlisted": {"on": "2026-10-21", "reason": "r"}}), [])
+        self.assertNotEqual(schema.check("registry-entry.schema.json", {**e, "unlisted": True}), [])
+
 
 class ScreenTests(unittest.TestCase):
     PLANTED = {

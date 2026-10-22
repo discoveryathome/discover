@@ -27,5 +27,8 @@
     "list": true,
     "push": []
   },
-  "contact": "Mister-Meeseeks"
+  "contact": "Mister-Meeseeks",
+  "unlisted": {
+    "on": "2026-10-21"
+  }
 }
