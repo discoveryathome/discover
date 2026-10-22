@@ -1,0 +1,29 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/numerical-computation"
+    }
+  ],
+  "added_on": "2026-10-22",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/numerical-computation/2026-10-22-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "adequate",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "cad11acdbf7cd2ffe0000b6577e36e4cfc98e1e5",
+    "checked_on": "2026-10-22",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Credit upstream methods/data and all substantive contributors; disclose AI assistance."
+  },
+  "featured": false
+}
