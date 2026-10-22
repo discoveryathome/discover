@@ -28,9 +28,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f60dd6ca504e.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-2a77945bd8b1.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print f60dd6ca504ecd417843c658be90642669dcdc21fdcd99e757a404a5864e7bcf
+# must print 2a77945bd8b12b6d3ca9830e5821507bf556a613d320916327a9963ee997baf4
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -221,6 +221,12 @@ write:
 4. The rebalanced weights, keeping real exploration and independent verification.
    Duplicate work points to narrower scopes or better coordination; it doesn't by
    itself prove a route is exhausted.
+
+**A stalled track** (no frontier progress across several batches, or sessions converging
+on the same local optimum) usually needs a different question, not more sessions on the
+same one. Consider a **reframe** track (`"focus": ["reframe"]`, spec §7): cards that ask
+why the current approach is stuck and what representation, search move, encoding or
+constraint could change, starting from the best current result.
 
 Promote good *Open next questions* and handoffs into cards where they're central.
 Package questions never enter the catalogue automatically.

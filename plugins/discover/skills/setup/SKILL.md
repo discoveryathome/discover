@@ -272,7 +272,9 @@ Then fill in, with the maintainer:
   results file where it can, so it shows the checked result, and give it a `note` saying
   what it doesn't claim.
 - **Catalogue:** 2–6 tracks with integer weights summing to 100. Always include an
-  independent-verification or audit track. For each track, 1–4 cards, each with a
+  independent-verification or audit track, and mark it `"focus": ["audit"]` so audit
+  sessions find it (spec §7); mark a new-approach track `explore`, and, once the
+  frontier is mature, consider a `reframe` track. For each track, 1–4 cards, each with a
   precise `question`, `starting_points`, `methods`, an `acceptance_gate`, a `first_step`
   that actually runs (a command and its expected output), a `bottleneck_link`, and
   `overlap_terms`. Draft cards from the repo's real open problems, and have the

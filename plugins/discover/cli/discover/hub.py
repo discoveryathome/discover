@@ -126,6 +126,7 @@ def project_summary(slug, entry, report, board=None, listing="listed", site=None
         out["priority_revision"] = cat.get("priority_revision")
         out["assessed_on"] = cat.get("assessed_on")
         out["tracks"] = [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome"),
+                          **({"focus": t["focus"]} if t.get("focus") else {}),
                           "cards": [{"id": c["id"], "question": c["question"], "methods": c.get("methods", []),
                                      "claim_kind": c.get("claim_kind", []), "rows": "rows" in c,
                                      **({"contributes": c["contributes"]} if c.get("contributes") else {})}
@@ -182,6 +183,7 @@ def agent_index(projects, site, hub_repo, generated_at):
                                                for a in f.get("open_assumptions", [])]}
                          if f else ({"doc": p["frontier_doc"]["url"]} if p.get("frontier_doc") else None)),
             "tracks": [{"id": t["id"], "weight": t["weight"], "useful_outcome": t.get("useful_outcome"),
+                        "focus": t.get("focus", []),
                         "contributes": sorted({c["contributes"] for c in t.get("cards", []) if c.get("contributes")})}
                        for t in p.get("tracks", [])],
             "open_handoffs": handoffs, "open_handoffs_count": len(handoffs),

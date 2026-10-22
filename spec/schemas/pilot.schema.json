@@ -28,6 +28,7 @@
           "first_result_minutes": { "type": ["number", "null"], "minimum": 0, "description": "Minutes to its first result that passed the project's check; null if none did." },
           "outcome": { "enum": ["progress", "no-progress", "invalid", "setup-failed"], "description": "progress: a result that passed the runner's own check. no-progress: nothing beat the frontier. invalid: a claimed result failed the check, a constraint or a guard. setup-failed: couldn't get the first step to run." },
           "beats_strongest": { "type": ["boolean", "null"], "description": "Whether its result also beats the strongest known baseline, not only the project's current one; null if not compared." },
+          "reframed": { "type": "boolean", "description": "Whether it changed the problem's representation, search moves, encoding or constraints, rather than searching the given one harder. Pilots found this is where much of agents' value lies." },
           "measures_ok": { "type": ["boolean", "null"], "description": "Whether its result meets every constraint and worsens no guard or target (spec §5, Measures); null if the project declares none." },
           "note": { "type": "string" }
         }

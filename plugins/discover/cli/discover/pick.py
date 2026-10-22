@@ -56,9 +56,14 @@ def unmet(requires, here):
     return out
 
 
+NO_REFRAME_TRACK = ("No track is marked for reframe sessions (`focus`, spec §7), so there's no card to draw: "
+                    "start from the current frontier as a whole (contribute playbook, Reframe).")
+
+
 def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3, here=None,
-         table=None, rows=None):
-    """`table` and `rows` are the frontier's record table (spec §5), for cards that draw a row."""
+         table=None, rows=None, focus=None):
+    """`table` and `rows` are the frontier's record table (spec §5), for cards that draw a row.
+    `focus` (audit, explore, reframe) draws from the tracks that declare it (spec §7)."""
     seed = (seed or secrets.token_hex(16)).lower()
     if not re.fullmatch(r"[0-9a-f]{32}", seed):
         raise ValueError("seed must be exactly 32 hexadecimal digits")
@@ -66,7 +71,16 @@ def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3, h
     def draw(label):
         return int(digest([seed, label]), 16)
 
-    tracks = catalog["tracks"]
+    tracks, focus_note = catalog["tracks"], None
+    if focus and focus != "project" and not (task_id or track_id):
+        marked = [t for t in tracks if focus in t.get("focus", [])]
+        if marked:
+            tracks = marked
+        elif focus == "reframe":
+            return {"seed": seed, "track": None, "handoffs_first": [], "suggestions": [], "note": NO_REFRAME_TRACK}
+        else:
+            focus_note = (f"No track declares focus {focus!r}; this is a draw from all tracks. Prefer one whose "
+                          f"id and outcome match the focus.")
     if task_id:
         hits = [(t, c) for t in tracks for c in t["tasks"] if c["id"] == task_id]
         if not hits:
@@ -136,17 +150,18 @@ def pick(catalog, seed=None, track_id=None, task_id=None, board=None, count=3, h
                     if h["request"].get("track") in (None, track["id"])]
     return {"seed": seed, "track": track["id"], "handoffs_first": handoffs,
             "suggestions": suggestions,
-            "note": "Suggestions, not reservations. Prefer a matching open handoff. "
-                    "Run an overlap check and write a task card before substantial work."}
+            "note": (f"{focus_note} " if focus_note else "") + "Suggestions, not reservations. Prefer a matching "
+                    "open handoff. Run an overlap check and write a task card before substantial work."}
 
 
 def format_pick(r):
-    lines = [f"seed {r['seed']}  track {r['track']}"]
+    lines = [f"seed {r['seed']}  track {r['track'] or '(none)'}"]
     if r["handoffs_first"]:
         lines.append("Open handoffs on this track (prefer these):")
         for h in r["handoffs_first"]:
             lines += [f"  - {h['question']}", f"    first step: {h['first_step']}", f"    {h['url']}"]
-    lines.append("Card suggestions:")
+    if r["suggestions"]:
+        lines.append("Card suggestions:")
     for s in r["suggestions"]:
         crowd = ""
         if "live_claims" in s:

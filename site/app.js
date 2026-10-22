@@ -151,6 +151,12 @@ async function drawTask(seed, tracks) {
   return { track: track.id, card: card.id, method };
 }
 const adapterLine = (url) => (url ? fill(state.data.prompts.adapter, { adapter_url: url }) : "");
+const FOCUS_HINTS = {
+  project: "Work the project's priorities, on a task drawn for you.",
+  audit: "Check other contributors' claims before they're accepted.",
+  explore: "Try a genuinely new approach to an open task.",
+  reframe: "Work out why progress has stalled, then change the representation, moves or constraints so it can resume.",
+};
 function donationPrompt(repo, minutes, focus, perms, seed, drawn, adapterUrl) {
   const p = state.data.prompts;
   return fill(p.template, {
@@ -190,7 +196,8 @@ function launcher(p) {
       ${promptBox("prompt")}
       <p class="hint" data-out="drawn"></p>
       <details><summary>More options</summary>
-        <div class="field" style="margin-top:4px"><label>Focus</label>${seg("focus", [["project", "Project's picks"], ["audit", "Audit"], ["explore", "New approach"]], "project")}</div>
+        <div class="field" style="margin-top:4px"><label>Focus</label>${seg("focus", [["project", "Project's picks"], ["audit", "Audit"], ["explore", "New approach"], ["reframe", "Reframe"]], "project")}</div>
+        <p class="hint" data-out="focus-hint"></p>
         <p class="hint" style="margin-top:10px">With the Claude Code plugin:</p>
         <div class="codebox" data-out="cmd"></div>
         <div class="copy-row"><button class="btn" data-copy="cmd">Copy command</button></div>
@@ -219,6 +226,7 @@ function wireLauncher(root, p) {
     const d = f === "project" && !p.picker ? drawn : null;
     out("prompt", donationPrompt(p.repo, m, f, perms, seed, d, p.adapter_url));
     out("cmd", skillCommand(p.repo, m, f, perms, seed));
+    out("focus-hint", FOCUS_HINTS[f]);
     out("drawn", d ? `Task drawn for you: ${d.card}. Each visit draws again, so donors spread out.`
       : f === "project" && p.picker ? "The project's own picker chooses the task from the seed in the prompt." : "");
     out("verify", actionPrompt("verify", p.repo, m, perms, p.adapter_url));

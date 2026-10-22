@@ -40,9 +40,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f60dd6ca504e.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-2a77945bd8b1.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print f60dd6ca504ecd417843c658be90642669dcdc21fdcd99e757a404a5864e7bcf
+# must print 2a77945bd8b12b6d3ca9830e5821507bf556a613d320916327a9963ee997baf4
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -284,7 +284,9 @@ Then fill in, with the maintainer:
   results file where it can, so it shows the checked result, and give it a `note` saying
   what it doesn't claim.
 - **Catalogue:** 2–6 tracks with integer weights summing to 100. Always include an
-  independent-verification or audit track. For each track, 1–4 cards, each with a
+  independent-verification or audit track, and mark it `"focus": ["audit"]` so audit
+  sessions find it (spec §7); mark a new-approach track `explore`, and, once the
+  frontier is mature, consider a `reframe` track. For each track, 1–4 cards, each with a
   precise `question`, `starting_points`, `methods`, an `acceptance_gate`, a `first_step`
   that actually runs (a command and its expected output), a `bottleneck_link`, and
   `overlap_terms`. Draft cards from the repo's real open problems, and have the

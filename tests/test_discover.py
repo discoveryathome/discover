@@ -1120,6 +1120,38 @@ class SuiteTests(unittest.TestCase):
         self.assertEqual(history.points_from_file(entries)[0]["formulation"], "a")
 
 
+class FocusTests(unittest.TestCase):
+    """Session focuses and tracks that declare them (spec §7)."""
+
+    def catalog(self, focus=None):
+        card = lambda i: {"id": i, "question": "q", "starting_points": [], "methods": ["m"], "acceptance_gate": "g",
+                          "first_step": {"command": ["true"], "expected": ""}, "bottleneck_link": "x"}
+        tracks = [{"id": "main", "weight": 80, "tasks": [card("a"), card("b")]},
+                  {"id": "rethink", "weight": 20, "tasks": [card("c")], **({"focus": focus} if focus else {})}]
+        return {"schema": "discover-catalog/v0", "priority_revision": 1, "assessed_on": "2026-10-21", "tracks": tracks}
+
+    def test_marked_tracks_are_drawn(self):
+        seeds = ["%032x" % i for i in range(20)]
+        cat = self.catalog(["reframe"])
+        self.assertEqual(schema.check("catalog.schema.json", cat), [])
+        self.assertEqual({pick.pick(cat, s, focus="reframe")["track"] for s in seeds}, {"rethink"})
+        self.assertEqual({pick.pick(cat, s)["track"] for s in seeds}, {"main", "rethink"})
+        self.assertTrue(schema.check("catalog.schema.json", self.catalog(["vibes"])))
+
+    def test_unmarked(self):
+        cat = self.catalog()
+        r = pick.pick(cat, "0" * 32, focus="reframe")
+        self.assertEqual((r["track"], r["suggestions"]), (None, []))
+        self.assertIn("frontier as a whole", r["note"])
+        self.assertIn("track (none)", pick.format_pick(r))
+        self.assertIn("No track declares focus 'audit'", pick.pick(cat, "0" * 32, focus="audit")["note"])
+
+    def test_prompt(self):
+        from discover import prompt
+        text = prompt.donation_prompt("o/r", 60, "reframe", "local", seed="0" * 32)
+        self.assertIn("establish why progress has stalled", text)
+
+
 class SignalsTests(unittest.TestCase):
     """The curation sweep's signals (playbooks/curate.md)."""
 
