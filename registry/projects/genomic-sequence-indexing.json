@@ -1,0 +1,29 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/genomic-sequence-indexing"
+    }
+  ],
+  "added_on": "2026-10-22",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/genomic-sequence-indexing/2026-10-22-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "adequate",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "02236ef58a999c015ebc10563fc8ed9ecc1e2f05",
+    "checked_on": "2026-10-22",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Credit upstream methods/data and all substantive contributors; disclose AI assistance."
+  },
+  "featured": false
+}
