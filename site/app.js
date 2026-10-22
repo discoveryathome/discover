@@ -14,7 +14,7 @@ const PROFILES = {
   "formal-proof": "Formal proof", "exact-certificate": "Exact certificate", simulation: "Simulation",
   benchmark: "Benchmark", observational: "Observational", replication: "Replication", "review-only": "Expert review",
 };
-const state = { data: null, art: {}, q: "", domain: "", profile: "", assessedOnly: false };
+const state = { data: null, q: "", domain: "", profile: "", assessedOnly: false };
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const safeUrl = (u) => { try { const x = new URL(u); return x.protocol === "https:" ? x.href : null; } catch { return null; } };
@@ -543,27 +543,7 @@ function heroCaption(p, f) {
   return `<figcaption><span class="badge">${esc(VISUAL_KINDS[v.kind] || v.kind)}</span> <span class="hint">${esc(text || "")}${src}</span>${prompt}</figcaption>`;
 }
 
-// Hub editorial covers explain the question; project-declared visuals remain evidence.
-// This local catalogue is independent of the generated/live project data.
-function projectArt(p, compact) {
-  const a = state.art[p.slug];
-  if (!a || !/^[a-z0-9-]+\.(svg|png|jpg|webp)$/.test(a.file)) return "";
-  return `<figure class="hero-vis project-art ${compact ? "compact" : ""}">
-    <div class="frame art-${a.fit === "cover" ? "cover" : "contain"}">
-      <span class="art-fallback" aria-hidden="true">${esc(a.question)}</span>
-      <img src="visuals/${esc(a.file)}" alt="${esc(a.alt)}" loading="${compact ? "lazy" : "eager"}" decoding="async">
-    </div>
-    <figcaption>${compact ? "" : `<span class="art-label">${esc(a.label)}</span>`}<p class="art-question">${esc(a.question)}</p>${compact ? "" : `
-      <p class="hint">${esc(a.caption)}</p>
-      <p class="hint art-credit">${esc(a.credit)} · ${link(a.source, "Source & context")} · <a href="visuals/README.md">Visual credits</a></p>
-      ${a.prompt ? `<details><summary class="hint">How this illustration was made</summary><p class="hint">Generated with the built-in image tool. Prompt: ${esc(a.prompt)}</p></details>` : ""}`}
-    </figcaption></figure>`;
-}
-
-function heroFigure(p, f, compact, evidenceOnly = false) {
-  const art = !evidenceOnly && projectArt(p, compact);
-  if (art) return art + (!compact && heroOf(p, f).render !== "title"
-    ? `<details class="result-visual"><summary>Project result visual</summary>${heroFigure(p, f, false, true)}</details>` : "");
+function heroFigure(p, f, compact) {
   const v = heroOf(p, f);
   return `<figure class="hero-vis ${compact ? "compact" : ""} r-${esc(v.render)}">
     <div class="frame">${heroInner(p, f, compact)}${compact && v.render === "image" && v.kind ? `<span class="badge kind">${esc(VISUAL_KINDS[v.kind])}</span>` : ""}</div>
@@ -584,11 +564,6 @@ async function imageUrl(url, type, upstream) {
   return (blobUrls[key] = URL.createObjectURL(new Blob([bytes], { type })));
 }
 function showImages(root, live = false) {
-  root.querySelectorAll(".project-art img").forEach((img) => {
-    const failed = () => { img.hidden = true; };
-    img.addEventListener("error", failed, { once: true });
-    if (img.complete && !img.naturalWidth) failed();
-  });
   root.querySelectorAll("img[data-demo]").forEach(async (img) => {
     const [slug, i] = img.dataset.demo.split("|");
     const t = state.data.projects.find((x) => x.slug === slug)?.demos?.[i]?.image;
@@ -740,9 +715,9 @@ function viewProject(slug) {
     <div class="row">${stageBadge(p)}${unlistedBadge(p)}${reviewBadge(p)}${measureFlag(f)}${bottleneckBadge(p.bottleneck)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}<span class="muted" style="font-size:13px">${esc(p.domains.join(" · "))}</span></div>
   </div>
   <div class="layout">
-    <section class="panel hero-panel project-intro" id="hero-panel">${heroFigure(p, f, false)}</section>
     <div class="side">${p.listing === "nominated" ? nominatedPanel(p) : p.review?.paused ? pausedPanel() : launcher(p)}</div>
     <div class="main">
+      <section class="panel hero-panel" id="hero-panel">${heroFigure(p, f, false)}</section>
       ${demosPanel(p)}
       ${f ? `<section class="panel" id="frontier-panel">${frontierInner(p, f, null)}</section>
       ${f.table ? `<section class="panel" id="records-panel">${recordsInner(p, f.table, f.table.rows_snapshot || [], null)}</section>` : ""}` : p.frontier_doc ? `<section class="panel">
@@ -1083,11 +1058,6 @@ async function start() {
     document.getElementById("app").innerHTML = `<div class="empty">Couldn't load project data (${esc(e.message)}).</div>`;
     return;
   }
-  // A missing editorial catalogue must not prevent browsing or donating.
-  try {
-    const r = await fetch("visuals/catalog.json");
-    if (r.ok) state.art = await r.json();
-  } catch { /* use the project's declared visual or existing frontier fallback */ }
   document.getElementById("repo-link").href = hubUrl();
   const menu = document.querySelector(".menu");
   document.addEventListener("click", (e) => { if (!menu.contains(e.target)) menu.open = false; });
