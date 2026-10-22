@@ -8,5 +8,30 @@
   "nomination": {
     "by": "Mister-Meeseeks",
     "on": "2026-10-20"
-  }
+  },
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/labs/2026-10-22-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "strong",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "b368052d77566e0f6b95f40d38609dd31a0f775b",
+    "checked_on": "2026-10-22",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Credit original witness authors per row; credit contributors and AI assistance in result packages and CONTRIBUTORS.md. No authorship promise.",
+    "kinds": [
+      "contributors-file",
+      "citation"
+    ]
+  },
+  "featured": false
 }
