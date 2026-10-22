@@ -1,0 +1,45 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/neural-net-memory"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "credit": {
+    "policy": "Credit accepted schedules, code and reviews in per-row records, result packages and CONTRIBUTORS.md; disclose AI assistance. No promise of future paper authorship.",
+    "kinds": [
+      "contributors-file",
+      "citation",
+      "acknowledgement"
+    ]
+  },
+  "contact": "Mister-Meeseeks",
+  "consent": {
+    "source": "discover.json",
+    "commit": "8d475bf7c9c88d05bc14bb8533266d067b4ce002",
+    "checked_on": "2026-10-20",
+    "list": true,
+    "push": []
+  },
+  "assessment": "assessments/neural-net-memory/2026-10-21-claude.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "adequate",
+    "coordination": "adequate",
+    "verification": "strong",
+    "review": "unknown",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "8d475bf7c9c88d05bc14bb8533266d067b4ce002",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Credit accepted schedules, code and reviews in per-row records, result packages and CONTRIBUTORS.md; disclose AI assistance. No promise of future paper authorship.",
+    "kinds": ["contributors-file", "citation", "acknowledgement"]
+  },
+  "featured": false
+}

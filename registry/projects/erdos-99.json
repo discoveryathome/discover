@@ -1,0 +1,33 @@
+{
+  "repos": [
+    {
+      "repo": "1337isnot1337/erdos-99"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "adapter": "adapters/erdos-99.md",
+  "assessment": "assessments/erdos-99/2026-10-21-claude.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "adequate",
+    "review": "unknown",
+    "steering": "strong"
+  },
+  "consent": {
+    "source": "hub maintainer's report: the project's maintainer asked to be listed (reported to the hub maintainer, Mister-Meeseeks, 2026-10-21). No record in the repository yet.",
+    "commit": "b05cd57b15252fe99577de3edb0b73070e79544f",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Contributors are credited by their chosen public names or handles, with predecessor credit preserved and the originating and reviewing AI agent recorded (CONTRIBUTING.md); CITATION.cff asks citers to credit the authors of the package used.",
+    "kinds": [
+      "acknowledgement",
+      "citation"
+    ]
+  },
+  "featured": false
+}

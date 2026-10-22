@@ -572,7 +572,9 @@ class HubCheckTests(unittest.TestCase):
     def test_hub_assessments_parse_and_match_the_registry(self):
         from discover import hubcheck
         for path in sorted((ROOT / "assessments").glob("*/*.md")):
-            block, problems = hubcheck.parse_assessment(path.read_text(encoding="utf-8"))
+            # Pilot records live beside assessments (spec §3.6) and carry their own block.
+            parse = hubcheck.parse_pilot if path.name.endswith("-pilot.md") else hubcheck.parse_assessment
+            block, problems = parse(path.read_text(encoding="utf-8"))
             self.assertEqual(problems, [], path)
         for path in sorted((ROOT / "registry" / "projects").glob("*.json")):
             entry = json.loads(path.read_text())
@@ -1189,6 +1191,35 @@ class SignalsTests(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()) as out:
                 main(["prompt", "--action", "curate"])
             self.assertIn("v0/curate.md", out.getvalue())
+
+
+class RemoteSourceTests(unittest.TestCase):
+    """A remote directory exists though it has no raw URL (adapter paths can be folders)."""
+
+    def test_directory_exists(self):
+        import io, urllib.error
+        from discover import project
+        def fake(req, timeout=30):
+            url = req if isinstance(req, str) else req.full_url
+            if url.endswith("/hero.png"):
+                return io.BytesIO(b"\x89PNG\r\n")
+            if url.startswith("https://raw.githubusercontent.com/"):
+                raise urllib.error.HTTPError(url, 404, "nf", {}, None)
+            if "/contents/data?" in url:
+                return io.BytesIO(b'[{"name": "x.csv"}]')
+            if "/contents/flaky?" in url:
+                raise urllib.error.HTTPError(url, 403, "rate limited", {}, None)
+            raise urllib.error.HTTPError(url, 404, "nf", {}, None)
+        real = project.urllib.request.urlopen
+        project.urllib.request.urlopen = fake
+        try:
+            src = project.Source(repo="o/r")
+            self.assertTrue(src.exists("data"))
+            self.assertTrue(src.exists("hero.png"))
+            self.assertFalse(src.exists("gone"))
+            self.assertIsNone(src.exists("flaky"))
+        finally:
+            project.urllib.request.urlopen = real
 
 
 class PilotTests(unittest.TestCase):

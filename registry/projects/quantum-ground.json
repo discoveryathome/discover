@@ -1,0 +1,17 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/quantum-ground"
+    }
+  ],
+  "added_on": "2026-10-20",
+  "contact": "Mister-Meeseeks",
+  "consent": {
+    "source": "discover.json",
+    "commit": "311a3cd8f54c24b54c67975476fbb3b47606f2b9",
+    "checked_on": "2026-10-20",
+    "list": true,
+    "push": []
+  },
+  "featured": false
+}

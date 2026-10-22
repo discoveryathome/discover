@@ -40,9 +40,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-44a56f606421.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-2a77945bd8b1.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 44a56f60642149a9008632bedf874ed31ec6daa200e0df9e53c484ac90a4d838
+# must print 2a77945bd8b12b6d3ca9830e5821507bf556a613d320916327a9963ee997baf4
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`

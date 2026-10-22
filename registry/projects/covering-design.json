@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/covering-design"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/covering-design/2026-10-21-claude.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "adequate",
+    "coordination": "adequate",
+    "verification": "strong",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "756994f79b924779656d07fe9347d8e2a9b36313",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Each accepted record credits whoever found its witness (the record table's provenance), and result packages credit methods and reviews; contributors are listed by name with consent. Preserve source authorship (La Jolla Coverings Repository and its contributors). Disclose AI assistance. No promise of co-authorship or publication.",
+    "kinds": ["contributors-file", "citation", "acknowledgement"]
+  },
+  "featured": false
+}
