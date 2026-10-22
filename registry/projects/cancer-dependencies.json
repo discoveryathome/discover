@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/cancer-dependencies"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/cancer-dependencies/2026-10-21-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "adequate",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "6908ed873358dc716d3ef937a2a47e36ec6ad4c7",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Preserve artifact authorship, data citations, agent provenance, negative results and independent reproduction. Name people only with agreement; no automatic authorship promise.",
+    "kinds": ["contributors-file", "citation", "acknowledgement"]
+  },
+  "featured": false
+}
