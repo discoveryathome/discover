@@ -80,6 +80,50 @@ const CLAIM_KINDS = {
   exact: "exact check", formal: "formal proof", certified: "certified numerics", argument: "reviewed argument",
   model: "within a model", measured: "measured", observational: "observational candidate",
 };
+// Measures beside the objective (spec §5): what the score stands for, and what it mustn't break.
+const MEASURE_ROLES = { constraint: "Constraint", guard: "Guard", target: "Target" };
+const MEASURE_STATUS = {
+  pass: ["Meets it", "ok"], fail: ["Fails it", "warn"], held: ["Held", "ok"], regressed: ["Got worse", "warn"],
+  better: ["Better", "ok"], same: ["No clear change", ""], worse: ["Worse", "warn"], unreported: ["Not reported", ""],
+};
+const BAD_MEASURES = ["fail", "regressed", "worse"];
+function measureRow(x, repo) {
+  const [label, cls] = MEASURE_STATUS[x.status] || [x.status, ""];
+  const u = x.unit ? ` ${x.unit}` : "";
+  const nums = x.how === "suite"
+    ? `${x.wins}–${x.ties}–${x.losses} against ${x.against} on ${plural(x.instances, "instance")}, mean ${pct(x.mean_gain)}, p = ${pval(x.p)}`
+    : [x.value != null ? `${x.value}${u}` : "", x.limit != null ? `limit ${x.limit}${u}` : "", x.baseline != null ? `baseline ${x.baseline}${u}` : "",
+       x.tolerance ? `tolerance ${x.tolerance}` : ""].filter(Boolean).join(" · ");
+  return `<tr><td><span class="badge">${esc(MEASURE_ROLES[x.role] || x.role)}</span></td>
+    <td><b>${esc(x.name)}</b>${x.statement ? `<div class="hint">${esc(x.statement)}</div>` : ""}</td>
+    <td><span class="badge ${cls}">${esc(label)}</span></td>
+    <td class="mono">${esc(nums)}${x.how === "stated" ? '<span class="hint">stated by the project</span>' : ""}${x.source ? ` ${sourceLink(x.source, repo)}` : ""}</td></tr>`;
+}
+function measuresSection(p, f) {
+  const ms = f.measures;
+  if (!ms?.length) return "";
+  const bad = ms.filter((x) => BAD_MEASURES.includes(x.status));
+  return `<div><h3 style="margin-bottom:6px">Beside the objective</h3>
+    <p class="hint">${bad.length ? `<b>${esc(plural(bad.length, "measure"))} went the wrong way.</b> A better score here isn't by itself a better result.` : "What the objective stands for, and what it mustn't break, measured on the current result."}</p>
+    <div class="scroll"><table class="records measures">${ms.map((x) => measureRow(x, p.repo)).join("")}</table></div></div>`;
+}
+function measureFlag(f) {
+  const ms = f?.measures || [];
+  const flag = ms.some((x) => x.status === "fail") ? "Fails a constraint" : ms.some((x) => x.status === "regressed") ? "A guard got worse"
+    : ms.some((x) => x.status === "worse") ? "Target got worse" : "";
+  return flag ? `<span class="badge warn" title="The objective improved, but a measure beside it went the wrong way">${flag}</span>` : "";
+}
+
+// What most limits progress (spec §4), so donors know what a session can do.
+const BOTTLENECKS = {
+  search: ["Better search moves it", "The objective is the right one; finding better results is the hard part."],
+  evaluation: ["Needs a better benchmark", "Results are easy to improve, but the benchmark doesn't yet track what matters. The useful work is improving it."],
+  evidence: ["Needs new data", "Progress depends on data or experiments that don't exist yet."],
+};
+const bottleneckBadge = (b) => (b && BOTTLENECKS[b.kind] ? `<span class="badge" title="${esc(BOTTLENECKS[b.kind][1] + (b.note ? ` ${b.note}` : ""))}">${esc(BOTTLENECKS[b.kind][0])}</span>` : "");
+const CONTRIBUTES = { record: "a better result", method: "a method, tested on held-out instances", benchmark: "a better benchmark",
+  evidence: "data or validation", measurement: "a physical measurement" };
+
 const claimBadges = (kinds) => (kinds || []).map((k) => `<span class="badge">${esc(CLAIM_KINDS[k] || k)}</span>`).join("");
 
 // --- prompts (same templates and draw as `discover prompt` / `discover pick`) -----
@@ -196,10 +240,12 @@ function wireLauncher(root, p) {
 function projectCard(p) {
   const handoffs = p.board?.open_handoffs?.length;
   return `<article class="card">
-    <div class="row">${stageBadge(p)}${reviewBadge(p)}</div>
+    ${heroFigure(p, p.frontier, true)}
+    <div class="row">${stageBadge(p)}${reviewBadge(p)}${measureFlag(p.frontier)}${bottleneckBadge(p.bottleneck)}${p.demos?.length ? `<span class="badge" title="The project hosts ${esc(plural(p.demos.length, "page"))} for exploring its results">${p.demos.length > 1 ? `${p.demos.length} demos` : "Demo"}</span>` : ""}</div>
     <h3><a class="stretch" href="#/p/${encodeURIComponent(p.slug)}">${esc(p.title)}</a></h3>
     <p class="summary">${esc(p.summary)}</p>
     ${metric(p.frontier)}
+    ${p.frontier?.suite ? `<p class="hint">${esc(strengthLine(p.frontier.suite))}.</p>` : ""}
     <div class="meta">${esc(p.domains.join(" · "))}${handoffs ? ` · <b>${plural(handoffs, "open handoff")}</b>` : ""}</div>
   </article>`;
 }
@@ -327,32 +373,219 @@ function sourceLink(src, repo) {
 }
 const credit = (by) => (Array.isArray(by) ? by : by ? [by] : []).map((b) => esc(b)).join(", ");
 
-// A step chart of the frontier's value over time, inline SVG.
-function historyChart(points, metricInfo) {
-  const pts = points.filter((x) => typeof x.number === "number" && Number.isFinite(x.number) && x.date);
+// A step chart of the frontier's value over time, inline SVG. `refs` are dashed reference
+// lines (a proven bound, a baseline); `compact` drops the axes, for cards.
+const chartPoints = (points) => (points || []).filter((x) => typeof x.number === "number" && Number.isFinite(x.number) && x.date);
+function stepChart(points, metricInfo, { refs = [], compact = false, W = 640, H = 180 } = {}) {
+  const pts = chartPoints(points);
   if (pts.length < 2) return "";
-  const W = 640, H = 180, L = 78, R = 12, T = 12, B = 26;
+  const [L, R, T, B] = compact ? [8, 8, 14, 10] : [78, 12, 12, 26];
   const t = pts.map((x) => Date.parse(x.date)), v = pts.map((x) => x.number);
-  let [t0, t1] = [Math.min(...t), Math.max(...t)], [v0, v1] = [Math.min(...v), Math.max(...v)];
+  const rv = refs.map((r) => r.number).filter(Number.isFinite);
+  let [t0, t1] = [Math.min(...t), Math.max(...t)], [v0, v1] = [Math.min(...v, ...rv), Math.max(...v, ...rv)];
   if (t1 === t0) t1 = t0 + 86400000;
   if (v1 === v0) { v0 -= Math.abs(v0) * 0.1 || 1; v1 += Math.abs(v1) * 0.1 || 1; }
   const pad = (v1 - v0) * 0.08; v0 -= pad; v1 += pad;
   const X = (x) => L + ((x - t0) / (t1 - t0)) * (W - L - R), Y = (y) => T + (1 - (y - v0) / (v1 - v0)) * (H - T - B);
   let d = `M${X(t[0]).toFixed(1)},${Y(v[0]).toFixed(1)}`;
-  for (let i = 1; i < pts.length; i++) d += `H${X(t[i]).toFixed(1)}V${Y(v[i]).toFixed(1)}`;
+  // A new formulation is a new problem: start a new line there instead of drawing a jump.
+  const breaks = [];
+  for (let i = 1; i < pts.length; i++) {
+    if ((pts[i].formulation || "") !== (pts[i - 1].formulation || "")) { d += `M${X(t[i]).toFixed(1)},${Y(v[i]).toFixed(1)}`; breaks.push(i); }
+    else d += `H${X(t[i]).toFixed(1)}V${Y(v[i]).toFixed(1)}`;
+  }
+  const area = breaks.length ? "" : `${d}H${(W - R).toFixed(1)}V${(H - B).toFixed(1)}H${X(t[0]).toFixed(1)}Z`;
   const big = Math.max(Math.abs(v0), Math.abs(v1)), sci = big >= 1e5 || big < 1e-2;
-  const fmt = (y) => (sci ? y.toExponential(2) : String(+y.toPrecision(4)));
+  const fmt = (y) => (y === 0 ? "0" : sci ? y.toExponential(2) : String(+y.toPrecision(4)));
   const day = (ms) => new Date(ms).toISOString().slice(0, 10);
   const ticks = [v0 + pad, (v0 + v1) / 2, v1 - pad];
-  return `<figure class="chart" aria-label="${esc(metricInfo?.name || "value")} over time">
-    <svg viewBox="0 0 ${W} ${H}" role="img">
-      ${ticks.map((y) => `<line x1="${L}" x2="${W - R}" y1="${Y(y).toFixed(1)}" y2="${Y(y).toFixed(1)}" class="grid"/><text x="${L - 6}" y="${(Y(y) + 4).toFixed(1)}" text-anchor="end">${esc(fmt(y))}</text>`).join("")}
-      <text x="${L}" y="${H - 6}">${esc(day(t0))}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${esc(day(t1))}</text>
+  const refLines = refs.filter((r) => Number.isFinite(r.number)).map((r) => {
+    const y = Y(r.number).toFixed(1);
+    return `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" class="ref ${esc(r.cls || "")}"/><text x="${W - R - 4}" y="${(+y - 4).toFixed(1)}" text-anchor="end" class="ref-label">${esc(r.label)}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(metricInfo?.name || "value")} over time" preserveAspectRatio="${compact ? "none" : "xMidYMid meet"}">
+      ${compact ? "" : ticks.map((y) => `<line x1="${L}" x2="${W - R}" y1="${Y(y).toFixed(1)}" y2="${Y(y).toFixed(1)}" class="grid"/><text x="${L - 6}" y="${(Y(y) + 4).toFixed(1)}" text-anchor="end">${esc(fmt(y))}</text>`).join("")}
+      ${compact ? "" : `<text x="${L}" y="${H - 6}">${esc(day(t0))}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${esc(day(t1))}</text>`}
+      ${area ? `<path d="${area}" class="area"/>` : ""}${refLines}
+      ${breaks.map((i) => `<line x1="${X(t[i]).toFixed(1)}" x2="${X(t[i]).toFixed(1)}" y1="${T}" y2="${H - B}" class="ref"/><text x="${(X(t[i]) + 4).toFixed(1)}" y="${T + 10}" class="ref-label">${esc(pts[i].formulation || "new formulation")}</text>`).join("")}
       <path d="${d}" class="line"/>
-      ${pts.map((x, i) => `<circle cx="${X(t[i]).toFixed(1)}" cy="${Y(v[i]).toFixed(1)}" r="3"><title>${esc(`${x.date}: ${x.value}${x.by ? ` (${[].concat(x.by).join(", ")})` : ""}`)}</title></circle>`).join("")}
-    </svg>
-    <figcaption class="hint">${esc(metricInfo?.name || "Value")} at each change of the frontier${metricInfo?.direction ? `; ${esc(metricInfo.direction.replace(/-/g, " "))}` : ""}.</figcaption>
-  </figure>`;
+      ${pts.map((x, i) => `<circle cx="${X(t[i]).toFixed(1)}" cy="${Y(v[i]).toFixed(1)}" r="${compact && i < pts.length - 1 ? 0 : 3}"><title>${esc(`${x.date}: ${x.value}${x.by ? ` (${[].concat(x.by).join(", ")})` : ""}`)}</title></circle>`).join("")}
+    </svg>`;
+}
+function historyChart(points, metricInfo) {
+  const svg = stepChart(points, metricInfo);
+  return svg ? `<figure class="chart">${svg}
+    <figcaption class="hint">${esc(metricInfo?.name || "Value")} at each change of the frontier${metricInfo?.direction ? `; ${esc(metricInfo.direction.replace(/-/g, " "))}` : ""}. A vertical line marks a new formulation, which isn't comparable with the one before.</figcaption>
+  </figure>` : "";
+}
+
+// --- the hero visual (spec §4, Visual) ----------------------------------------------
+// The project's declared visual, else the best the hub can draw from its frontier. An image
+// is read as bytes and shown through a blob URL in an <img>, so an SVG's scripts never run.
+
+// --- evaluation suites (spec §5): a method against baselines on held-out instances -----
+
+const STRENGTH = { starter: "the project's starter", published: "a published method", mature: "a mature solver" };
+const pct = (g) => (g == null ? "–" : `${g >= 0 ? "+" : ""}${(g * 100).toFixed(Math.abs(g) < 0.01 ? 2 : 1)}%`);
+const pval = (p) => (p < 0.001 ? "< 0.001" : p.toFixed(3));
+function strengthLine(st) {
+  const best = st.strongest_beaten;
+  const head = best ? `Beats ${STRENGTH[best]}` : "Doesn't yet beat any baseline significantly";
+  return `${head}${st.has_mature ? "" : best === "mature" ? "" : "; not compared with a mature solver"}`;
+}
+const DRAWS = { fixed: "from a public, fixed set (methods may have been tuned to it)", drawn: "drawn after the method was frozen", sealed: "that the maintainers keep sealed" };
+
+function suiteBars(st, compact) {
+  const bs = st.baselines || [];
+  if (!bs.length) return "";
+  const W = 640, H = compact ? 320 : 220, L = compact ? 150 : 190, R = 70, rowH = (H - 20) / bs.length;
+  const gmax = Math.max(0.001, ...bs.map((b) => Math.abs(b.mean_gain || 0)));
+  const neg = bs.some((b) => (b.mean_gain || 0) < 0);
+  const x0 = neg ? L + (W - L - R) / 2 : L, scale = (neg ? (W - L - R) / 2 : W - L - R) / gmax;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(`${st.current} against ${bs.length} baselines`)}">
+    <line x1="${x0}" x2="${x0}" y1="6" y2="${H - 6}" class="grid"/>
+    ${bs.map((b, i) => {
+      const y = 10 + i * rowH, g = b.mean_gain || 0, w = Math.abs(g) * scale, x = g >= 0 ? x0 : x0 - w;
+      return `<g><title>${esc(`${b.method} (${b.strength}): ${pct(g)} mean, ${b.wins}–${b.ties}–${b.losses}, p = ${pval(b.p)}`)}</title>
+        <text x="${L - 10}" y="${(y + rowH / 2 + 4).toFixed(1)}" text-anchor="end" class="bar-label">${esc(b.method)}</text>
+        <text x="${L - 10}" y="${(y + rowH / 2 + 18).toFixed(1)}" text-anchor="end" class="bar-sub">${esc(b.strength || "")}</text>
+        <rect x="${x.toFixed(1)}" y="${(y + rowH * 0.2).toFixed(1)}" width="${Math.max(1, w).toFixed(1)}" height="${(rowH * 0.6).toFixed(1)}" rx="3" class="bar ${b.verdict}"/>
+        <text x="${(g >= 0 ? x + w + 6 : x - 6).toFixed(1)}" y="${(y + rowH / 2 + 4).toFixed(1)}" text-anchor="${g >= 0 ? "start" : "end"}" class="bar-value">${esc(pct(g))}</text></g>`;
+    }).join("")}
+  </svg>`;
+}
+
+function suiteSection(p, st) {
+  const rows = (st.baselines || []).map((b) => `<tr><td class="mono">${esc(b.method)}</td><td><span class="badge${b.strength === "mature" ? " accent" : ""}">${esc(b.strength || "")}</span></td>
+    <td class="mono">${esc(pct(b.mean_gain))}</td><td class="mono">${esc(`${b.wins}–${b.ties}–${b.losses}`)}</td><td class="mono">${esc(pval(b.p))}</td>
+    <td>${b.verdict === "beats" ? '<span class="badge ok">beats</span>' : b.verdict === "loses" ? '<span class="badge warn">loses</span>' : '<span class="badge">inconclusive</span>'}</td>
+    <td class="hint">${b.source ? (safeUrl(b.source) ? link(b.source, "source") : esc(b.source)) : ""}${b.version ? ` ${esc(b.version)}` : ""}</td></tr>`).join("");
+  const inst = st.held_out || {}, budget = st.budget;
+  return `<div><h3 style="margin-bottom:6px">Held-out evaluation</h3>
+    <p><b>${esc(strengthLine(st))}.</b> <span class="hint">${esc(st.current)} on ${esc(plural(st.instances, "instance"))} ${esc(DRAWS[inst.draw] || inst.draw || "")}${budget ? `, at ${esc(Number(budget.amount).toLocaleString())} ${esc(budget.unit)} per run` : ""}.</span></p>
+    <div class="scroll"><table class="records"><tr><th>Baseline</th><th>Strength</th><th>Mean gain</th><th>W–T–L</th><th>p</th><th></th><th></th></tr>${rows}</table></div>
+    <p class="hint">Gain is ${esc(st.objective || "the value")} relative to the baseline, per instance, averaged over seeds; W–T–L counts instances won, tied and lost; p is a two-sided sign test. Computed by the hub from the ${link(st.url, "results file")}.</p></div>`;
+}
+
+const VISUAL_KINDS = { witness: "The result itself", derived: "Drawn from the frontier", illustration: "Illustration" };
+function heroOf(p, f = p.frontier) {
+  if (p.visual) return p.visual;
+  if (f?.suite) return { render: "suite", kind: "derived", auto: true };
+  if (f?.table) return { render: "records", kind: "derived", auto: true };
+  const n = chartPoints(f?.history?.points).length;
+  if (n >= 2 && f.metric?.bound) return { render: "bound-gap", kind: "derived", auto: true };
+  if (n >= 2) return { render: "progress", kind: "derived", auto: true };
+  return { render: "title", auto: true };
+}
+
+function recordsGrid(t, rows, compact) {
+  if (!rows?.length) return "";
+  const shown = rows.slice(0, 400), n = shown.length, W = 640, H = compact ? 320 : 220;
+  const cols = Math.max(1, Math.ceil(Math.sqrt((n * W) / H))), rws = Math.ceil(n / cols);
+  const cw = W / cols, ch = H / rws, gap = Math.min(cw, ch) * 0.12;
+  const label = (r) => t.key.map((k) => r[k]).join(", ");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(`${n} cases, ${shown.filter((r) => rowOpen(r, t)).length} open`)}">
+    ${shown.map((r, i) => {
+      const x = (i % cols) * cw, y = Math.floor(i / cols) * ch, open = rowOpen(r, t);
+      const fs = Math.min(ch * 0.26, (cw / Math.max(3, label(r).length + 1)) * 1.6);
+      return `<g><title>${esc(`${label(r)}: ${r[t.value]}${open ? " (open)" : " (settled)"}`)}</title>
+        <rect x="${(x + gap / 2).toFixed(1)}" y="${(y + gap / 2).toFixed(1)}" width="${(cw - gap).toFixed(1)}" height="${(ch - gap).toFixed(1)}" rx="${(gap * 0.8).toFixed(1)}" class="${open ? "open" : "settled"}"/>
+        ${fs >= 9 ? `<text x="${(x + cw / 2).toFixed(1)}" y="${(y + ch / 2 + fs * 0.35).toFixed(1)}" text-anchor="middle" style="font-size:${fs.toFixed(1)}px">${esc(label(r))}</text>` : ""}</g>`;
+    }).join("")}
+  </svg>`;
+}
+
+function titleCard(p, f) {
+  const m = f?.metric;
+  return `<div class="title-card">${m
+    ? `<span class="n">${esc(m.name)}</span><span class="v">${esc(m.decimal || m.value)}${m.unit ? ` ${esc(m.unit)}` : ""}</span>`
+    : `<span class="t">${esc(p.title)}</span>`}<span class="n">${esc(p.domains.join(" · "))}</span></div>`;
+}
+
+const imgTag = (p, v) => `<img data-visual="${esc(p.slug)}" alt="${esc(v.alt || "")}" hidden>`;
+function heroInner(p, f, compact) {
+  const v = heroOf(p, f);
+  const refs = v.render === "bound-gap" ? [
+    ...(f?.metric?.bound ? [{ number: num(f.metric.bound), label: `proven bound ${f.metric.bound}`, cls: "bound" }] : []),
+    ...(v.baseline ? [{ number: num(v.baseline.value), label: v.baseline.label || `baseline ${v.baseline.value}`, cls: "base" }] : []),
+  ] : [];
+  const W = 640, H = compact ? 320 : 220;
+  if (v.render === "image") return imgTag(p, v);
+  if (v.render === "suite" && f?.suite) return suiteBars(f.suite, compact);
+  if (v.render === "records" && f?.table) return recordsGrid(f.table, f.table.live_rows || f.table.rows_snapshot, compact);
+  if (["progress", "bound-gap"].includes(v.render)) return stepChart(f?.history?.points, f?.metric, { refs, compact, W, H }) || titleCard(p, f);
+  return titleCard(p, f);
+}
+
+function heroCaption(p, f) {
+  const v = heroOf(p, f);
+  if (v.render === "title") return "";
+  const auto = { records: "Each case in the record table: filled when settled, outlined while open.",
+    suite: `How much better ${f?.suite?.current || "the method"} does than each baseline, on average over ${f?.suite?.instances || "the"} held-out instances. Solid bars are significant on a sign test.`,
+    progress: `${f?.metric?.name || "The value"} at each change of the frontier${f?.metric?.direction ? `; ${f.metric.direction.replace(/-/g, " ")}` : ""}.` };
+  auto["bound-gap"] = `${auto.progress.slice(0, -1)}, against ${[f?.metric?.bound ? "the proven bound" : "", v.baseline ? "where it started" : ""].filter(Boolean).join(" and ") || "its range"}.`;
+  const text = v.caption || (v.render === "image" ? v.alt : auto[v.render]);
+  const prompt = v.prompt ? `<details><summary class="hint">Made by an image model</summary><p class="hint">The prompt, filled from the frontier when the hub last built: ${esc(v.prompt)}</p></details>` : "";
+  const src = v.url ? ` · ${link(v.url, v.origin === "adapter" ? "image (hub)" : "image")}` : "";
+  return `<figcaption><span class="badge">${esc(VISUAL_KINDS[v.kind] || v.kind)}</span> <span class="hint">${esc(text || "")}${src}</span>${prompt}</figcaption>`;
+}
+
+function heroFigure(p, f, compact) {
+  const v = heroOf(p, f);
+  return `<figure class="hero-vis ${compact ? "compact" : ""} r-${esc(v.render)}">
+    <div class="frame">${heroInner(p, f, compact)}${compact && v.render === "image" && v.kind ? `<span class="badge kind">${esc(VISUAL_KINDS[v.kind])}</span>` : ""}</div>
+    ${compact ? "" : heroCaption(p, f)}</figure>`;
+}
+
+// Show images: the build's copy (same origin), then on a project page the project's own,
+// read live. Both are read as bytes and typed by the declaration, not by the server.
+const IMAGE_MAX_BYTES = 1_000_000, blobUrls = {};
+async function imageUrl(url, type, upstream) {
+  const key = `${url}|${type}`;
+  if (blobUrls[key]) return blobUrls[key];
+  if (upstream && (!safeUrl(url) || !url.startsWith("https://raw.githubusercontent.com/"))) throw new Error("not a project URL");
+  const r = await fetch(url, { cache: "no-cache" });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const bytes = await r.arrayBuffer();
+  if (bytes.byteLength > IMAGE_MAX_BYTES) throw new Error("too large");
+  return (blobUrls[key] = URL.createObjectURL(new Blob([bytes], { type })));
+}
+function showImages(root, live = false) {
+  root.querySelectorAll("img[data-demo]").forEach(async (img) => {
+    const [slug, i] = img.dataset.demo.split("|");
+    const t = state.data.projects.find((x) => x.slug === slug)?.demos?.[i]?.image;
+    if (!t?.snapshot) return;
+    try { img.src = await imageUrl(t.snapshot, t.type, false); img.hidden = false; } catch { /* no thumbnail */ }
+  });
+  root.querySelectorAll("img[data-visual]").forEach(async (img) => {
+    const p = state.data.projects.find((x) => x.slug === img.dataset.visual), v = p?.visual;
+    if (!v?.snapshot) return;
+    try { img.src = await imageUrl(v.snapshot, v.type, false); img.hidden = false; } catch { /* keep the frame empty */ }
+    if (live && v.live_url) {
+      try { img.src = await imageUrl(v.live_url, v.type, true); img.hidden = false; } catch { /* the build's copy stays */ }
+    }
+  });
+}
+
+// Demos are the project's own pages: linked, never served from the hub, and labelled so.
+const DEMO_KINDS = { replay: "Replay", dashboard: "Dashboard", explorer: "Explorer" };
+function demoData(d, f) {
+  if (d.reads_record) return "Shows the checked frontier record, as of its last deployment.";
+  if (d.stale) return `Its data was last changed ${d.data_on}, before the frontier was updated (${f?.updated_on}); it may show an earlier result.`;
+  if (d.data_on) return `Its data was last changed ${d.data_on}.`;
+  return d.reads?.length ? "" : "Doesn't say what data it shows.";
+}
+function demosPanel(p) {
+  if (!p.demos?.length) return "";
+  return `<section class="panel" id="demos-panel"><h2>Explore</h2>
+    <p class="hint">Pages the project built and hosts. They run on the project's site, and the hub hasn't checked what they show.</p>
+    <ul class="demos">${p.demos.map((d, i) => `<li class="demo">
+      ${d.image ? `<div class="thumb"><img data-demo="${esc(p.slug)}|${i}" alt="${esc(d.alt || "")}" hidden></div>` : ""}
+      <div><div class="row">${d.kind ? `<span class="badge">${esc(DEMO_KINDS[d.kind] || d.kind)}</span>` : ""}${d.stale ? '<span class="badge warn">Older than the frontier</span>' : ""}</div>
+        <h3>${link(d.url, `${d.title} ↗`)}</h3>
+        ${d.note ? `<p class="hint">${esc(d.note)}</p>` : ""}
+        <p class="hint">${esc(demoData(d, p.frontier))}${d.reads?.length ? ` Reads ${d.reads.map((r) => link(r.url, r.path)).join(", ")}.` : ""}${d.source_url ? ` ${link(d.source_url, "Source")}.` : ""}</p></div>
+    </li>`).join("")}</ul></section>`;
 }
 
 function historySection(p, f) {
@@ -360,7 +593,9 @@ function historySection(p, f) {
   if (!h?.points?.length) return "";
   const origin = h.from === "project" ? "the project's history file" : "the frontier record's git history";
   const rows = h.points.slice().reverse().map((x) => `<tr><td>${esc(x.date)}</td><td class="mono">${esc(x.value)}</td><td>${credit(x.by)}</td><td>${x.source ? sourceLink(x.source, p.repo) : ""}${x.note ? ` <span class="hint">${esc(x.note)}</span>` : ""}</td></tr>`).join("");
-  return `<div><h3 style="margin-bottom:6px">Progress</h3>${historyChart(h.points, f.metric)}
+  // The hero already charts it when it's a progress chart.
+  const charted = ["progress", "bound-gap"].includes(heroOf(p, f).render);
+  return `<div><h3 style="margin-bottom:6px">Progress</h3>${charted ? "" : historyChart(h.points, f.metric)}
     <details><summary>${esc(plural(h.points.length, "change"))}, from ${esc(origin)}</summary>
     <div class="scroll"><table class="records"><tr><th>Date</th><th>Value</th><th>By</th><th>Source</th></tr>${rows}</table></div></details></div>`;
 }
@@ -372,11 +607,14 @@ function frontierInner(p, f, origin) {
   return `<h2>Current frontier</h2>
     ${metric(f)}
     <p>${esc(f.statement)}</p>
+    ${f.formulation ? `<p class="hint">Formulation ${f.formulation.doc_url ? link(f.formulation.doc_url, f.formulation.id) : `<code>${esc(f.formulation.id)}</code>`}${f.formulation.since ? ` since ${esc(f.formulation.since)}` : ""}${f.formulation.replaces ? `; replaces <code>${esc(f.formulation.replaces)}</code>, so earlier results aren't comparable` : ""}</p>` : ""}
     ${f.table ? `<p class="hint">A table of ${esc(plural(f.table.rows, "case"))}, ${esc(f.table.open)} still open · ${link(f.table.url, "table")}</p>` : ""}
     <div class="row" style="display:flex;flex-wrap:wrap;gap:6px">${claimBadges(f.claim_kind)}${(f.evidence_level || []).map((e) => `<span class="badge ok">${esc(e.replace(/-/g, " "))}</span>`).join("")}</div>
     ${f.external?.length ? `<p class="hint">Accepted by ${f.external.map((x) => link(x.url, x.authority)).join(", ")}</p>` : ""}
     ${f.scope ? `<details><summary>Scope and conditions</summary><p class="hint">${esc(f.scope)}</p></details>` : ""}
     ${assumptions}
+    ${measuresSection(p, f)}
+    ${f.suite ? suiteSection(p, f.suite) : ""}
     ${historySection(p, f)}
     <p class="hint">Updated ${esc(f.updated_on || "unknown")} · ${link(f.record_url, "record")}${where ? ` · ${where}` : ""}</p>`;
 }
@@ -409,6 +647,11 @@ async function loadLive(root, p) {
   if (!live?.url) return;
   const at = () => `at ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
   const panel = () => root.querySelector("#frontier-panel");
+  let cur = f;
+  const showHero = () => {
+    const box = root.querySelector("#hero-panel");
+    if (box) { box.innerHTML = heroFigure(p, cur, false); showImages(box, true); }
+  };
   try {
     const rec = mapFrontier(JSON.parse(await fetchUpstream(live.url)), live.map);
     if (!rec || typeof rec.statement !== "string") throw new Error("not a frontier record");
@@ -418,12 +661,17 @@ async function loadLive(root, p) {
       g.history = { ...g.history, points: [...g.history.points, { date: (g.updated_on || new Date().toISOString()).slice(0, 10), value: now, number: num(g.metric.decimal || now), note: "current" }] };
     }
     if (panel()) panel().innerHTML = frontierInner(p, g, { live: true, at: at() });
+    cur = g;
+    showHero();
   } catch (e) {
     if (panel()) panel().innerHTML = frontierInner(p, f, { error: e.message });
   }
   if (f.table && live.table_url) {
     try {
-      wireRecords(root, p, f.table, parseTable(await fetchUpstream(live.table_url), tableFormat({ ...f.table, url: live.table_url })), { live: true, at: at() });
+      const rows = parseTable(await fetchUpstream(live.table_url), tableFormat({ ...f.table, url: live.table_url }));
+      wireRecords(root, p, f.table, rows, { live: true, at: at() });
+      cur = { ...cur, table: { ...cur.table, live_rows: rows } };
+      showHero();
     } catch (e) {
       wireRecords(root, p, f.table, f.table.rows_snapshot || [], { error: e.message });
     }
@@ -450,11 +698,13 @@ function viewProject(slug) {
     <div class="crumbs"><a href="#/">Explore</a> <span class="muted">/ ${esc(p.repo)}</span></div>
     <h1>${esc(p.title)}</h1>
     <p class="lede">${esc(p.summary)}</p>
-    <div class="row">${stageBadge(p)}${reviewBadge(p)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}<span class="muted" style="font-size:13px">${esc(p.domains.join(" · "))}</span></div>
+    <div class="row">${stageBadge(p)}${reviewBadge(p)}${measureFlag(f)}${bottleneckBadge(p.bottleneck)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}<span class="muted" style="font-size:13px">${esc(p.domains.join(" · "))}</span></div>
   </div>
   <div class="layout">
     <div class="side">${p.listing === "nominated" ? nominatedPanel(p) : p.review?.paused ? pausedPanel() : launcher(p)}</div>
     <div class="main">
+      <section class="panel hero-panel" id="hero-panel">${heroFigure(p, f, false)}</section>
+      ${demosPanel(p)}
       ${f ? `<section class="panel" id="frontier-panel">${frontierInner(p, f, null)}</section>
       ${f.table ? `<section class="panel" id="records-panel">${recordsInner(p, f.table, f.table.rows_snapshot || [], null)}</section>` : ""}` : p.frontier_doc ? `<section class="panel">
         <h2>Current result</h2>
@@ -466,18 +716,23 @@ function viewProject(slug) {
         <p class="hint">How the project splits donated sessions across its tracks${p.priority_revision ? ` (revision ${esc(p.priority_revision)})` : ""}. Open a track to see its tasks.</p>
         ${trackBar(p.tracks)}
         <div class="legend">${p.tracks.map((t, i) => `<div class="legend-row"><span class="sw" style="background:var(--track-${(i % TRACK_COLORS) + 1})"></span>
-          <details><summary>${esc(t.id)}</summary>${t.useful_outcome ? `<p class="hint" style="margin-bottom:6px">${esc(t.useful_outcome)}</p>` : ""}<ul class="qlist">${t.cards.map((c) => `<li><code>${esc(c.id)}</code>: ${esc(c.question)}${c.rows || c.claim_kind?.length ? `<div class="hint">${[c.rows ? "any open case in the table" : "", ...(c.claim_kind || []).map((k) => CLAIM_KINDS[k] || k)].filter(Boolean).map(esc).join(" · ")}</div>` : ""}</li>`).join("")}</ul></details>
+          <details><summary>${esc(t.id)}</summary>${t.useful_outcome ? `<p class="hint" style="margin-bottom:6px">${esc(t.useful_outcome)}</p>` : ""}<ul class="qlist">${t.cards.map((c) => `<li><code>${esc(c.id)}</code>: ${esc(c.question)}${c.rows || c.claim_kind?.length || c.contributes ? `<div class="hint">${[c.contributes ? `adds ${CONTRIBUTES[c.contributes] || c.contributes}` : "", c.rows ? "any open case in the table" : "", ...(c.claim_kind || []).map((k) => CLAIM_KINDS[k] || k)].filter(Boolean).map(esc).join(" · ")}</div>` : ""}</li>`).join("")}</ul></details>
           <span class="w">${esc(t.weight)}%</span></div>`).join("")}</div>
       </section>` : ""}
       ${board}
       <section class="panel">
         <h2>About</h2>
-        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd>${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}${p.listing === "nominated" ? "" : `<dt>Review</dt><dd>${reviewText(p.review)}</dd>`}${p.requirements ? `<dt>Needs</dt><dd>${esc(needsText(p.requirements))}</dd>` : ""}</dl>
+        <dl class="kv">${p.maintainers.map((m) => `<dt>Maintainer</dt><dd>${m.github ? link(`https://github.com/${m.github}`, m.name) : esc(m.name)}</dd>`).join("")}<dt>Credit</dt><dd>${p.credit && p.credit.policy ? esc(p.credit.policy) : '<span class="muted">Not stated yet</span>'}</dd>${p.license ? `<dt>License</dt><dd>${esc(p.license)}</dd>` : ""}${p.listing === "nominated" ? "" : `<dt>Review</dt><dd>${reviewText(p.review)}</dd>`}${p.requirements ? `<dt>Needs</dt><dd>${esc(needsText(p.requirements))}</dd>` : ""}${p.pilot ? `<dt>Pilot</dt><dd>${esc(pilotText(p.pilot))} · ${link(p.pilot.url, "record")}</dd>` : ""}</dl>
         <ul class="links">${links}</ul>
       </section>
     </div>
   </div>`;
 }
+
+// A pilot (spec §3.6): fresh sessions run before listing, and what they showed.
+const VERDICTS = { launch: "ready for donors", "fast-follow": "nearly ready", incubate: "research incubator",
+  reformulate: "the benchmark needs work first", defer: "deferred", demo: "a demo: explore known results" };
+const pilotText = (x) => `${VERDICTS[x.verdict] || x.verdict}: ${x.progress} of ${plural(x.sessions, "session")} made checked progress${x.fresh < x.sessions ? ` (${x.fresh} fresh)` : ""}, ${x.on}${x.self_piloted ? ", run by the project" : ""}`;
 
 const PROPS = ["orientation", "coordination", "verification", "review", "steering"];
 const stageText = (st) => (st === undefined || st === null ? "not assessed" : STAGES[st] || String(st));
@@ -767,11 +1022,12 @@ function render(after) {
       if (p.listing !== "nominated" && !p.review?.paused) wireLauncher(app, p);
       document.title = `${p.title} · Discovery@Home`;
       if (p.frontier?.table) wireRecords(app, p, p.frontier.table, p.frontier.table.rows_snapshot || [], null);
+      showImages(app, true);
       loadLive(app, p);
     }
   } else {
     document.title = "Discovery@Home";
-    if (!view || view === "") wireExplore(app);
+    if (!view || view === "") { wireExplore(app); showImages(app); }
     if (view === "add") wireAdd(app);
     if (view === "contribute") { wireDonate(app); wirePrepare(app); }
   }

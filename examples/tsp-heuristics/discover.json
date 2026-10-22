@@ -1,0 +1,19 @@
+{
+  "schema": "discover/v0",
+  "title": "TSP Heuristics (example)",
+  "summary": "An example algorithm race: find a heuristic that gives shorter Euclidean travelling-salesman tours than the published baselines, at a fixed budget, on instances nobody has seen.",
+  "domains": ["algorithms"],
+  "bottleneck": { "kind": "search", "note": "The objective is exact; a stronger method, or a mature baseline to measure against, moves it." },
+  "license": "CC0-1.0",
+  "maintainers": [{ "name": "Example Maintainer" }],
+  "canonical_repo": "https://github.com/example/tsp-heuristics",
+  "entry": { "agents": "README.md", "project": "README.md" },
+  "frontier": "frontier.json",
+  "catalog": "catalog.json",
+  "credit": { "policy": "The accepted method's commit and the release notes credit its author; results rows credit who ran them.", "kinds": ["contributors-file"] },
+  "review": {
+    "per_week": 5,
+    "note": "A maintainer reruns the new method on the next beacon round after its PR is frozen, then merges if it beats the current method there."
+  },
+  "verification_profile": "benchmark"
+}

@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/circle-packing"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/circle-packing/2026-10-21-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "strong",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "50fd516a3fc57fbd89b1795bb93e9e169def97cd",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Retain original construction credit; identify code, certificates, audit and verification contributions separately. Disclose AI assistance. No automatic coauthorship. See CONTRIBUTORS.md.",
+    "kinds": ["contributors-file", "citation"]
+  },
+  "featured": false
+}

@@ -241,6 +241,36 @@ Then fill in, with the maintainer:
   and `updated` columns so each record is credited. If they keep a log of improvements,
   point `history` at it (spec §5); otherwise the hub derives one from git, without
   credits.
+- **Records or methods?** Ask whether the project improves a result (a construction, a
+  bound, a best-known object) or a method (an algorithm judged on problems it hasn't
+  seen). For a method, make the frontier a `suite` (spec §5): name baselines by strength
+  and include the strongest the field relies on if at all possible, choose how held-out
+  instances are drawn (a beacon round after the method is frozen is the simplest), and
+  count the budget in work, not seconds. `examples/tsp-heuristics/` is a template. Either
+  way, name the `formulation`, so a later change to the problem shows as one.
+- **What the score stands for:** ask what a better objective could break or miss, and
+  declare it in `measures` (spec §5): `constraint`s a valid result must meet (better
+  still, enforced by the evaluator), `guard`s that mustn't get worse, and a `target`, the
+  quantity the objective stands in for, where one can be measured. In medicine and the
+  life sciences, don't list a project without a guard or target unless the maintainers
+  accept the warning. If nobody yet knows what the target is, say so.
+- **Bottleneck:** ask what most limits progress now (spec §4, `bottleneck`): `search`,
+  `evaluation` (the benchmark doesn't yet track what matters) or `evidence` (needed data
+  doesn't exist yet), with a `note` on what would move it. Give each catalogue card a
+  `contributes` (spec §7): a project stuck on evaluation or evidence needs `benchmark`
+  or `evidence` cards, not only `record` ones.
+- **Visual (encouraged):** ask what picture would show the problem and its progress
+  (spec §4, `visual`). Often the hub draws it from the frontier: `progress`,
+  `bound-gap` with a `baseline` where the question started, or `records` for a table. If
+  the result is itself a picture (a packing, a construction), add a script that draws it
+  from the frontier and commit the image beside it, `kind: "witness"`. An image made by
+  an image model records its `prompt`. Don't invent one if nothing fits: the hub falls
+  back to a title card.
+- **Demos (optional):** if the project hosts a page for exploring its results (a replay,
+  a dashboard, a data browser), list it in `demos` with its `url`, `kind`, the `reads`
+  it shows and a thumbnail (spec §4, Demos). Have it read the frontier record or its
+  results file where it can, so it shows the checked result, and give it a `note` saying
+  what it doesn't claim.
 - **Catalogue:** 2–6 tracks with integer weights summing to 100. Always include an
   independent-verification or audit track. For each track, 1–4 cards, each with a
   precise `question`, `starting_points`, `methods`, an `acceptance_gate`, a `first_step`
@@ -306,7 +336,27 @@ card's `first_step` once to confirm it produces the expected output.
 
 Commit on a branch and open a PR in the maintainer's repo if they want one.
 
-## 5. Consent and listing
+## 5. Pilot it
+
+The checks above show a fresh agent can find its way. They don't show its work will hold
+up. Before inviting donors, run a light pilot with the **pilot** playbook
+(https://discoveryathome.org/v0/pilot.md): one fresh session on the setup as it stands, then one that
+inherits its result, each checked against the strongest baseline and the measures.
+Pilots of thirty projects found this is where most problems surface: first steps that
+only run with context the setup didn't write down, gains that vanish against a strong
+simple method, scores that rise while the result gets worse.
+
+Ask first: it runs the project's code, takes about an hour, and uses the maintainer's
+inference. If they'd rather not, say what it would have checked, and that the hub may run
+its own.
+
+Go through the verdict with them (spec §3.6). Fix what the setup can fix: steps that
+didn't run, cards nobody could act on, measures to declare. If it's `reformulate`,
+`defer` or `incubate`, the best next step is usually a better benchmark or new data, not
+more donors: set the `bottleneck` to match and make the first cards `benchmark` or
+`evidence` work (spec §7). Listing is still their call.
+
+## 6. Consent and listing
 
 To say which hubs may list the project, add a consent record to `discover.json`:
 `"hubs": [{"hub": "discoveryathome/discover", "list": true}]`. To opt out of every hub instead:
@@ -316,12 +366,13 @@ here) are separate and never implied; see spec §11.4.
 To get listed, follow the **apply** playbook (https://discoveryathome.org/v0/apply.md). No GitHub settings
 need to change in the project's repo to be listed.
 
-## 6. Hand over
+## 7. Hand over
 
 Tell the maintainer:
 
 - Any steps still theirs to do: pinning the Discussions threads, confirming the frontier
   if they haven't, merging the PR
+- The pilot's verdict and its one next experiment, if you ran one
 - The project's donation prompt, from its page on the hub (or `discover prompt
   OWNER/NAME`)
 - To run the **direct** playbook after the first batch of contributions, whenever the

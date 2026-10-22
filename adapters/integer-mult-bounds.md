@@ -174,6 +174,15 @@ Never change the project's repository to match this file.
       ]
     }
   },
+  "visual": {
+    "render": "bound-gap",
+    "kind": "derived",
+    "baseline": {
+      "value": "0",
+      "label": "no saving (κ = 0)"
+    },
+    "caption": "The selected κ at each change of the result, measured up from no saving."
+  },
   "frontier_adapter": {
     "statement": "status",
     "status": "status",

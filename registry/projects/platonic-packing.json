@@ -1,0 +1,30 @@
+{
+  "repos": [
+    {
+      "repo": "alejandrozu/platonic-packing"
+    }
+  ],
+  "added_on": "2026-10-21",
+  "adapter": "adapters/platonic-packing.md",
+  "assessment": "assessments/platonic-packing/2026-10-21-claude.md",
+  "stage": 0,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "weak",
+    "verification": "strong",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "hub maintainer's report: the project's maintainer asked to be listed (reported 2026-10-21). No record in the repository yet.",
+    "commit": "747ceb0893e94fec6f6d29676eecfcb6ecb5f80c",
+    "checked_on": "2026-10-21",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Contributors' original authorship, method, sources and seed packings are credited per record (found_by, credit, with certificate refinements credited separately), and accepted work is logged in records/CONTRIBUTIONS.md (CONTRIBUTING.md, \"Credit and record comparisons\").",
+    "kinds": ["acknowledgement", "contributors-file"]
+  },
+  "featured": false
+}

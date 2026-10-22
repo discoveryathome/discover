@@ -60,6 +60,10 @@ their reasons are in [`discover/priority-log.md`](discover/priority-log.md).
   about a minute with `gh` signed in) confirms every listing's record exists, parses
   and matches the registry. The grades themselves are checked by rerunning a record at
   its commit with the verify playbook.
+- **Applications and upkeep:** the intake playbook (`site/v0/intake.md`) takes an
+  application from its registry PR to a recommendation; the curate playbook
+  (`site/v0/curate.md`) is the periodic sweep of every listing, starting from
+  `discover signals`. Both propose; a hub maintainer merges.
 - **Never contact other projects' maintainers.** Assess public repos read-only and
   locally; outreach is done by hub maintainers under the first-contact rule (§11.4).
 - **Never post to, or open PRs on, the project you're assessing.**

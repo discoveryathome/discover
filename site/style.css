@@ -110,10 +110,59 @@ select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
 .chart text { font-size: 11px; fill: var(--muted); font-family: var(--mono); }
 .chart .grid { stroke: var(--border); stroke-width: 1; }
 .chart .line { fill: none; stroke: var(--accent); stroke-width: 2; }
+.chart .ref { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
 .chart circle { fill: var(--accent); }
+.chart .area, .hero-vis .area { fill: var(--accent-soft); stroke: none; }
+.hero-vis svg .line { fill: none; stroke: var(--accent); stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+.hero-vis svg circle { fill: var(--accent); }
+.hero-vis svg text { font-size: 11px; fill: var(--muted); font-family: var(--mono); }
+.hero-vis svg .grid { stroke: var(--border); stroke-width: 1; }
+.hero-vis svg .ref { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+.hero-vis svg .ref.bound { stroke: var(--warn); }
+.hero-vis svg .ref-label { font-size: 12px; }
+.hero-vis svg rect.settled { fill: var(--accent); }
+.demos { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.demo { display: grid; grid-template-columns: 160px 1fr; gap: 14px; align-items: start; }
+.demo:not(:has(.thumb)) { grid-template-columns: 1fr; }
+.demo h3 { margin: 6px 0 2px; }
+.demo .hint { margin: 4px 0 0; }
+.demo .thumb { aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); }
+.demo .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 560px) { .demo { grid-template-columns: 1fr; } .demo .thumb { max-width: 280px; } }
+.hero-vis svg rect.open { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+.hero-vis svg g text { font-family: var(--mono); fill: var(--accent); }
+.hero-vis svg rect.settled + text { fill: var(--accent-text); }
+.hero-vis svg rect.bar { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.hero-vis svg rect.bar.beats { fill: var(--accent); }
+.hero-vis svg rect.bar.loses { fill: var(--warn-soft); stroke: var(--warn); }
+.hero-vis svg .bar-label { font-size: 15px; fill: var(--text); }
+.hero-vis svg .bar-sub { font-size: 12px; }
+.hero-vis svg .bar-value { font-size: 15px; fill: var(--text); }
+
+/* The hero visual (spec §4, Visual): a fixed frame, so every card lines up. */
+.hero-vis { margin: 0; display: grid; gap: 10px; }
+.hero-vis .frame { position: relative; aspect-ratio: 32 / 11; background: var(--surface-2); border-radius: 8px; overflow: hidden; display: grid; place-items: center; }
+.hero-vis .frame > svg { width: 100%; height: 100%; display: block; }
+.hero-vis.r-records .frame > svg, .hero-vis.r-progress:not(.compact) .frame > svg, .hero-vis.r-bound-gap:not(.compact) .frame > svg { padding: 6px; }
+.hero-vis .frame > img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.hero-vis figcaption { display: grid; gap: 6px; }
+.hero-vis figcaption .badge { justify-self: start; }
+.hero-vis .kind { position: absolute; left: 8px; bottom: 8px; background: var(--surface); }
+.card .hero-vis { margin: -18px -18px 2px; }
+.card .hero-vis .frame { aspect-ratio: 2 / 1; border-radius: var(--radius) var(--radius) 0 0; border-bottom: 1px solid var(--border); }
+.hero-panel { padding: 12px; }
+.title-card { width: 100%; height: 100%; display: grid; place-content: center; justify-items: center; gap: 6px; padding: 16px; text-align: center;
+  background: radial-gradient(120% 140% at 0% 0%, var(--accent-soft), transparent 60%), var(--surface-2); }
+.title-card .v { font-family: var(--mono); font-size: clamp(18px, 4vw, 30px); font-weight: 500; color: var(--text); overflow-wrap: anywhere; }
+.title-card .t { font-family: var(--serif); font-size: clamp(20px, 4vw, 30px); font-weight: 600; color: var(--text); }
+.title-card .n { font-size: 12px; color: var(--muted); }
+.card .title-card .v, .card .title-card .t { font-size: 22px; }
 .scroll { overflow-x: auto; max-height: 420px; overflow-y: auto; }
 table.records { border-collapse: collapse; width: 100%; font-size: 13px; }
 table.records th, table.records td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+table.measures td { vertical-align: top; }
+table.measures td:nth-child(2) { white-space: normal; min-width: 160px; }
+table.measures td:nth-child(4) { white-space: normal; }
 table.records th { color: var(--muted); font-weight: 500; position: sticky; top: 0; background: var(--surface); }
 table.records td.mono { font-family: var(--mono); }
 
@@ -138,6 +187,7 @@ table.records td.mono { font-family: var(--mono); }
 @media (max-width: 880px) { .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "side" "main"; } }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: grid; gap: 14px; box-shadow: var(--shadow); min-width: 0; }
 .panel + .panel { margin-top: 16px; }
+.panel > * { min-width: 0; }
 .cols > .panel + .panel { margin-top: 0; }
 .panel-body { display: grid; gap: 14px; }
 details.panel > summary { list-style-position: inside; }

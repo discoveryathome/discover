@@ -1,0 +1,41 @@
+{
+  "schema": "discover-catalog/v0",
+  "priority_revision": 1,
+  "assessed_on": "2026-10-20",
+  "tracks": [
+    {
+      "id": "better-methods", "weight": 70,
+      "useful_outcome": "A method that beats kicked-ils on the next beacon draw, at the same budget.",
+      "tasks": [
+        {
+          "id": "improve-the-method",
+          "question": "Find a change to kicked-ils (a better kick, acceptance rule or neighbourhood) that gives shorter tours at the same budget.",
+          "starting_points": ["tsp.py", "results.jsonl"],
+          "methods": ["Or-3opt moves", "neighbour lists", "simulated-annealing acceptance", "segment-reversal kicks"],
+          "acceptance_gate": "Tune only on instances you generate yourself. Freeze the method in a PR; the maintainer runs it on the first beacon round after that commit, and it must beat kicked-ils there on a sign test.",
+          "first_step": { "command": ["python3", "evaluate.py", "--method", "kicked-ils", "--draw", "33241488", "--count", "1"], "expected": "three result rows for instance 33241488/0" },
+          "bottleneck_link": "frontier.json",
+          "contributes": "method",
+          "claim_kind": ["exact"]
+        }
+      ]
+    },
+    {
+      "id": "stronger-baselines", "weight": 30,
+      "useful_outcome": "A mature solver as a baseline, at a budget it can be held to, so the claim says how far from the state of the art the method is.",
+      "tasks": [
+        {
+          "id": "add-a-mature-baseline",
+          "question": "Add a mature TSP solver (LKH, OR-Tools guided local search) as a baseline, with a budget in the same units or an honest conversion.",
+          "starting_points": ["evaluate.py", "frontier.json"],
+          "methods": ["wrap the solver in tsp.METHODS", "pin its version"],
+          "acceptance_gate": "Its rows rerun exactly with check.py, its version is pinned in the suite's baselines, and the budget rule is stated.",
+          "first_step": { "command": ["python3", "check.py", "--method", "2-opt"], "expected": "ok 2-opt on draw 33241488: 12 runs" },
+          "bottleneck_link": "frontier.json",
+          "contributes": "benchmark",
+          "claim_kind": ["exact"]
+        }
+      ]
+    }
+  ]
+}

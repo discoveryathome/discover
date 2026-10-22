@@ -46,6 +46,13 @@ def git_head(path="."):
 # --- commands ---------------------------------------------------------------
 
 def cmd_validate(a):
+    if a.pilot:
+        from .hubcheck import parse_pilot
+        block, problems = parse_pilot(Path(a.pilot).read_text(encoding="utf-8"))
+        emit({"valid": not problems, "problems": problems, "verdict": (block or {}).get("verdict")}, a.json,
+             lambda r: "pilot record valid: verdict " + r["verdict"] if r["valid"]
+             else "pilot record invalid:\n" + "\n".join(f"  {x}" for x in r["problems"]))
+        return 0 if not problems else 1
     overlay = adapter = frontier_doc = None
     entry = {}
     if a.registry_entry:
@@ -64,6 +71,15 @@ def cmd_validate(a):
     slim = {k: v for k, v in r.items() if k not in ("manifest", "frontier", "catalog", "table_rows", "history")}
     emit(slim, a.json, lambda _: format_report(r))
     return 0 if r["conformant"] else 1
+
+
+def cmd_signals(a):
+    from datetime import date
+    from . import signals
+    data = json.loads(Path(a.data).read_text(encoding="utf-8"))
+    r = signals.sweep(data, date.fromisoformat(a.today) if a.today else None)
+    emit(r, a.json, signals.format_sweep)
+    return 0
 
 
 def cmd_screen(a):
@@ -229,6 +245,9 @@ def cmd_prompt(a):
         return 0
     if a.action == "prepare":
         print(prompt.prepare_prompt(a.preset))
+        return 0
+    if a.action == "curate":
+        print(prompt.curate_prompt())
         return 0
     if not a.repo:
         raise SystemExit("a repository (owner/name) is required for this action")
@@ -487,8 +506,15 @@ def main(argv=None):
     v.add_argument("--repo", help="validate a GitHub repo (owner/name) instead of a local path")
     v.add_argument("--ref", default="HEAD")
     v.add_argument("--registry-entry", help="apply a registry entry's overlay/adapter")
+    v.add_argument("--pilot", help="check a pilot record's discover-pilot block instead (spec §3.6)")
     v.add_argument("--json", action="store_true")
     v.set_defaults(func=cmd_validate)
+
+    sg = sub.add_parser("signals", help="hub curation: what to look at per project, from a hub build's projects.json")
+    sg.add_argument("--data", default="site/data/projects.json", help="projects.json from `discover hub`")
+    sg.add_argument("--today", help="YYYY-MM-DD, for reproducible output")
+    sg.add_argument("--json", action="store_true")
+    sg.set_defaults(func=cmd_signals)
 
     sc = sub.add_parser("screen", help="screen a cloned repo for signs that running it could harm you (static; never runs it)")
     sc.add_argument("path", nargs="?", default=".")
@@ -576,7 +602,7 @@ def main(argv=None):
     r.add_argument("--focus", choices=list(prompt.FOCUS), default="project")
     r.add_argument("--permissions", choices=list(prompt.PERMISSIONS), default="post")
     r.add_argument("--preset", choices=list(prompt.PRESETS), default="donor", help="with --action prepare")
-    r.add_argument("--action", choices=["contribute", "explore", "onboard", "start", "prepare", *prompt.ACTIONS],
+    r.add_argument("--action", choices=["contribute", "explore", "onboard", "start", "prepare", "curate", *prompt.ACTIONS],
                    default="contribute",
                    help="which playbook the prompt points to")
     r.add_argument("--role", choices=list(prompt.GOALS), default="maintainer", help="onboard: who is asking")

@@ -71,9 +71,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-77c850c65ff5.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f60dd6ca504e.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 77c850c65ff54e951b102950d06321751273ba6e9ef1bf28786930fb216802b6
+# must print f60dd6ca504ecd417843c658be90642669dcdc21fdcd99e757a404a5864e7bcf
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -257,7 +257,11 @@ Coordination, not Orientation.
   cases), `formal proof` (of the claim, or of each listed step), or `reviewed argument`
   (recorded independent reviews of each step). A theorem whose check covers only
   computation grades at most adequate (spec §3.2, Coverage); list the steps nobody has
-  checked, since they make good verify cards. If the frontier is a **record table**,
+  checked, since they make good verify cards. Ask whether the objective tracks what the
+  project cares about: if the frontier declares `measures` (spec §5), check one; if it
+  doesn't and a better score could plausibly be a worse result (a medical plan, a
+  biological prediction, a simulated design), note it under Verification and suggest the
+  `bottleneck` it implies. If the frontier is a **record table**,
   also run `check_row` on three rows drawn from your seed (`discover pick --task` on a
   `rows` card gives them; otherwise take rows at random) and confirm each check
   recomputes the row's object, not just its score. Read the record's `claim_kind` and

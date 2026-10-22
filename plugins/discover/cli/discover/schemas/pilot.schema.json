@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://discoveryathome.org/schema/v0/pilot.schema.json",
+  "title": "Pilot block (the fenced discover-pilot JSON ending a pilot record, assessments/<project-id>/<date>-<runner>-pilot.md)",
+  "type": "object",
+  "required": ["schema", "project", "repo", "commit", "piloted_on", "mode", "runner", "sessions", "criteria", "verdict"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "discover-pilot/v0" },
+    "project": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "repo": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+    "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "The commit every session started from, so the frontier was frozen." },
+    "piloted_on": { "type": "string", "format": "date" },
+    "mode": { "enum": ["light", "full"], "description": "light: one fresh session and one that inherits its result, run while setting a project up. full: the hub's trial, three fresh sessions and a wave inheriting the best (spec §3.6)." },
+    "runner": { "type": "string", "description": "Who ran the pilot and checked its results." },
+    "self_piloted": { "type": "boolean", "default": false, "description": "Run by the project's maintainers or for them during setup, not by the hub." },
+    "budget_minutes": { "type": "integer", "minimum": 1, "description": "Each session's budget." },
+    "sessions": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "required": ["id", "fresh", "outcome"], "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "model": { "type": "string" },
+          "fresh": { "type": "boolean", "description": "Started with no context but the donation prompt. A session the runner did itself is not fresh, and counts for less." },
+          "inherits": { "type": "string", "description": "The session whose result this one started from." },
+          "minutes": { "type": "number", "minimum": 0 },
+          "first_result_minutes": { "type": ["number", "null"], "minimum": 0, "description": "Minutes to its first result that passed the project's check; null if none did." },
+          "outcome": { "enum": ["progress", "no-progress", "invalid", "setup-failed"], "description": "progress: a result that passed the runner's own check. no-progress: nothing beat the frontier. invalid: a claimed result failed the check, a constraint or a guard. setup-failed: couldn't get the first step to run." },
+          "beats_strongest": { "type": ["boolean", "null"], "description": "Whether its result also beats the strongest known baseline, not only the project's current one; null if not compared." },
+          "measures_ok": { "type": ["boolean", "null"], "description": "Whether its result meets every constraint and worsens no guard or target (spec §5, Measures); null if the project declares none." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "criteria": {
+      "type": "object", "additionalProperties": false,
+      "description": "Each suitability criterion (spec §3.6): a rating and the evidence for it.",
+      "properties": {
+        "first_step": { "$ref": "#/$defs/rating" },
+        "time_to_result": { "$ref": "#/$defs/rating" },
+        "headroom": { "$ref": "#/$defs/rating" },
+        "strongest_baseline": { "$ref": "#/$defs/rating" },
+        "tracks_target": { "$ref": "#/$defs/rating" },
+        "inheritance": { "$ref": "#/$defs/rating" },
+        "check_cost": { "$ref": "#/$defs/rating" },
+        "home_feasible": { "$ref": "#/$defs/rating" },
+        "measurement": { "$ref": "#/$defs/rating" },
+        "claims_risk": { "$ref": "#/$defs/rating" }
+      }
+    },
+    "bottleneck": { "enum": ["search", "evaluation", "evidence"], "description": "What the pilot showed limits progress (spec §4, bottleneck)." },
+    "verdict": { "enum": ["launch", "fast-follow", "incubate", "reformulate", "defer", "demo"], "description": "What the hub can promise donors (spec §3.6). Separate from the stage, which measures readiness." },
+    "next": { "type": "string", "description": "The one experiment or change that would most improve the verdict." }
+  },
+  "$defs": {
+    "rating": {
+      "type": "object", "required": ["rating"], "additionalProperties": false,
+      "properties": {
+        "rating": { "enum": ["good", "fair", "poor", "unknown"] },
+        "evidence": { "type": "string" }
+      }
+    }
+  }
+}
