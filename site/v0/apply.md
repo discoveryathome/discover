@@ -29,9 +29,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-77c850c65ff5.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f60dd6ca504e.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 77c850c65ff54e951b102950d06321751273ba6e9ef1bf28786930fb216802b6
+# must print f60dd6ca504ecd417843c658be90642669dcdc21fdcd99e757a404a5864e7bcf
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -185,6 +185,9 @@ match the adapter.
   if the repo doesn't state one. A listing needs it before donors get a contribution
   launcher. The same goes for a **`LICENSE`** file: if the repo has none, say so, and
   suggest the setup playbook to add one the maintainer chooses.
+- For an application, if the person ran a **pilot** (the setup playbook's pilot step,
+  https://discoveryathome.org/v0/pilot.md), mention its verdict in the notes; they can add the record to
+  the registry PR. The hub may run its own.
 - For a nomination, check the project hasn't opted out (`"list": false` in its
   `discover.json` or `.github/discover-hubs.json`). If it has, stop.
 

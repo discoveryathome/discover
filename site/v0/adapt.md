@@ -55,9 +55,9 @@ running it:
 
 ```sh
 mkdir -p "$W" && cd "$W"
-curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-77c850c65ff5.pyz
+curl -fsSL -o discover.pyz https://discoveryathome.org/cli/discover-f60dd6ca504e.pyz
 python3 -c "import hashlib;print(hashlib.sha256(open('discover.pyz','rb').read()).hexdigest())"
-# must print 77c850c65ff54e951b102950d06321751273ba6e9ef1bf28786930fb216802b6
+# must print f60dd6ca504ecd417843c658be90642669dcdc21fdcd99e757a404a5864e7bcf
 ```
 
 If the hash doesn't match, delete the file and carry on without it. Below, `discover`
@@ -297,6 +297,20 @@ JSON block (https://github.com/discoveryathome/discover/tree/main/spec/schemas/a
   The hub charts a mapped record's `metric` from the file's git history by itself; if the
   project keeps its own log of improvements in JSON Lines with `date` and `value`, add
   `"history": "path"` to the mapping instead.
+- `visual` (top level, optional): the hero picture when the project declares none
+  (spec §4). Prefer what the hub draws from the frontier: `bound-gap` with a `baseline`
+  the project's own text states (where the question started), `progress`, or `records`
+  for a table. Point an `image` at a figure the project already keeps, with its `alt`.
+  A picture the hub makes goes in the hub's `visuals/` with `"from": "hub"` and `kind:
+  "illustration"`, and records its `prompt` if an image model made it.
+- `bottleneck` (top level, optional): what most limits progress, `search`, `evaluation`
+  or `evidence` (spec §4), when the project doesn't say, with a `note` in the project's
+  own terms. Base it on what the project's text and results show, e.g. a benchmark its
+  authors call provisional is `evaluation`.
+- `demos` (top level, optional): pages the project already hosts for exploring its
+  results (spec §4, Demos), when its manifest lists none. Only list a page that's live at
+  an https address the project publishes, with `reads` naming the data it shows. Don't
+  build one for the project.
 - The kind of claim, even without a machine-readable record: say in the adapter's text
   whether the project's results are exact, formal, within a model, measured or
   observational, in the project's own terms, so donors know what a check can show.

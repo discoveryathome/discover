@@ -1,0 +1,36 @@
+{
+  "schema": "discover-frontier/v0",
+  "statement": "kicked-ils (iterated 2-opt with double-bridge kicks, then Or-opt) gives shorter tours than 2-opt and 2-opt+Or-opt, the published baselines, at a budget of 1,000,000 move evaluations on 60-city Euclidean instances drawn after it was frozen: 2.2% shorter than 2-opt+Or-opt on average, on 11 of 12 instances.",
+  "status": "Accepted on one beacon draw of 12 instances. Not yet compared with a mature solver.",
+  "evidence_level": ["author-checked"],
+  "claim_kind": ["exact"],
+  "formulation": { "id": "tsp-euclid-60-v1", "doc": "README.md", "since": "2026-10-20" },
+  "scope": "Example data. 60 integer points uniform in a 1000 x 1000 square, Euclidean distances, closed tours. The budget counts move evaluations, so results don't depend on the machine. Each row is exact and recomputable; that the gain holds on other draws of the same distribution is what the sign test over 12 instances supports, not more.",
+  "metric": { "name": "mean gain over the strongest baseline", "value": "0.0221", "direction": "higher-is-better" },
+  "suite": {
+    "path": "results.jsonl",
+    "objective": "tour length",
+    "direction": "lower-is-better",
+    "current": "kicked-ils",
+    "baselines": [
+      { "method": "nearest-neighbour", "strength": "starter", "source": "tsp.py" },
+      { "method": "2-opt", "strength": "published", "source": "Croes, Operations Research 6 (1958)" },
+      { "method": "2-opt+or-opt", "strength": "published", "source": "Or, PhD thesis, Northwestern (1976)" }
+    ],
+    "instances": {
+      "draw": "drawn",
+      "count": 12,
+      "beacon": "drand-quicknet",
+      "note": "Instance i of a draw is generated from SHA-256 of the round's randomness and i (tsp.instance). draws.json keeps each round's signature, so the randomness can be checked."
+    },
+    "budget": { "unit": "move evaluations", "amount": 1000000 },
+    "evaluate": ["python3", "evaluate.py", "--method", "{method}", "--draw", "{draw}", "--count", "12"],
+    "evaluate_minutes": 3
+  },
+  "history": "history.jsonl",
+  "reproduce": "python3 check.py",
+  "reproduce_minutes": 5,
+  "prerequisites": ["Python 3.9+"],
+  "review": "README.md",
+  "updated_on": "2026-10-20"
+}

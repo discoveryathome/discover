@@ -6,6 +6,10 @@ assessment of the five properties (spec §3), never from this check.
 
 from . import schema
 from . import history as historymod
+from . import measures as measuremod
+from . import demo as demomod
+from . import visual as visualmod
+from . import suite as suitemod
 from . import table as tablemod
 from .project import Source, load_manifest
 
@@ -150,6 +154,20 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
                 req += tablemod.problems(rows, tbl)
                 r["table_rows"] = rows
                 r["table"] = tablemod.summary(rows, tbl)
+        st, suite_rows = frontier.get("suite"), None
+        if isinstance(st, dict) and {"path", "current", "baselines"} <= st.keys():
+            rows, problem = suitemod.load(source, st)
+            if problem:
+                req.append(problem.replace("frontier table", "frontier suite"))
+            else:
+                req += suitemod.problems(rows, st)
+                r["warnings"] += suitemod.warnings(rows, st)
+                r["suite"] = suitemod.summary(rows, st)
+                suite_rows = rows
+        ms = [m for m in frontier.get("measures") or [] if isinstance(m, dict)]
+        r["measures"] = measuremod.evaluate(ms, suite_rows, st if suite_rows is not None else None)
+        r["warnings"] += measuremod.warnings(ms, r["measures"], manifest.get("domains"),
+                                             bool(frontier.get("metric") or frontier.get("suite")))
         hpath = frontier.get("history")
         if isinstance(hpath, str):
             text = source.read(hpath)
@@ -190,6 +208,20 @@ def validate(source, overlay=None, adapter=None, catalogued=False, frontier_doc=
         conv["packages"] = f"none yet under {pk} (fine for a new project)"
     else:
         conv["packages"] = True
+
+    vis = manifest.get("visual")
+    if isinstance(vis, dict):
+        r["warnings"] += visualmod.problems(vis, r)
+        if vis.get("render") == "image" and vis.get("src") and source.exists(vis["src"]) is False:
+            r["warnings"].append(f"visual: image not found: {vis['src']}")
+
+    ds = manifest.get("demos")
+    if isinstance(ds, list):
+        r["warnings"] += demomod.problems(ds)
+        for d in ds:
+            for path in [*(d.get("reads") or []), *[d[k] for k in ("image", "source") if d.get(k)]]:
+                if source.exists(path) is False:
+                    r["warnings"].append(f"demo {d.get('title')!r}: not found: {path}")
 
     r["license"] = license_file(source)
     if not r["license"]:

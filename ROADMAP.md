@@ -215,9 +215,137 @@ timings): per-hardware frontiers (an M2 result and an x86 one aren't the same cl
 noise and repetition rules for donors' machines, whether results from different donors
 can be pooled, what a progress chart means across machines, and `requires` that can
 exclude a platform ("not an Apple Silicon Mac"), which it can't today. Donors' varied
-hardware will be an asset for replication once there's a protocol for it. Until then,
+hardware will be an asset for replication once there's a protocol for it. Suites (spec
+§5) give a first one: count the budget in work where possible, and with a time budget
+pair a method with its baseline on the same machine and compare the relative gain. Until then,
 launch leads with machine-independent projects, and hardware-bound cards declare
 `requires` so drawn sessions skip what they can't run.
+
+### 12. Hero visuals: what's next
+
+The first version (spec §4, `visual`): hub-drawn progress, bound-gap and records
+pictures, a project's own image, and image-model prompts on record. Next:
+
+- **Scenes:** a small declarative format (a viewBox with circles, segments, polygons,
+  points and labels) the hub draws from the project's data, so a geometric result (a
+  packing, a ruler, a point set) is a live `witness` without the project keeping an image.
+- **Stale images:** `hub-check` warns when a `witness` image or a prompt-made one is
+  older than the frontier record, naming the command that regenerates it.
+- **Regenerating prompt-made images:** a hub-work task when the frontier changes, since
+  the build itself calls no image model.
+
+### 13. Method races: what's next
+
+Evaluation suites and formulations (spec §5) are the first version, from pilots where
+the useful results were methods that generalize, not records. Next:
+
+- **Trade-off frontiers:** a frontier of designs no other beats on every objective (mass
+  against manufacturability, nominal performance against robustness), as a table with
+  several value columns, drawn as a trade-off curve.
+- **A plateau signal:** how long since the frontier last moved, per project and
+  formulation, shown on the page and fed to steering. Pilots found quick first gains,
+  then plateaus; a stall is a reason to change the formulation or the family of problems,
+  not to search longer.
+- **Draw tooling:** `discover draw` to fetch and check a beacon round, and a check that
+  each `drawn` row's round is later than its method's commit.
+- **Live suites:** the page recomputes the comparison from the results file at load, as
+  it does for record tables.
+
+### 14. Demos: what's next
+
+Projects build replays and dashboards on their own; the first version (spec §4,
+`demos`) links and labels them. Next:
+
+- **Hub-drawn replays:** a screening replay (methods choosing from a pool whose results
+  were hidden, hits revealed as the budget is spent) is a method race with a budget
+  axis. Draw it from a suite's results with a budget slider, so it shows checked data.
+- **Reachability:** `hub-check` warns when a demo's URL stops answering.
+- **Deployed version:** a demo can publish the commit it was built from (a
+  `demo.json` beside it), so the page can say exactly which result it shows.
+
+### 15. What the score stands for: what's next
+
+Measures, bottleneck and contribution kinds (spec §4, §5, §7) are the first version,
+from ~30 pilots where agents improved objectives faster than results. Next:
+
+- **Inherited progress:** per project, the share of contributors who advanced a
+  frontier someone else set, time to first accepted contribution, and time since the
+  frontier last moved. Stage 2 should need the first: a second wave advancing an
+  inherited frontier was the strongest evidence any pilot gave.
+- **Trials:** the pilot playbook's full mode (spec §3.6) is the trial. Next: run it on
+  the candidate cohort, and show pilot verdicts in the gallery.
+- **Tiers and promises:** gallery tiers (launch, fast-follow, research incubator, demo)
+  with a one-line `promise` of what a session can deliver, and new donors routed to
+  `search` projects with recent progress.
+- **Measures in history:** history entries carry measures, so a chart shows a target
+  falling while the objective rises.
+- **Domain review:** a `medicine` project shows no ranking until a named domain reviewer
+  has accepted its constraints.
+
+### 16. Beyond the agent: hardware, people and experts
+
+The protocol assumes a donation is an agent session on an ordinary PC. Four of the nine
+listings are held back by something a donated agent doesn't have: Super-1 by GPU time
+for training, asteroid-precovery by an astrometry reviewer, covering-design by review of
+its two record proposals, quasi-rh-hillclimb by expert review or Lean proofs of H1–H5.
+Pilots already name these as `evaluation` and `evidence` bottlenecks. Other projects
+will need people for the measurement itself (tasters for an espresso optimization,
+raters for a perceptual judgment) or physical access (an instrument, licensed data).
+
+The plan treats a donation as **an agent plus what its person can offer**, and the
+agent's job as shrinking each human contribution to the part only a person can do. The
+resources fall on a spectrum, and the break that matters is how a result is checked:
+
+| Resource | Example | Checked by |
+|---|---|---|
+| Ordinary compute | most cards today | rerunning it |
+| Specialized compute | a 24 GB GPU, large memory | rerunning it on similar hardware |
+| Access | licensed data, an archive, an instrument | provenance, and a rerun by someone with access |
+| Human perception | tasting, preference ratings, "does this look right" | **new samples**: blinding, calibration items, agreement between raters |
+| Expert judgment | proof review, astrometry sign-off | **trust in a named reviewer**, not reproduction |
+
+Proposed:
+
+- **`needs` on cards**, extending `requires`: hardware (`gpu_vram_gb`), people
+  (`{human: "taster", minutes: 15, n: 3}`), expertise (`{expert: "astrometry"}`) and
+  physical access (`{physical: "espresso machine and grinder"}`). The pilot criterion
+  `home_feasible` becomes "who can do this", not only yes or no.
+- **An offer in the donation prompt**: `discover prompt --offer
+  gpu:24gb,attention:20min,expertise:astrometry`, and on the site's donate form.
+  `discover pick` and the cross-hub draw (§12.2) match cards to what's offered; with no
+  offer, nothing changes. The donor's own agent is the interface to its person: for a
+  taste test it writes the blinded, randomized protocol, tells the person exactly what to
+  prepare, collects structured scores and analyzes them.
+- **A `panel` verification profile** for human measurements: a preregistered protocol,
+  blinding and randomization done by the agent, repeated calibration items, raw scores
+  published, and replication meaning an independent panel, not a rerun. Human scores
+  enter `measures` as noisy measurements, under the same asymmetric burden.
+- **Expert review as declared capacity**: `review` gains who reviews and in what field
+  (`reviewers: [{github, field}]`, named by the project). A **review-debt signal** in
+  `discover signals`: proposals waiting on review longer than the project's declared
+  pace (covering-design's 272 and 678 are the first case). And a contribution kind for
+  making review cheaper: review packets, splitting a claim into small steps that can be
+  checked separately, and turning steps into machine checks (Lean, exact replay), so an
+  expert signs off only on what nothing else can check. Expert attention is the hub's
+  scarcest resource; donated sessions should spend themselves to save it.
+
+Out of scope on purpose:
+
+- **Certifying experts.** Projects name their reviewers; the hub reports evidence such
+  as review latency, as with featuring.
+- **Agents recruiting people.** A donor's agent may ask its own person to taste
+  something; it never contacts anyone else (the same principle as §11.4).
+- **Human-subjects work beyond the trivial.** Rating coffee is fine; anything medical,
+  involving personal data or more than minimal risk is out unless the project shows its
+  own ethics review. `validate` warns, as it does for a medicine frontier without guards.
+- **A marketplace.** Matching `needs` to an offer is enough: no payment, scheduling or
+  reputation system.
+
+First steps, which need no new protocol: the review-debt signal, and `requires` tags on
+the existing cards that need a GPU or an expert. Then `needs` and the offer, tested on
+Super-1 (GPU) and asteroid-precovery (an expert), and the `panel` profile with a small
+taste-test project before any project depends on it. Specialized compute is the easy
+end, a higher hardware bar on a rerunnable result; items 11 and 16 meet there.
 
 ## Rubric gaps found in testing
 

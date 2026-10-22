@@ -3,6 +3,7 @@
   "title": "Golomb Rulers (example)",
   "summary": "An example record-table project: for each number of marks, find a shorter ruler on which every pair of marks is a different distance apart.",
   "domains": ["mathematics"],
+  "bottleneck": { "kind": "search" },
   "license": "CC0-1.0",
   "maintainers": [{ "name": "Example Maintainer" }],
   "canonical_repo": "https://github.com/example/golomb-rulers",

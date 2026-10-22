@@ -42,7 +42,7 @@
         "unit": { "type": "string", "description": "Unit shown beside the value, if any." }
       }
     },
-    "history": { "type": "string", "description": "Path of the frontier's history: JSON Lines (or a JSON array), one entry per change, {date, value, statement, bound, case, by, source, note} (spec §5). Without it the hub derives a history from the record's git history." },
+    "history": { "type": "string", "description": "Path of the frontier's history: JSON Lines (or a JSON array), one entry per change, {date, value, statement, bound, case, formulation, by, source, note} (spec §5). Without it the hub derives a history from the record's git history." },
     "table": {
       "type": "object", "required": ["path", "key", "value"],
       "description": "A frontier made of many independent cases, one row each (spec §5, record tables). `statement` describes the family.",
@@ -59,6 +59,81 @@
         "by": { "type": "string", "description": "Column crediting who found the case's current value." },
         "source": { "type": "string", "description": "Column with where it came from: a PR (#123), a commit, or a URL." },
         "updated": { "type": "string", "description": "Column with the date (YYYY-MM-DD) the case's value last changed." }
+      }
+    },
+    "measures": {
+      "type": "array",
+      "description": "What else is measured on the current result, beside the objective (spec §5, Measures): constraints it must meet, guards that mustn't get worse, and targets the objective stands in for. The page shows them with the objective.",
+      "items": {
+        "type": "object", "required": ["name", "role"], "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "description": "e.g. \"reference alignment accuracy\", \"spinal cord max dose\", \"nonzero coefficients\"." },
+          "role": { "enum": ["constraint", "guard", "target"], "description": "constraint: the result must meet it, or it isn't valid. guard: mustn't get worse than the baseline beyond `tolerance`. target: what the objective stands in for, reported beside it." },
+          "statement": { "type": "string", "description": "What it measures and why it matters, in a sentence." },
+          "value": { "type": "string", "description": "The current result's value." },
+          "baseline": { "type": "string", "description": "guard, target: the value before the project's change, or the baseline method's." },
+          "limit": { "type": "string", "description": "constraint: the value it must meet; `direction` says which side passes." },
+          "direction": { "enum": ["higher-is-better", "lower-is-better"], "description": "Default: higher-is-better." },
+          "tolerance": { "type": "string", "description": "guard: how much worse than the baseline still holds, in its units. Default 0." },
+          "unit": { "type": "string" },
+          "column": { "type": "string", "description": "A column of the suite's results holding this measure per run; compared instance by instance with the baseline named by `against`, like the objective." },
+          "against": { "type": "string", "description": "column: the baseline method compared with. Default: the strongest declared baseline." },
+          "status": { "enum": ["pass", "fail", "held", "regressed", "better", "same", "worse"], "description": "The project's statement of the result, for a measure the hub can't compute from numbers, e.g. a robustness test." },
+          "command": { "type": "array", "items": { "type": "string" }, "description": "Argv that recomputes it, run from the repo root." },
+          "source": { "type": "string", "description": "Where it was measured: a path, PR, DOI or URL." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "formulation": {
+      "type": "object", "required": ["id"],
+      "description": "The exact problem the record answers (spec §5, Formulations). A changed model, objective or constraint set is a new formulation: its results start a new series and aren't compared with the old one's.",
+      "properties": {
+        "id": { "type": "string", "description": "Short name, changed whenever the problem changes, e.g. \"truss-25-grouped-v1\"." },
+        "doc": { "type": "string", "description": "Where the formulation is defined." },
+        "since": { "type": "string", "format": "date" },
+        "replaces": { "type": "string", "description": "The formulation this one changed, and so isn't comparable with." }
+      }
+    },
+    "suite": {
+      "type": "object", "required": ["path", "current", "direction", "baselines", "instances"],
+      "description": "A frontier that is a method, scored on held-out instances against named baselines (spec §5, Evaluation suites). `statement` says what the method achieves and against what.",
+      "properties": {
+        "path": { "type": "string", "description": "Results file, one row per run: method, instance, value, and optionally seed, machine, draw, by, source." },
+        "format": { "enum": ["json", "jsonl", "csv"] },
+        "objective": { "type": "string", "description": "What `value` measures, e.g. \"makespan\"." },
+        "direction": { "enum": ["higher-is-better", "lower-is-better"] },
+        "current": { "type": "string", "description": "The accepted method: the one the statement is about." },
+        "baselines": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "required": ["method", "strength"],
+            "properties": {
+              "method": { "type": "string", "description": "Its name in the results file." },
+              "strength": { "enum": ["starter", "published", "mature"], "description": "starter: the project's own first implementation. published: a method from the literature, as implemented here. mature: an established solver the field relies on (a CP-SAT, a tuned tabu search, a commercial optimizer)." },
+              "source": { "type": "string", "description": "Paper, package or URL." },
+              "version": { "type": "string", "description": "Pinned version of a solver." }
+            }
+          }
+        },
+        "instances": {
+          "type": "object", "required": ["draw"],
+          "properties": {
+            "draw": { "enum": ["fixed", "drawn", "sealed"], "description": "fixed: a public, frozen set (methods may have been tuned to it). drawn: generated from randomness fixed after the method was, e.g. a public beacon round later than the method's commit. sealed: held privately by the maintainers and run by them, published after each round." },
+            "count": { "type": "integer", "minimum": 1, "description": "Instances per evaluation." },
+            "generator": { "type": "array", "items": { "type": "string" }, "description": "Argv that generates instances; {seed} and {count} are replaced." },
+            "beacon": { "type": "string", "description": "drawn: the public randomness source, e.g. \"drand-quicknet\"; results name the round in `draw`." },
+            "dev": { "type": "string", "description": "A public development set to tune on, kept apart from the held-out instances." },
+            "note": { "type": "string" }
+          }
+        },
+        "budget": {
+          "type": "object", "required": ["unit", "amount"],
+          "description": "What each run may spend. Prefer a unit that doesn't depend on the machine (evaluations, feasibility checks, nodes); with a time unit, results carry `machine` and runs pair only within one.",
+          "properties": { "unit": { "type": "string" }, "amount": { "type": "number", "minimum": 0 }, "note": { "type": "string" } }
+        },
+        "evaluate": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Argv that runs one method on a draw and prints result rows; {method} and {draw} are replaced." },
+        "evaluate_minutes": { "type": "integer", "minimum": 0 }
       }
     },
     "scope": { "type": "string", "description": "Conditions under which the statement holds." },

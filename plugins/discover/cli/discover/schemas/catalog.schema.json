@@ -54,6 +54,10 @@
           "gpu": { "type": "string" }, "note": { "type": "string" }
         }
         },
+        "contributes": {
+          "enum": ["record", "method", "benchmark", "evidence", "measurement"],
+          "description": "What a session on this card adds (spec §7, Contributions): a better result, a method that wins on held-out instances, a better benchmark (a new formulation), data or validation with provenance, or a physical measurement. Each has its own default acceptance standard."
+        },
         "claim_kind": {
           "type": "array", "items": { "enum": ["exact", "formal", "certified", "argument", "model", "measured", "observational"] },
           "description": "What kind of result this card's work produces, as in the frontier record (spec §5)."

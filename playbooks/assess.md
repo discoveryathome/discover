@@ -101,7 +101,11 @@ Coordination, not Orientation.
   cases), `formal proof` (of the claim, or of each listed step), or `reviewed argument`
   (recorded independent reviews of each step). A theorem whose check covers only
   computation grades at most adequate (spec §3.2, Coverage); list the steps nobody has
-  checked, since they make good verify cards. If the frontier is a **record table**,
+  checked, since they make good verify cards. Ask whether the objective tracks what the
+  project cares about: if the frontier declares `measures` (spec §5), check one; if it
+  doesn't and a better score could plausibly be a worse result (a medical plan, a
+  biological prediction, a simulated design), note it under Verification and suggest the
+  `bottleneck` it implies. If the frontier is a **record table**,
   also run `check_row` on three rows drawn from your seed (`discover pick --task` on a
   `rows` card gives them; otherwise take rows at random) and confirm each check
   recomputes the row's object, not just its score. Read the record's `claim_kind` and

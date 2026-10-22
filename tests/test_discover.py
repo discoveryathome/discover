@@ -1,5 +1,6 @@
 import filecmp
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -571,7 +572,9 @@ class HubCheckTests(unittest.TestCase):
     def test_hub_assessments_parse_and_match_the_registry(self):
         from discover import hubcheck
         for path in sorted((ROOT / "assessments").glob("*/*.md")):
-            block, problems = hubcheck.parse_assessment(path.read_text(encoding="utf-8"))
+            # Pilot records live beside assessments (spec §3.6) and carry their own block.
+            parse = hubcheck.parse_pilot if path.name.endswith("-pilot.md") else hubcheck.parse_assessment
+            block, problems = parse(path.read_text(encoding="utf-8"))
             self.assertEqual(problems, [], path)
         for path in sorted((ROOT / "registry" / "projects").glob("*.json")):
             entry = json.loads(path.read_text())
@@ -1032,6 +1035,453 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(Source(repo="o/r", ref="main", root="sub").raw_url("f.json"),
                          "https://raw.githubusercontent.com/o/r/main/sub/f.json")
         self.assertIsNone(Source(local=GOLOMB).raw_url("f.json"))
+
+
+TSP = ROOT / "examples" / "tsp-heuristics"
+
+
+class SuiteTests(unittest.TestCase):
+    """Evaluation suites and formulations (spec §5)."""
+
+    SUITE = {"current": "m", "direction": "lower-is-better",
+             "baselines": [{"method": "s", "strength": "starter"}, {"method": "p", "strength": "published"}]}
+
+    def rows(self, spec):
+        return [{"method": m, "instance": str(i), "value": str(v)} for m, vals in spec.items() for i, v in enumerate(vals)]
+
+    def test_sign_test(self):
+        from discover.suite import sign_test
+        self.assertEqual(sign_test(12, 0), 2 / 4096)
+        self.assertEqual(sign_test(0, 0), 1.0)
+        self.assertAlmostEqual(sign_test(6, 1), 0.125)
+
+    def test_compare_and_strongest(self):
+        from discover import suite
+        rows = self.rows({"m": [90] * 8, "s": [100] * 8, "p": [90, 90, 91, 89, 92, 90, 90, 90]})
+        out = suite.summary(rows, self.SUITE)
+        s, p = out["baselines"]
+        self.assertEqual((s["wins"], s["verdict"]), (8, "beats"))
+        self.assertAlmostEqual(s["mean_gain"], 0.1)
+        self.assertEqual((p["wins"], p["ties"], p["losses"], p["verdict"]), (2, 5, 1, "inconclusive"))
+        self.assertEqual((out["strongest_beaten"], out["has_mature"]), ("starter", False))
+        higher = {**self.SUITE, "direction": "higher-is-better"}
+        self.assertEqual(suite.summary(rows, higher)["baselines"][0]["verdict"], "loses")
+
+    def test_timed_budgets_pair_within_a_machine(self):
+        from discover import suite
+        st = {**self.SUITE, "budget": {"unit": "seconds", "amount": 10}}
+        rows = [{"method": "m", "instance": "a", "value": "9", "machine": "fast"},
+                {"method": "s", "instance": "a", "value": "5", "machine": "slow"}]
+        self.assertEqual(suite.compare(rows, st, "m", "s")["instances"], 0)
+        no_machine = [{"method": "m", "instance": "a", "value": "1"}]
+        self.assertTrue(any("machine" in w for w in suite.warnings(no_machine, st)))
+        rows.append({"method": "s", "instance": "a", "value": "10", "machine": "fast"})
+        self.assertEqual(suite.compare(rows, st, "m", "s")["wins"], 1)
+
+    def test_problems(self):
+        from discover import suite
+        probs = suite.problems(self.rows({"m": [1], "x": ["n/a"]}), self.SUITE)
+        self.assertTrue(any("baseline 's'" in p for p in probs))
+        self.assertTrue(any("non-numeric" in p for p in probs))
+        self.assertTrue(any("current method" in p for p in suite.problems(self.rows({"s": [1], "p": [1]}), self.SUITE)))
+
+    def test_schema(self):
+        f = json.loads((TSP / "frontier.json").read_text())
+        self.assertEqual(schema.check("frontier.schema.json", f), [])
+        f["suite"]["baselines"][0]["strength"] = "strong"
+        self.assertTrue(schema.check("frontier.schema.json", f))
+        del f["suite"]["instances"]
+        self.assertTrue(any("instances" in e for e in schema.check("frontier.schema.json", f)))
+
+    def test_example(self):
+        r = validate(Source(local=TSP))
+        self.assertTrue(r["conformant"], r["problems"])
+        st = r["suite"]
+        self.assertEqual((st["current"], st["instances"], st["strongest_beaten"], st["has_mature"]),
+                         ("kicked-ils", 12, "published", False))
+        self.assertTrue(any("no `mature` baseline" in w for w in r["warnings"]))
+        self.assertEqual(r["history"][0]["formulation"], "tsp-euclid-60-v1")
+        p = hub.project_summary("tsp", {"repos": [{"repo": "o/r"}]}, r)
+        self.assertEqual(p["frontier"]["suite"]["url"], "https://github.com/o/r/blob/HEAD/results.jsonl")
+        self.assertEqual((p["frontier"]["suite"]["instances"], p["frontier"]["suite"]["held_out"]["draw"]), (12, "drawn"))
+        self.assertEqual(p["frontier"]["formulation"]["doc_url"], "https://github.com/o/r/blob/HEAD/README.md")
+
+    def test_example_draw_is_checked(self):
+        sys.path.insert(0, str(TSP))
+        try:
+            import evaluate
+            self.assertEqual(len(evaluate.randomness("33241488")), 64)
+        finally:
+            sys.path.remove(str(TSP))
+
+    def test_formulation_in_history(self):
+        from discover import history
+        entries, _ = history.parse('{"date": "2026-10-01", "value": "1", "formulation": "a"}', "h.jsonl")
+        self.assertEqual(history.points_from_file(entries)[0]["formulation"], "a")
+
+
+class SignalsTests(unittest.TestCase):
+    """The curation sweep's signals (playbooks/curate.md)."""
+
+    def test_signals(self):
+        from datetime import date
+        from discover import signals
+        today = date(2027, 3, 1)
+        p = {"slug": "x", "listing": "listed", "stage": 1, "featured": True, "self_assessed": True,
+             "assessment": "assessments/x/2026-10-01-a.md", "conformant": True,
+             "pilot": {"verdict": "reformulate", "on": "2026-10-20"},
+             "frontier": {"updated_on": "2026-10-01", "history": {"points": [{"date": "2026-09-01"}]},
+                          "measures": [{"name": "acc", "status": "worse"}, {"name": "dose", "status": "pass"}]},
+             "review": {"state": "full", "awaiting": 9, "per_week": 3},
+             "demos": [{"title": "Replay", "stale": True}]}
+        kinds = [x["signal"] for x in signals.for_project(p, today)]
+        self.assertEqual(kinds, ["self-assessed", "assessment-old", "featured-verdict", "plateau", "measures",
+                                 "review-full", "demo-stale"])
+        self.assertIn("acc", signals.for_project(p, today)[4]["detail"])
+        quiet = {"slug": "y", "listing": "listed", "stage": 1, "conformant": True,
+                 "assessment": "assessments/y/2027-02-20-a.md", "frontier": {"updated_on": "2027-02-01"}}
+        self.assertEqual(signals.for_project(quiet, today), [])
+        nom = {"slug": "z", "listing": "nominated", "stage": "assessed", "added_on": "2026-10-01", "conformant": True}
+        self.assertEqual([x["signal"] for x in signals.for_project(nom, today)], ["nomination-old"])
+        self.assertEqual([x["signal"] for x in signals.for_project({**quiet, "featured": True}, today)],
+                         ["featured-unpiloted"])
+
+    def test_command(self):
+        import contextlib, io
+        with tempfile.TemporaryDirectory() as d:
+            data = Path(d) / "projects.json"
+            data.write_text(json.dumps({"generated_at": "t", "problems": [{"slug": "b", "errors": ["bad"]}],
+                                        "projects": [{"slug": "x", "listing": "listed", "stage": None, "conformant": True}]}))
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(main(["signals", "--data", str(data), "--today", "2027-01-01"]), 0)
+            self.assertIn("unassessed", out.getvalue())
+            self.assertIn("b: skipped by the build: bad", out.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                main(["prompt", "--action", "curate"])
+            self.assertIn("v0/curate.md", out.getvalue())
+
+
+class RemoteSourceTests(unittest.TestCase):
+    """A remote directory exists though it has no raw URL (adapter paths can be folders)."""
+
+    def test_directory_exists(self):
+        import io, urllib.error
+        from discover import project
+        def fake(req, timeout=30):
+            url = req if isinstance(req, str) else req.full_url
+            if url.endswith("/hero.png"):
+                return io.BytesIO(b"\x89PNG\r\n")
+            if url.startswith("https://raw.githubusercontent.com/"):
+                raise urllib.error.HTTPError(url, 404, "nf", {}, None)
+            if "/contents/data?" in url:
+                return io.BytesIO(b'[{"name": "x.csv"}]')
+            if "/contents/flaky?" in url:
+                raise urllib.error.HTTPError(url, 403, "rate limited", {}, None)
+            raise urllib.error.HTTPError(url, 404, "nf", {}, None)
+        real = project.urllib.request.urlopen
+        project.urllib.request.urlopen = fake
+        try:
+            src = project.Source(repo="o/r")
+            self.assertTrue(src.exists("data"))
+            self.assertTrue(src.exists("hero.png"))
+            self.assertFalse(src.exists("gone"))
+            self.assertIsNone(src.exists("flaky"))
+        finally:
+            project.urllib.request.urlopen = real
+
+
+class PilotTests(unittest.TestCase):
+    """Pilot records (spec §3.6)."""
+
+    BLOCK = {"schema": "discover-pilot/v0", "project": "g", "repo": "o/r", "commit": "abcdef1",
+             "piloted_on": "2026-10-20", "mode": "light", "runner": "t", "self_piloted": True, "budget_minutes": 30,
+             "sessions": [{"id": "s1", "fresh": True, "model": "m", "minutes": 30, "first_result_minutes": 4,
+                           "outcome": "progress", "beats_strongest": True, "measures_ok": None},
+                          {"id": "s2", "fresh": True, "inherits": "s1", "outcome": "no-progress"}],
+             "criteria": {"first_step": {"rating": "good", "evidence": "ran as written"},
+                          "inheritance": {"rating": "fair", "evidence": "s2 reproduced s1, no further gain"}},
+             "bottleneck": "search", "verdict": "fast-follow", "next": "a second inheriting wave"}
+
+    def record(self, block):
+        return "# Pilot\n\nNotes.\n\n```discover-pilot\n" + json.dumps(block, indent=2) + "\n```\n"
+
+    def test_parse(self):
+        from discover.hubcheck import parse_pilot
+        self.assertEqual(parse_pilot(self.record(self.BLOCK)), (self.BLOCK, []))
+        self.assertTrue(parse_pilot(self.record({**self.BLOCK, "verdict": "amazing"}))[1])
+        bad = {**self.BLOCK, "criteria": {"vibes": {"rating": "good"}}}
+        self.assertTrue(parse_pilot(self.record(bad))[1])
+        self.assertTrue(parse_pilot("no block")[1])
+
+    def test_validate_command(self):
+        import contextlib, io
+        with tempfile.TemporaryDirectory() as d:
+            good, bad = Path(d) / "good.md", Path(d) / "bad.md"
+            good.write_text(self.record(self.BLOCK))
+            bad.write_text(self.record({**self.BLOCK, "sessions": []}))
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(main(["validate", "--pilot", str(good)]), 0)
+                self.assertEqual(main(["validate", "--pilot", str(bad)]), 1)
+            self.assertIn("verdict fast-follow", out.getvalue())
+
+    def test_hub_shows_the_pilot_and_hub_check_flags_a_bad_one(self):
+        import io
+        from datetime import date
+        from discover import hubcheck
+        with tempfile.TemporaryDirectory() as d:
+            hub_root = Path(d) / "hub"
+            reg = hub_root / "registry" / "projects"
+            reg.mkdir(parents=True)
+            (hub_root / "assessments" / "g").mkdir(parents=True)
+            (hub_root / "assessments" / "g" / "p.md").write_text(self.record(self.BLOCK))
+            entry = {"repos": [{"repo": "o/r"}], "added_on": "2026-10-20", "pilot": "assessments/g/p.md",
+                     "consent": {"source": "application", "list": True}}
+            (reg / "g.json").write_text(json.dumps(entry))
+            real = hub.Source.from_entry
+            hub.Source.from_entry = classmethod(lambda cls, e: cls(local=GOLOMB))
+            try:
+                out = Path(d) / "site" / "data" / "projects.json"
+                hub.build(reg, out, log=io.StringIO())
+                pilot = json.loads(out.read_text(encoding="utf-8"))["projects"][0]["pilot"]
+                self.assertEqual((pilot["verdict"], pilot["sessions"], pilot["fresh"], pilot["progress"]),
+                                 ("fast-follow", 2, 2, 1))
+                self.assertEqual(pilot["url"], "https://github.com/discoveryathome/discover/blob/main/assessments/g/p.md")
+                (hub_root / "assessments" / "g" / "p.md").write_text(self.record({**self.BLOCK, "mode": "huge"}))
+                found = hubcheck.check(reg, "h/h", lambda path: {"sha": "b" * 10} if "/commits/" in path else {},
+                                       date(2026, 10, 21))
+            finally:
+                hub.Source.from_entry = real
+            self.assertIn("pilot-invalid", {f["kind"] for f in found}, found)
+
+
+class MeasureTests(unittest.TestCase):
+    """Measures beside the objective, bottleneck and contribution kinds (spec §4, §5, §7)."""
+
+    SUITE = {"current": "m", "direction": "lower-is-better",
+             "baselines": [{"method": "s", "strength": "starter"}, {"method": "p", "strength": "published"}]}
+
+    def test_schemas(self):
+        f = json.loads((TSP / "frontier.json").read_text())
+        ok = {**f, "measures": [{"name": "accuracy", "role": "target", "column": "acc"},
+                                {"name": "max dose", "role": "constraint", "value": "44", "limit": "45",
+                                 "direction": "lower-is-better", "unit": "Gy"}]}
+        self.assertEqual(schema.check("frontier.schema.json", ok), [])
+        self.assertTrue(schema.check("frontier.schema.json", {**f, "measures": [{"name": "x", "role": "hope"}]}))
+        m = json.loads((TSP / "discover.json").read_text())
+        self.assertEqual(m["bottleneck"]["kind"], "search")
+        self.assertEqual(schema.check("manifest.schema.json", m), [])
+        self.assertTrue(schema.check("manifest.schema.json", {**m, "bottleneck": {"kind": "luck"}}))
+        self.assertEqual(schema.check("catalog.schema.json", json.loads((TSP / "catalog.json").read_text())), [])
+
+    def test_numbers(self):
+        from discover.measures import assess
+        self.assertEqual(assess({"role": "target", "value": "0.81", "baseline": "0.84"})["status"], "worse")
+        self.assertEqual(assess({"role": "target", "value": "2", "baseline": "3", "direction": "lower-is-better"})["status"], "better")
+        self.assertEqual(assess({"role": "guard", "value": "101", "baseline": "100", "direction": "lower-is-better",
+                                 "tolerance": "2"})["status"], "held")
+        self.assertEqual(assess({"role": "guard", "value": "123", "baseline": "100", "direction": "lower-is-better"})["status"],
+                         "regressed")
+        self.assertEqual(assess({"role": "constraint", "value": "46", "limit": "45", "direction": "lower-is-better"})["status"],
+                         "fail")
+        self.assertEqual(assess({"role": "constraint", "value": "45", "limit": "45", "direction": "lower-is-better"})["status"],
+                         "pass")
+        self.assertEqual(assess({"role": "constraint", "status": "pass"}), {"status": "pass", "how": "stated"})
+        self.assertEqual(assess({"role": "target"})["status"], "unreported")
+
+    def test_a_suite_column_is_compared_like_the_objective(self):
+        # The objective improves on every instance while the target falls on most: the
+        # alignment pilot's pattern.
+        from discover import measures
+        rows = [{"method": m, "instance": str(i), "value": str(v), "acc": str(a)}
+                for i in range(12) for m, v, a in (("m", 90, 0.70 if i > 2 else 0.9), ("s", 100, 0.6), ("p", 95, 0.8))]
+        out = measures.evaluate([{"name": "accuracy", "role": "target", "column": "acc"},
+                                 {"name": "accuracy floor", "role": "guard", "column": "acc", "against": "s"}],
+                                rows, self.SUITE)
+        self.assertEqual((out[0]["status"], out[0]["against"], out[0]["wins"], out[0]["losses"]), ("worse", "p", 3, 9))
+        self.assertEqual(out[1]["status"], "held")
+
+    def test_warnings(self):
+        from discover import measures
+        ms = [{"name": "dvh", "role": "constraint", "status": "fail"},
+              {"name": "acc", "role": "target", "value": "1", "baseline": "2", "status": "better"}]
+        w = measures.warnings(ms, measures.evaluate(ms), ["medicine"], True)
+        self.assertTrue(any("fails this constraint" in x for x in w))
+        self.assertTrue(any("stated 'better', but the numbers say 'worse'" in x for x in w))
+        self.assertFalse(any("declares no guard or target" in x for x in w))
+        self.assertTrue(any("declares no guard or target" in x for x in measures.warnings([], [], ["life-sciences"], True)))
+        self.assertEqual(measures.warnings([], [], ["mathematics"], True), [])
+
+    def test_validate_and_hub_carry_measures(self):
+        with tempfile.TemporaryDirectory() as d:
+            for f in TSP.iterdir():
+                if f.is_file():
+                    (Path(d) / f.name).write_bytes(f.read_bytes())
+            fr = json.loads((TSP / "frontier.json").read_text())
+            fr["measures"] = [{"name": "tours valid", "role": "constraint", "status": "pass"}]
+            (Path(d) / "frontier.json").write_text(json.dumps(fr))
+            r = validate(Source(local=d))
+            self.assertTrue(r["conformant"], r["problems"])
+            entry = {"repos": [{"repo": "o/r"}]}
+            out = hub.project_summary("t", entry, r)
+            self.assertEqual(out["frontier"]["measures"][0]["status"], "pass")
+            self.assertEqual(out["bottleneck"]["kind"], "search")
+            self.assertEqual(out["tracks"][1]["cards"][0]["contributes"], "benchmark")
+
+
+class DemoTests(unittest.TestCase):
+    """Project demos (spec §4, Demos): linked, labelled, never served."""
+
+    PNG = b"\x89PNG\r\n\x1a\n" + b"0" * 16
+
+    def golomb(self, d, demos):
+        VisualTests.copy_golomb(None, d)
+        m = json.loads((GOLOMB / "discover.json").read_text())
+        m["demos"] = demos
+        (Path(d) / "discover.json").write_text(json.dumps(m))
+
+    def test_schema(self):
+        base = json.loads((GOLOMB / "discover.json").read_text())
+        ok = {"title": "Replay", "url": "https://o.github.io/r/", "kind": "replay", "reads": ["data/x.csv"]}
+        self.assertEqual(schema.check("manifest.schema.json", {**base, "demos": [ok]}), [])
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "demos": [{**ok, "url": "http://x"}]}))
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "demos": [{"url": "https://x"}]}))
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "demos": [ok] * 5}))
+
+    def test_validate_warns_on_missing_files(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.golomb(d, [{"title": "Replay", "url": "https://o.github.io/r/", "reads": ["data/x.csv"]}])
+            r = validate(Source(local=d))
+            self.assertTrue(r["conformant"], r["problems"])
+            self.assertIn("demo 'Replay': not found: data/x.csv", r["warnings"])
+
+    def git(self, d, date, *paths):
+        env = {**os.environ, "GIT_COMMITTER_DATE": f"{date}T12:00:00", "GIT_AUTHOR_DATE": f"{date}T12:00:00"}
+        run = lambda *a: subprocess.run(["git", "-C", d, *a], check=True, capture_output=True, env=env)
+        if not (Path(d) / ".git").exists():
+            run("init", "-q"); run("config", "user.email", "t@t"); run("config", "user.name", "t")
+        run("add", *paths); run("commit", "-qm", "x")
+
+    def build(self, d, h):
+        import io
+        r = validate(Source(local=d))
+        log = io.StringIO()
+        out = hub.demos("g", {"repos": [{"repo": "o/r"}]}, r, None, Source(local=d), h,
+                        Path(h) / "site" / "data", log)
+        return out, log.getvalue()
+
+    def test_hub_says_what_a_demo_reads(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as h:
+            self.golomb(d, [
+                {"title": "Record", "url": "https://o.github.io/r/", "reads": ["rulers.csv"], "image": "t.png"},
+                {"title": "Old", "url": "https://o.github.io/r/old", "kind": "replay", "reads": ["old.csv"]},
+                {"title": "Bad", "url": "javascript:alert(1)"}])
+            (Path(d) / "t.png").write_bytes(self.PNG)
+            (Path(d) / "old.csv").write_text("a\n1\n")
+            self.git(d, "2026-01-02", ".")
+            out, log = self.build(d, h)
+            self.assertEqual([x["title"] for x in out], ["Record", "Old"])
+            self.assertIn("not listed", log)
+            self.assertTrue(out[0]["reads_record"])
+            self.assertEqual(out[0]["image"]["snapshot"], "data/visuals/g-demo-0.bin")
+            self.assertEqual((Path(h) / "site/data/visuals/g-demo-0.bin").read_bytes(), self.PNG)
+            # The frontier was updated 2026-10-19, after old.csv last changed.
+            self.assertEqual((out[1]["reads_record"], out[1]["data_on"], out[1]["stale"]), (False, "2026-01-02", True))
+            self.assertEqual(out[1]["reads"][0]["url"], "https://github.com/o/r/blob/HEAD/old.csv")
+
+    def test_adapter_declares_demos_when_the_manifest_has_none(self):
+        from discover import demo
+        a = {"demos": [{"title": "A", "url": "https://x"}]}
+        self.assertEqual(demo.resolve({}, a), (a["demos"], "adapter"))
+        self.assertEqual(demo.resolve({"demos": []}, a), ([], "project"))
+
+
+class VisualTests(unittest.TestCase):
+    """The hero visual (spec §4, Visual)."""
+
+    SVG = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>x()</script></svg>'
+
+    def copy_golomb(self, d, visual=None):
+        for f in ("discover.json", "frontier.json", "catalog.json", "LICENSE", "rulers.csv", "history.jsonl", "README.md"):
+            (Path(d) / f).write_text((GOLOMB / f).read_text())
+        if visual is not None:
+            m = json.loads((GOLOMB / "discover.json").read_text())
+            m["visual"] = visual
+            (Path(d) / "discover.json").write_text(json.dumps(m))
+
+    def test_schema(self):
+        base = json.loads((GOLOMB / "discover.json").read_text())
+        ok = {**base, "visual": {"render": "image", "src": "hero.png", "alt": "a picture"}}
+        self.assertEqual(schema.check("manifest.schema.json", ok), [])
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "visual": {"render": "image", "src": "a.png"}}))
+        self.assertTrue(schema.check("manifest.schema.json", {**base, "visual": {"render": "sparkles"}}))
+        self.assertEqual(schema.check("manifest.schema.json", {**base, "visual": {
+            "render": "bound-gap", "baseline": {"value": "0", "label": "none"}}}), [])
+
+    def test_helpers(self):
+        from discover import visual
+        self.assertTrue(visual.looks_like(b"\x89PNG\r\n\x1a\nrest", "image/png"))
+        self.assertFalse(visual.looks_like(self.SVG, "image/png"))
+        self.assertTrue(visual.looks_like(self.SVG, visual.media_type("x.SVG")))
+        self.assertIsNone(visual.media_type("x.html"))
+        f = {"statement": "s", "metric": {"name": "k", "value": "3"}}
+        self.assertEqual(visual.fill("{title}: {metric} = {value} {other}", "T", f), "T: k = 3 {other}")
+        self.assertEqual(visual.resolve({"visual": {"render": "progress"}}, {"visual": {"render": "records"}}),
+                         ({"render": "progress"}, "project"))
+        self.assertEqual(visual.resolve({}, {"visual": {"render": "records"}})[1], "adapter")
+        self.assertTrue(visual.problems({"render": "records"}, {"frontier": {}}))
+        self.assertTrue(visual.problems({"render": "progress", "prompt": "p"}, {"frontier": {"metric": {"value": "1"}}}))
+
+    def test_validate_warns_on_a_missing_image(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.copy_golomb(d, {"render": "image", "src": "hero.svg", "alt": "a"})
+            r = validate(Source(local=d))
+            self.assertTrue(r["conformant"], r["problems"])
+            self.assertIn("visual: image not found: hero.svg", r["warnings"])
+
+    def hero(self, d, hub_root, adapter_block=None, log=None):
+        import io
+        r = validate(Source(local=d))
+        entry = {"repos": [{"repo": "o/r"}]}
+        out = Path(hub_root) / "site" / "data"
+        return hub.hero("g", entry, r, adapter_block, Source(local=d), hub_root, out, "Golomb",
+                        log or io.StringIO()), out
+
+    def test_hub_copies_a_project_image(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as h:
+            self.copy_golomb(d, {"render": "image", "src": "hero.svg", "alt": "a ruler",
+                                 "prompt": "A ruler; {metric} is {value}"})
+            (Path(d) / "hero.svg").write_bytes(self.SVG)
+            v, out = self.hero(d, h)
+            self.assertEqual((v["type"], v["kind"], v["origin"], v["snapshot"]),
+                             ("image/svg+xml", "illustration", "project", "data/visuals/g.bin"))
+            self.assertEqual(v["prompt"], "A ruler; rows meeting the optimum is 9")
+            self.assertEqual((out / "visuals" / "g.bin").read_bytes(), self.SVG)
+
+    def test_hub_refuses_a_mislabelled_or_escaping_image(self):
+        import io
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as h:
+            self.copy_golomb(d, {"render": "image", "src": "hero.png", "alt": "a"})
+            (Path(d) / "hero.png").write_bytes(self.SVG)
+            log = io.StringIO()
+            self.assertEqual(self.hero(d, h, log=log)[0], None)
+            self.assertIn("isn't the image/png", log.getvalue())
+            self.copy_golomb(d)
+            block = {"visual": {"render": "image", "from": "hub", "src": "../outside.svg", "alt": "a"}}
+            self.assertEqual(self.hero(d, h, block, log)[0], None)
+            self.assertIn("not a file in the hub", log.getvalue())
+            (Path(h) / "visuals").mkdir()
+            (Path(h) / "visuals" / "g.svg").write_bytes(self.SVG)
+            block["visual"]["src"] = "visuals/g.svg"
+            v, _ = self.hero(d, h, block)
+            self.assertEqual((v["origin"], v["live_url"]), ("adapter", None))
+
+    def test_drawn_render_and_fallback(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as h:
+            self.copy_golomb(d, {"render": "bound-gap", "baseline": {"value": "0"}})
+            v, _ = self.hero(d, h)
+            self.assertEqual((v["render"], v["kind"], v["baseline"]), ("bound-gap", "derived", {"value": "0"}))
+            self.copy_golomb(d)
+            self.assertIsNone(self.hero(d, h)[0])
 
 
 class HardwareHintTests(unittest.TestCase):
