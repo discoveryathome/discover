@@ -1,0 +1,29 @@
+{
+  "repos": [
+    {
+      "repo": "discoveryathome/pathfinding"
+    }
+  ],
+  "added_on": "2026-10-22",
+  "contact": "Mister-Meeseeks",
+  "assessment": "assessments/pathfinding/2026-10-22-claude.md",
+  "stage": 1,
+  "grades": {
+    "orientation": "strong",
+    "coordination": "adequate",
+    "verification": "strong",
+    "review": "adequate",
+    "steering": "adequate"
+  },
+  "consent": {
+    "source": "discover.json",
+    "commit": "1caa51633a226dacf291dee751f4a5ef13cd5354",
+    "checked_on": "2026-10-22",
+    "list": true,
+    "push": []
+  },
+  "credit": {
+    "policy": "Credit original solvers, methods, Moving AI benchmarks and substantive contributors. Disclose agent assistance; preserve source/data notices."
+  },
+  "featured": false
+}
