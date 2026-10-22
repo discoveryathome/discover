@@ -76,7 +76,8 @@ For each finding worth acting on, the smallest fix, as a hub PR or a draft:
 - **Refresh an adapter** (adapt playbook, update mode) when its paths moved.
 - **Re-pilot** (pilot playbook, full mode) a featured project whose pilot is old or
   whose formulation changed since.
-- **Featuring** is editorial: don't open PRs changing it. In the report, list featured
+- **Featuring and unlisting** are editorial: don't open PRs changing `featured` or
+  `unlisted`. In the report, list featured
   projects whose evidence looks thin or old, and projects that look like candidates, with
   what you saw.
 - **Notices** for maintainers (review over capacity, measures going the wrong way, a

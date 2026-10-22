@@ -32,6 +32,10 @@ function stageBadge(p) {
   return `<span class="badge ${cls}" title="${title}">${esc(label)}</span>${p.conformant === false ? '<span class="badge warn" title="Required files are missing or invalid">Files incomplete</span>' : ""}`;
 }
 
+function unlistedBadge(p) {
+  return p.unlisted ? '<span class="badge" title="Not shown on the explore page or drawn for donors; reachable by its link">Unlisted</span>' : "";
+}
+
 // Review capacity (spec §12.2): a signal for donors, never a limit on the project.
 function reviewBadge(p) {
   const r = p.review; if (!r || p.listing === "nominated") return "";
@@ -259,7 +263,8 @@ function projectCard(p) {
 }
 
 function viewExplore() {
-  const all = state.data.projects;
+  // Unlisted projects keep their pages but aren't browsable (spec §12.6).
+  const all = state.data.projects.filter((p) => !p.unlisted);
   const domains = [...new Set(all.flatMap((p) => p.domains))].sort();
   const q = state.q.toLowerCase();
   const shown = all.filter((p) =>
@@ -706,7 +711,8 @@ function viewProject(slug) {
     <div class="crumbs"><a href="#/">Explore</a> <span class="muted">/ ${esc(p.repo)}</span></div>
     <h1>${esc(p.title)}</h1>
     <p class="lede">${esc(p.summary)}</p>
-    <div class="row">${stageBadge(p)}${reviewBadge(p)}${measureFlag(f)}${bottleneckBadge(p.bottleneck)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}<span class="muted" style="font-size:13px">${esc(p.domains.join(" · "))}</span></div>
+    ${p.unlisted ? `<p class="hint">Unlisted since ${esc(p.unlisted.on)}: this page stays here, but the project isn't shown on the explore page or drawn for donors who let the hub choose.${p.unlisted.reason ? ` ${esc(p.unlisted.reason)}` : ""}</p>` : ""}
+    <div class="row">${stageBadge(p)}${unlistedBadge(p)}${reviewBadge(p)}${measureFlag(f)}${bottleneckBadge(p.bottleneck)}${p.verification_profile ? `<span class="badge">${esc(PROFILES[p.verification_profile] || p.verification_profile)}</span>` : ""}<span class="muted" style="font-size:13px">${esc(p.domains.join(" · "))}</span></div>
   </div>
   <div class="layout">
     <div class="side">${p.listing === "nominated" ? nominatedPanel(p) : p.review?.paused ? pausedPanel() : launcher(p)}</div>
@@ -780,7 +786,7 @@ function explorePrompt(minutes, perms, interests, seed) {
 }
 
 function donateAnywhere() {
-  const open = state.data.projects.filter((p) => p.listing === "listed" && [0, 1, 2].includes(p.stage) && p.conformant && !p.review?.paused);
+  const open = state.data.projects.filter((p) => p.listing === "listed" && [0, 1, 2].includes(p.stage) && p.conformant && !p.review?.paused && !p.unlisted);
   const domains = [...new Set(open.flatMap((p) => p.domains))].sort();
   return `
   <section class="panel" id="donate-anywhere"><h2>Donate wherever it's useful</h2>
