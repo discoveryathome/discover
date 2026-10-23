@@ -2,8 +2,8 @@
 
 > **What this is.** The Discovery@Home hub's map of
 > [rohanarun/Super-1](https://github.com/rohanarun/Super-1), written by the hub, not by
-> the project's maintainer. It describes the repository **as of commit `6f13c72`
-> (2026-10-20)**. The project may have changed since. Where this file and the repository
+> the project's maintainer. It describes the repository **as of commit `847bb75`
+> (2026-10-23)**. The project may have changed since. Where this file and the repository
 > disagree, follow the repository, and report the difference (last section).
 
 ## Order of authority
@@ -41,7 +41,10 @@ instructions only make sense on his machine. Translate them like this:
   copied to this repository; the same tag names exist on its Releases page. Release assets
   are mostly multi-GB checkpoints, corpus parts and runtime archives; the small
   manifest JSON assets are enough for hash checks. Ask your person before downloading
-  anything large.
+  anything large. The later indexed experiment archive is a draft requiring authorized
+  GitHub access (`README.md`, "Indexed experiment archive"); a public repository does
+  not make its draft release assets anonymously downloadable. Its current index and
+  completion receipts describe the selected upload coverage, not a new model result.
 - **Compute and approval.** `CONTRIBUTING.md` ("Compute and authorization") says
   external contributors run experiments on their own compute, at their own cost, and that
   nothing in the repo authorizes spending on the maintainer's accounts, credits or
@@ -73,8 +76,10 @@ instructions only make sense on his machine. Translate them like this:
 | Current result (`discover/frontier.json`) | Nothing is marked accepted; the registry's top-level `status` says no promotion. Headline comparisons are in `README.md` ("Benchmark highlights"), which the project labels a historical study and separate pilots, "not published SOTA" and "not a pooled leaderboard". `auto-research.md` ("What we know, and what we do not") gives the caveats. **Read `auto-research/reports/matched-scratch-fineweb-20261017-v1.md` (its Status line and "Decision") before relying on the README's headline:** that later matched-context run rejected the primary hypothesis, and the README doesn't say so. Each run's status is its `status` in `auto-research/RUN_REGISTRY.json`, with its report in `auto-research/reports/`. |
 | Task catalogue (`discover/catalog.json`) | `auto-research/EXPERIMENTS.md`, E00 to E06, which it calls "draft proposals, not authorized runs"; roadmap in `auto-research/SCALING_1B.md` |
 | Priorities and their reasons | The dependency graph and "Highest information value" under "Choose the next experiment" in `auto-research.md`; "How to choose among proposals" in `auto-research/EXPERIMENTS.md`; "What remains necessary for full replay" in `auto-research/RESEARCH_CATALOG.md` |
-| Review record | `auto-research/RUN_REGISTRY.json` (each run's approval, status, decision and links) and the merged PRs on the repo |
+| Review record | `auto-research/RUN_REGISTRY.json` (each run's approval, status, decision and links) and the merged PRs on the repo. Check both `runs` and `evidence_recoveries`: the later `minkron-fast-20261021-v1` entry is in `evidence_recoveries`. |
 | Result packages | `auto-research/results/<run_id>/` with `auto-research/reports/<run_id>.md`; layout under "Required result storage" in `auto-research.md` |
+| Later minKron evidence | `auto-research/reports/minkron-publication-20261021-v1.md` and `auto-research/reports/minkron-fast-20261021-v1.md`, with their matching result directories. The compact publication retains failed resource gates; the fast screen is exploratory, uses reused evaluation regions and an FP64 recurrence. Its omitted checkpoints/arrays have reconstruction requirements, not a public weight download. |
+| Indexed archive | `auto-research/results/all-experiments-archive-20261018-v1/README.md` and `SUMMARY.current.json`; `auto-research/results/checkpoint-upload-completion-20261022-v1/REPORT.md` supplies later completion receipts. Read current coverage/status and the draft-access limitation before requesting artifacts. |
 | Prior-failure rules | `auto-research/AGENT_PROMPTS.md`; read before proposing a change or reporting a result |
 | Coordination | GitHub Issues: a `[claim] <experiment or task>` issue for anything substantial (`CONTRIBUTING.md`, "Before you start"), a handoff issue or a focused PR for results (`AGENTS.md`, rule 5). Discussions aren't enabled. |
 | Credit | `CONTRIBUTING.md` ("Credit and AI disclosure"): useful contributions stay credited in `CONTRIBUTORS.md`, including ones later superseded or not merged; add yourself in your PR, and disclose AI assistance. `LICENSE` is MIT (third-party material keeps its own terms). |
@@ -146,6 +151,11 @@ maintainer's sessions; read it to see where the project is heading:
 - **Stage 0's gate** in `auto-research/SCALING_1B.md`: another agent can follow the
   reproduction instructions without hidden paths, missing imports, mutable seals or
   unexplained source substitutions.
+- **The later minKron reports**, linked above, add compact/common-decoder and small
+  CPU-screen evidence after the older catalogue entry. The fast report's "Decision"
+  names a faithful faster recurrence as its next engineering target; its precision
+  corrections and reused-region caveat remain part of that evidence. This is not a
+  general superiority or fully FP32 result.
 - **Each report's "Decision" section** (from `auto-research/REPORT_TEMPLATE.md`) names its
   next experiment and disconfirming control.
 
@@ -222,7 +232,19 @@ manifest. **What it shows:** stored evidence is unchanged since it was recorded.
 recomputes no metric, so it doesn't confirm any reported score; the headline numbers are
 measurements reported by the runs that made them. Some result folders have their own stored-evidence verifier, such as
 `auto-research/results/perturbation-annealing-publication-20261019-v1/verify_import.py`
-(standard library, no model execution). `python3 scripts/render_charts.py` rewrites
+(standard library, no model execution). The later minKron packages also have lightweight
+checks:
+
+```sh
+python3 auto-research/results/minkron-publication-20261021-v1/verify_import.py
+python3 auto-research/results/minkron-fast-20261021-v1/verify_run.py
+```
+
+These check included source/receipts, not a fresh model replay. The fast verifier's
+default mode does not inspect the omitted checkpoint/corpus bodies; a saved receipt
+from the original execution machine is not evidence that a donor restored them. Read
+each package's `RECONSTRUCTION_REQUIRED.md` before planning a separately approved replay.
+`python3 scripts/render_charts.py` rewrites
 the SVG charts in `graphs/` from `data/` (tracked files: run it in a scratch copy). Full replays need large release downloads, PyTorch and
 the steps in `auto-research/results/cloud-recovery-20261015/REPRODUCTION_RECOVERY.md`;
 they're evaluations, so they fall under the approval rule above.
@@ -232,11 +254,12 @@ they're evaluations, so they fall under the approval rule above.
 Before relying on this file, check what changed since it was written:
 
 ```sh
-git diff --stat 6f13c72..HEAD -- AGENTS.md CONTRIBUTING.md CONTRIBUTORS.md README.md LICENSE auto-research.md FUNCTION_WEIGHTS_HANDOFF.md MANIFEST.sha256.json evidence/publication_audit.json scripts/verify_evidence.py scripts/render_charts.py auto-research/README.md auto-research/EXPERIMENTS.md auto-research/SCALING_1B.md auto-research/RESEARCH_CATALOG.md auto-research/AGENT_PROMPTS.md auto-research/PROTOCOL_TEMPLATE.json auto-research/REPORT_TEMPLATE.md auto-research/RUN_REGISTRY.json auto-research/results/README.md auto-research/graphs/README.md auto-research/results/recovered-20261015/DOWNLOAD_INPUTS.md auto-research/results/cloud-recovery-20261015/README.md auto-research/results/cloud-recovery-20261015/REPRODUCTION_RECOVERY.md auto-research/results/cloud-recovery-20261015/RUNTIME_REPLAY.md auto-research/results/perturbation-annealing-publication-20261019-v1/verify_import.py auto-research/reports/matched-scratch-fineweb-20261017-v1.md auto-research/reports/external-curve-memory-review-20261016-v1.md auto-research/research-scratch checkpoints data
+git diff --stat 847bb75..HEAD -- AGENTS.md CONTRIBUTING.md CONTRIBUTORS.md README.md LICENSE auto-research.md FUNCTION_WEIGHTS_HANDOFF.md MANIFEST.sha256.json evidence/publication_audit.json scripts/verify_evidence.py scripts/render_charts.py checkpoints data auto-research/README.md auto-research/EXPERIMENTS.md auto-research/SCALING_1B.md auto-research/RESEARCH_CATALOG.md auto-research/AGENT_PROMPTS.md auto-research/PROTOCOL_TEMPLATE.json auto-research/REPORT_TEMPLATE.md auto-research/RUN_REGISTRY.json auto-research/results/README.md auto-research/graphs/README.md auto-research/results/recovered-20261015/DOWNLOAD_INPUTS.md auto-research/results/cloud-recovery-20261015/README.md auto-research/results/cloud-recovery-20261015/REPRODUCTION_RECOVERY.md auto-research/results/cloud-recovery-20261015/RUNTIME_REPLAY.md auto-research/results/perturbation-annealing-publication-20261019-v1/verify_import.py auto-research/reports/matched-scratch-fineweb-20261017-v1.md auto-research/reports/external-curve-memory-review-20261016-v1.md auto-research/results/minkron-publication-20261021-v1 auto-research/results/minkron-fast-20261021-v1 auto-research/results/all-experiments-archive-20261018-v1 auto-research/results/checkpoint-upload-completion-20261022-v1 auto-research/reports/minkron-publication-20261021-v1.md auto-research/reports/minkron-fast-20261021-v1.md auto-research/research-scratch
 ```
 
-If HEAD is still `6f13c72`, nothing has drifted. Otherwise the clone needs history back
-to it; after a shallow clone, run `git fetch --shallow-since=2026-10-19` first. If something here is now wrong (an entry
+If HEAD is still `847bb75`, nothing has drifted. Otherwise make sure the pinned
+commit is available; after a shallow clone, run
+`git fetch --depth 1 origin 847bb75042e01b2c879272f97e72746f285c8872` first. If something here is now wrong (an entry
 file, a contributing guide, a credit policy, a channel, changed permissions), report it:
 
 - **With permission to open PRs:** open one on
@@ -255,8 +278,8 @@ Never change the project's repository to match this file.
   "project": "super-1",
   "repo": "rohanarun/Super-1",
   "as_of": {
-    "commit": "6f13c725b95765e94555acc70fc08a8b1a724aba",
-    "date": "2026-10-20"
+    "commit": "847bb75042e01b2c879272f97e72746f285c8872",
+    "date": "2026-10-23"
   },
   "paths": [
     "AGENTS.md",
@@ -289,6 +312,12 @@ Never change the project's repository to match this file.
     "auto-research/results/perturbation-annealing-publication-20261019-v1/verify_import.py",
     "auto-research/reports/matched-scratch-fineweb-20261017-v1.md",
     "auto-research/reports/external-curve-memory-review-20261016-v1.md",
+    "auto-research/results/minkron-publication-20261021-v1",
+    "auto-research/results/minkron-fast-20261021-v1",
+    "auto-research/results/all-experiments-archive-20261018-v1",
+    "auto-research/results/checkpoint-upload-completion-20261022-v1",
+    "auto-research/reports/minkron-publication-20261021-v1.md",
+    "auto-research/reports/minkron-fast-20261021-v1.md",
     "auto-research/research-scratch"
   ],
   "manifest": {
