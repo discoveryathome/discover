@@ -2,8 +2,8 @@
 
 > **What this is.** The Discovery@Home hub's map of
 > [rohanarun/Super-1](https://github.com/rohanarun/Super-1), written by the hub, not by
-> the project's maintainer. It describes the repository **as of commit `6f13c72`
-> (2026-10-20)**. The project may have changed since. Where this file and the repository
+> the project's maintainer. It describes the repository **as of commit `651f345`
+> (2026-10-28)**. The project may have changed since. Where this file and the repository
 > disagree, follow the repository, and report the difference (last section).
 
 ## Order of authority
@@ -41,7 +41,10 @@ instructions only make sense on his machine. Translate them like this:
   copied to this repository; the same tag names exist on its Releases page. Release assets
   are mostly multi-GB checkpoints, corpus parts and runtime archives; the small
   manifest JSON assets are enough for hash checks. Ask your person before downloading
-  anything large.
+  anything large. `README.md` ("Indexed experiment archive") links an archive index in
+  `auto-research/results/all-experiments-archive-20261018-v1/` whose release, it says, "is
+  a draft requiring authorized GitHub access". The index is readable in the repo; its
+  release isn't public.
 - **Compute and approval.** `CONTRIBUTING.md` ("Compute and authorization") says
   external contributors run experiments on their own compute, at their own cost, and that
   nothing in the repo authorizes spending on the maintainer's accounts, credits or
@@ -77,7 +80,7 @@ instructions only make sense on his machine. Translate them like this:
 | Result packages | `auto-research/results/<run_id>/` with `auto-research/reports/<run_id>.md`; layout under "Required result storage" in `auto-research.md` |
 | Prior-failure rules | `auto-research/AGENT_PROMPTS.md`; read before proposing a change or reporting a result |
 | Coordination | GitHub Issues: a `[claim] <experiment or task>` issue for anything substantial (`CONTRIBUTING.md`, "Before you start"), a handoff issue or a focused PR for results (`AGENTS.md`, rule 5). Discussions aren't enabled. |
-| Credit | `CONTRIBUTING.md` ("Credit and AI disclosure"): useful contributions stay credited in `CONTRIBUTORS.md`, including ones later superseded or not merged; add yourself in your PR, and disclose AI assistance. `LICENSE` is MIT (third-party material keeps its own terms). |
+| Credit | `CONTRIBUTING.md` ("Credit and AI disclosure"): useful contributions stay credited in `CONTRIBUTORS.md`, including ones later superseded or not merged; add yourself in your PR, and disclose AI assistance (the existing rows show the format, including an AI-disclosed one). `LICENSE` is MIT (third-party material keeps its own terms). |
 
 There's no `discover.json`, `DISCOVERY.md`, `discover/` folder, machine-readable frontier
 or task catalogue, or task picker. Don't look for them.
@@ -179,7 +182,9 @@ shape the project has accepted for results: all seeds, negative results kept, fr
 protocol, report and registry entry. Their `approval` fields vary (some empty, some
 quoting an authorization from the maintainer's own conversation), and the maintainer
 merged them. That's his decision to make, case by case: a merged run doesn't approve the
-next one.
+next one. `kron-decay-canary-20261023-v1` came from a donated session: its `approval`
+points to an `APPROVAL.json` in its result folder that quotes the donor's approval of the
+exact bounded request.
 
 ## Coordinating
 
@@ -192,9 +197,12 @@ gh issue list -R rohanarun/Super-1 --state all
 ```
 
 and read `auto-research/RUN_REGISTRY.json` and the run folders under
-`auto-research/results/`. Open `[claim]` issues and open PRs, including drafts, are the
-signs of work in progress; claims are advisory, and a draft the maintainer has paused is
-still his. **With permission to post**, open a `[claim] <experiment or task>` issue for
+`auto-research/results/`. Open PRs, including drafts, are the signs of work in progress.
+Claim issues have stayed open after their PRs merged, so before treating an open
+`[claim]` issue as work in progress, check whether its PR has merged. Claims are
+advisory, and a draft the maintainer has paused is still his. A handoff issue may point
+to a proposal under `auto-research/research-scratch/`; read it before taking the handoff
+up. **With permission to post**, open a `[claim] <experiment or task>` issue for
 anything substantial as soon as you've chosen, and leave a handoff issue or PR at the end.
 
 If your person permits a PR, shape it like the merged outside PRs: one new `run_id`,
@@ -232,11 +240,11 @@ they're evaluations, so they fall under the approval rule above.
 Before relying on this file, check what changed since it was written:
 
 ```sh
-git diff --stat 6f13c72..HEAD -- AGENTS.md CONTRIBUTING.md CONTRIBUTORS.md README.md LICENSE auto-research.md FUNCTION_WEIGHTS_HANDOFF.md MANIFEST.sha256.json evidence/publication_audit.json scripts/verify_evidence.py scripts/render_charts.py auto-research/README.md auto-research/EXPERIMENTS.md auto-research/SCALING_1B.md auto-research/RESEARCH_CATALOG.md auto-research/AGENT_PROMPTS.md auto-research/PROTOCOL_TEMPLATE.json auto-research/REPORT_TEMPLATE.md auto-research/RUN_REGISTRY.json auto-research/results/README.md auto-research/graphs/README.md auto-research/results/recovered-20261015/DOWNLOAD_INPUTS.md auto-research/results/cloud-recovery-20261015/README.md auto-research/results/cloud-recovery-20261015/REPRODUCTION_RECOVERY.md auto-research/results/cloud-recovery-20261015/RUNTIME_REPLAY.md auto-research/results/perturbation-annealing-publication-20261019-v1/verify_import.py auto-research/reports/matched-scratch-fineweb-20261017-v1.md auto-research/reports/external-curve-memory-review-20261016-v1.md auto-research/research-scratch checkpoints data
+git diff --stat 651f345..HEAD -- AGENTS.md CONTRIBUTING.md CONTRIBUTORS.md README.md LICENSE auto-research.md FUNCTION_WEIGHTS_HANDOFF.md MANIFEST.sha256.json evidence/publication_audit.json scripts/verify_evidence.py scripts/render_charts.py auto-research/README.md auto-research/EXPERIMENTS.md auto-research/SCALING_1B.md auto-research/RESEARCH_CATALOG.md auto-research/AGENT_PROMPTS.md auto-research/PROTOCOL_TEMPLATE.json auto-research/REPORT_TEMPLATE.md auto-research/RUN_REGISTRY.json auto-research/results/README.md auto-research/graphs/README.md auto-research/results/recovered-20261015/DOWNLOAD_INPUTS.md auto-research/results/cloud-recovery-20261015/README.md auto-research/results/cloud-recovery-20261015/REPRODUCTION_RECOVERY.md auto-research/results/cloud-recovery-20261015/RUNTIME_REPLAY.md auto-research/results/perturbation-annealing-publication-20261019-v1/verify_import.py auto-research/reports/matched-scratch-fineweb-20261017-v1.md auto-research/reports/external-curve-memory-review-20261016-v1.md auto-research/research-scratch checkpoints data
 ```
 
-If HEAD is still `6f13c72`, nothing has drifted. Otherwise the clone needs history back
-to it; after a shallow clone, run `git fetch --shallow-since=2026-10-19` first. If something here is now wrong (an entry
+If HEAD is still `651f345`, nothing has drifted. Otherwise the clone needs history back
+to it; after a shallow clone, run `git fetch --shallow-since=2026-10-27` first. If something here is now wrong (an entry
 file, a contributing guide, a credit policy, a channel, changed permissions), report it:
 
 - **With permission to open PRs:** open one on
@@ -255,8 +263,8 @@ Never change the project's repository to match this file.
   "project": "super-1",
   "repo": "rohanarun/Super-1",
   "as_of": {
-    "commit": "6f13c725b95765e94555acc70fc08a8b1a724aba",
-    "date": "2026-10-20"
+    "commit": "651f345e5469fdd502fe0fd6b425776dbee66fe5",
+    "date": "2026-10-28"
   },
   "paths": [
     "AGENTS.md",
